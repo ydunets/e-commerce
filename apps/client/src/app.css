@@ -1,7 +1,10 @@
 @import "tailwindcss";
 
-/* StyleNest design tokens (ported from ui-kit/tailwind.config.js). */
+/* Design tokens reconciled with the Figma design system
+   (product-details-section-figma, node 1:1588). Each maps to a Figma
+   variable; prefer the semantic tokens over raw hex or the gray scale. */
 @theme {
+  /* Cool gray scale (legacy; a follow-up migrates these to Figma's neutral scale). */
   --color-gray-100: #f9fafb;
   --color-gray-200: #d2d6db;
   --color-gray-300: #9ca3af;
@@ -9,27 +12,45 @@
   --color-gray-500: #4b5563;
   --color-gray-600: #374151;
 
-  /* Semantic tokens. Prefer these over raw hex values. */
-  --color-ink: #171717; /* headings / primary text */
-  --color-muted: #525252; /* secondary text & icons */
-  --color-line: #e5e7eb; /* hairline borders */
-  --color-surface: #f3f4f6; /* media / placeholder backgrounds */
-  --color-brand: #4338ca; /* primary action, links, focus ring, selection */
-  --color-brand-dark: #3730a3; /* primary hover */
-  --color-star: #f9cb15; /* rating stars */
-  --color-sale: #c8870c; /* discount badge text */
-  --color-sale-soft: #fdf1dd; /* discount badge background */
-  --color-danger: #dc2626; /* error text */
+  /* Neutrals */
+  --color-ink-strong: #0a0a0a; /* neutral-950 · Background/primary-inverted, Text/primary-hover */
+  --color-ink: #171717; /* neutral-900 · Text/primary */
+  --color-muted: #525252; /* neutral-600 · Text/secondary */
+  --color-disabled: #a3a3a3; /* neutral-400 · Text/disabled, Icon/primary */
+  --color-line: #e5e5e5; /* neutral-200 · Border/primary */
+  --color-surface: #f5f5f5; /* neutral-100 · Background/disabled */
+
+  /* Brand */
+  --color-brand: #4338ca; /* indigo-700 · Background/brand-primary */
+  --color-brand-dark: #3730a3; /* indigo-800 · Background/brand-primary-emphasize */
+  --color-brand-solid: #4f46e5; /* indigo-600 · Border/brand-solid (selected) */
+  --color-focus: #444ce7; /* focus ring */
+
+  /* Status */
+  --color-star: #facc15; /* yellow-400 · Icon/warning (rating) */
+  --color-warning: #b45309; /* amber-700 · Text/warning (discount) */
+  --color-warning-soft: #fffbeb; /* amber-50 · Background/warning-subtle */
+  --color-warning-line: #fde68a; /* amber-200 · Border/warning-subtle */
+  --color-success: #15803d; /* green-700 · Text/success */
+  --color-success-soft: #f0fdf4; /* green-50 · Background/success-subtle */
+  --color-success-line: #bbf7d0; /* green-200 · Border/success */
+  --color-danger: #dc2626; /* red-600 · error text */
+  --color-danger-soft: #fef2f2; /* red-50 · Background/danger-subtle */
+  --color-danger-line: #fecaca; /* red-200 · Border/danger */
 
   --font-sans:
     "Noto Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
 
-/* Shared keyboard-focus affordance. The ring follows the element's own
+/* Shared keyboard-focus affordance, matching Figma's focus-band: a 1px solid
+   ring plus a 4px translucent halo. box-shadow follows the element's own
    border-radius, so it works on pills, circles and inputs alike. */
 @utility focus-ring {
-  @apply outline-hidden ring-2 ring-brand ring-offset-2;
+  outline: none;
+  box-shadow:
+    0 0 0 1px var(--color-focus),
+    0 0 0 4px color-mix(in srgb, var(--color-focus) 12%, transparent);
 }
 
 body {

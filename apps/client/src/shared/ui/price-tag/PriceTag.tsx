@@ -1,3 +1,4 @@
+import { Badge } from '@/shared/ui/badge';
 import styles from './PriceTag.module.css';
 
 export type TPriceTagProps = {
@@ -27,7 +28,7 @@ export const PriceTag = ({
         )}
       </div>
       {hasDiscount && (
-        <span className={styles.badge}>{discountPercentage}% OFF</span>
+        <Badge variant="warning">{discountPercentage}% OFF</Badge>
       )}
     </div>
   );

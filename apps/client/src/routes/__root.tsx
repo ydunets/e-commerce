@@ -57,7 +57,7 @@ function RootComponent() {
           links={[
             { label: 'Home', href: '/' },
             {
-              label: 'Voyager Hoodie',
+              label: 'Products',
               href: '/products/$productId',
               params: { productId: 'voyager-hoodie' },
             },

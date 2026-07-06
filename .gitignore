@@ -1,0 +1,30 @@
+# Local
+.DS_Store
+*.local
+*.log*
+
+# Dist
+node_modules
+dist/
+
+# Profile
+.rspack-profile-*/
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+*storybook.log
+storybook-static
+
+# Agent skills
+.agents/
+skills-lock.json
+
+# Local agent settings
+.claude/settings.local.json
+
+# Playwright
+test-results/
+playwright-report/

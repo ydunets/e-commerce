@@ -1,0 +1,25 @@
+{
+  "name": "e-commerce",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.10.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @e-commerce/client --filter @e-commerce/server run dev",
+    "dev:client": "pnpm --filter @e-commerce/client dev",
+    "build": "pnpm --filter @e-commerce/client build",
+    "preview": "pnpm --filter @e-commerce/client preview",
+    "test": "pnpm --filter @e-commerce/client test",
+    "check": "pnpm -r --parallel --aggregate-output run check",
+    "e2e": "pnpm --filter @e-commerce/e2e test",
+    "e2e:ui": "pnpm --filter @e-commerce/e2e test:ui",
+    "check:client": "pnpm --filter @e-commerce/client check",
+    "format": "pnpm --filter @e-commerce/client format",
+    "storybook": "pnpm --filter @e-commerce/storybook storybook",
+    "build-storybook": "pnpm --filter @e-commerce/storybook build",
+    "api": "pnpm --filter @e-commerce/server start",
+    "api:check": "pnpm --filter @e-commerce/server check"
+  }
+}

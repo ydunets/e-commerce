@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ssr-dev",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--experimental-vm-modules", "apps/client/ssr/dev.mjs"],
+      "port": 5173
+    }
+  ]
+}

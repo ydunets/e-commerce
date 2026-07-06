@@ -1,0 +1,19 @@
+{
+  "name": "@e-commerce/storybook",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "storybook": "storybook dev -p 6006",
+    "build": "storybook build",
+    "check": "storybook build"
+  },
+  "devDependencies": {
+    "@rsbuild/core": "^2.1.4",
+    "@storybook/addon-docs": "^10.4.6",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "storybook": "^10.4.6",
+    "storybook-react-rsbuild": "^3.3.4"
+  }
+}

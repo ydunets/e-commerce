@@ -1,0 +1,6 @@
+# Build output
+dist/
+
+# Local
+*.local
+*.log*

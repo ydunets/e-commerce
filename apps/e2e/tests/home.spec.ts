@@ -4,6 +4,7 @@ import { gotoHydrated, PRODUCT, ROUTES } from './helpers';
 const HERO_HEADING = { name: 'Discover the StyleNest collection' } as const;
 const SHOP_LINK = { name: `Shop the ${PRODUCT.name}` } as const;
 const MAIN_NAV = { name: 'Main' } as const;
+const NAV_PRODUCTS = 'Products';
 
 test('renders the server-side markup before any JS runs', async ({ page }) => {
   // Block scripts: what remains is exactly what the server sent.
@@ -21,7 +22,7 @@ test('shows the hero and the desktop navigation', async ({ page }) => {
 
   const nav = page.getByRole('navigation', MAIN_NAV);
   await expect(nav.getByRole('link', { name: 'Home' })).toBeVisible();
-  await expect(nav.getByRole('link', { name: PRODUCT.name })).toBeVisible();
+  await expect(nav.getByRole('link', { name: NAV_PRODUCTS })).toBeVisible();
   await expect(nav.getByRole('link', { name: 'About' })).toBeVisible();
 });
 

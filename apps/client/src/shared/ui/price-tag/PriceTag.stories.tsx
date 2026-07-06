@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { PriceTag } from './PriceTag';
+
+const meta = {
+  title: 'Shared/PriceTag',
+  component: PriceTag,
+} satisfies Meta<typeof PriceTag>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const OnSale: Story = {
+  args: { salePrice: 76, listPrice: 95, discountPercentage: 20 },
+};
+
+export const FullPrice: Story = {
+  args: { salePrice: 95, listPrice: 95, discountPercentage: null },
+};

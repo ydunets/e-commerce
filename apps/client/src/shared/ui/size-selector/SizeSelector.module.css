@@ -1,0 +1,22 @@
+@reference "../../../app.css";
+
+.root {
+  @apply flex flex-wrap gap-3;
+}
+
+.size {
+  @apply flex h-12 min-w-[64px] flex-1 cursor-pointer items-center justify-center rounded-lg border border-gray-200 bg-white px-4 text-base font-medium text-ink transition-colors;
+  @apply hover:border-gray-300;
+}
+
+.size:focus-visible {
+  @apply focus-ring;
+}
+
+.selected {
+  @apply border-brand text-brand;
+}
+
+.disabled {
+  @apply cursor-not-allowed border-line bg-gray-100 text-gray-200 hover:border-line;
+}

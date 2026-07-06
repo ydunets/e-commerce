@@ -1,0 +1,21 @@
+@reference "../../../app.css";
+
+.root {
+  @apply flex flex-col items-start gap-2;
+}
+
+.prices {
+  @apply flex items-baseline gap-2;
+}
+
+.sale {
+  @apply text-3xl font-semibold leading-none text-ink;
+}
+
+.list {
+  @apply text-lg font-normal text-gray-300 line-through;
+}
+
+.badge {
+  @apply rounded-md bg-sale-soft px-2 py-1 text-sm font-medium text-sale;
+}

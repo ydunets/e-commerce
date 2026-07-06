@@ -1,0 +1,46 @@
+@reference "../../../app.css";
+
+.root {
+  @apply w-full rounded-2xl bg-white p-6 shadow-xs lg:p-10;
+}
+
+.layout {
+  @apply grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12;
+}
+
+.info {
+  @apply flex flex-col gap-6;
+}
+
+.title {
+  @apply text-3xl font-semibold leading-tight text-ink lg:text-4xl;
+}
+
+.description {
+  @apply text-base leading-6 text-muted;
+}
+
+.field {
+  @apply flex flex-col gap-3;
+}
+
+.label {
+  @apply text-sm text-muted;
+}
+
+.outOfStock {
+  @apply text-lg font-semibold text-ink;
+}
+
+.addToCart {
+  @apply w-full rounded-lg bg-brand px-6 py-3.5 text-base font-medium text-white transition-colors;
+  @apply hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-line disabled:text-gray-300;
+}
+
+.addToCart:focus-visible {
+  @apply focus-ring;
+}
+
+.accordions {
+  @apply mt-2 flex flex-col;
+}

@@ -1,0 +1,31 @@
+@reference "../../../app.css";
+
+.root {
+  @apply border-t border-line py-5;
+}
+
+.summary {
+  @apply flex cursor-pointer list-none items-center justify-between text-lg font-medium text-ink;
+}
+
+/* Remove the default disclosure triangle */
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary:focus-visible {
+  @apply focus-ring rounded-sm;
+}
+
+.icon {
+  @apply h-6 w-6 shrink-0 text-gray-300;
+}
+
+/* Hide the vertical stroke when open → the "+" becomes a "−". */
+.root[open] .iconVertical {
+  display: none;
+}
+
+.list {
+  @apply mt-4 flex list-disc flex-col gap-2 pl-5 text-base leading-6 text-muted;
+}

@@ -1,0 +1,75 @@
+@reference "../../../app.css";
+
+.root {
+  @apply flex flex-wrap items-center gap-4;
+}
+
+.swatch {
+  @apply relative h-10 w-10 cursor-pointer rounded-full transition-shadow;
+}
+
+.swatch:focus-visible {
+  @apply focus-ring;
+}
+
+.selected {
+  @apply z-10;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px currentColor;
+}
+
+.check {
+  @apply absolute inset-0 m-auto h-5 w-5 text-white;
+}
+
+.disabled {
+  @apply cursor-not-allowed opacity-60;
+}
+
+.disabled::after {
+  content: "";
+  @apply absolute inset-0 m-auto h-[2px] w-[120%] -translate-x-[10%] rotate-45 bg-muted;
+}
+
+/* Swatch fills; `color` also drives the selected ring (currentColor). */
+.swatch[data-color="green"] {
+  color: #2cc190;
+  background-color: #2cc190;
+}
+.swatch[data-color="brown"] {
+  color: #c8870c;
+  background-color: #c8870c;
+}
+.swatch[data-color="blue"] {
+  color: #3b82f6;
+  background-color: #3b82f6;
+}
+.swatch[data-color="white"] {
+  color: #d2d6db;
+  background-color: #f3f4f6;
+}
+.swatch[data-color="black"] {
+  color: #171717;
+  background-color: #171717;
+}
+.swatch[data-color="red"] {
+  color: #ef4444;
+  background-color: #ef4444;
+}
+.swatch[data-color="orange"] {
+  color: #f97316;
+  background-color: #f97316;
+}
+.swatch[data-color="yellow"] {
+  color: #facc15;
+  background-color: #facc15;
+}
+.swatch[data-color="pink"] {
+  color: #ec4899;
+  background-color: #ec4899;
+}
+.swatch[data-color="purple"] {
+  color: #a855f7;
+  background-color: #a855f7;
+}

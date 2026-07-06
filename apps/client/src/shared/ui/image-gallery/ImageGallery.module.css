@@ -1,0 +1,33 @@
+@reference "../../../app.css";
+
+.root {
+  @apply flex flex-col gap-4;
+}
+
+.mainWrap {
+  @apply aspect-square w-full overflow-hidden rounded-2xl bg-surface;
+}
+
+.main {
+  @apply h-full w-full object-cover;
+}
+
+.thumbs {
+  @apply flex gap-4 overflow-x-auto pb-1;
+}
+
+.thumb {
+  @apply h-[88px] w-[88px] shrink-0 cursor-pointer rounded-xl border-2 border-transparent p-0.5 transition-colors;
+}
+
+.thumb:focus-visible {
+  @apply focus-ring;
+}
+
+.thumbActive {
+  @apply border-brand;
+}
+
+.thumbImage {
+  @apply h-full w-full rounded-lg bg-surface object-cover;
+}

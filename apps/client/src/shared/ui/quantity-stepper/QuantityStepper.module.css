@@ -1,0 +1,38 @@
+@reference "../../../app.css";
+
+.root {
+  @apply inline-flex items-center rounded-lg border border-gray-200 bg-white;
+}
+
+.disabled {
+  @apply opacity-60;
+}
+
+.button {
+  @apply flex h-10 w-10 items-center justify-center text-muted transition-colors;
+  @apply hover:text-ink disabled:cursor-not-allowed disabled:text-gray-200;
+}
+
+.button:focus-visible {
+  @apply outline-hidden ring-2 ring-inset ring-brand;
+}
+
+.icon {
+  @apply h-5 w-5;
+}
+
+.value {
+  @apply min-w-8 select-none text-center text-base text-ink;
+}
+
+.plusWrap {
+  @apply relative flex;
+}
+
+.tooltip {
+  @apply pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs text-white opacity-0 transition-opacity;
+}
+
+.plusWrap:hover .tooltip {
+  @apply opacity-100;
+}

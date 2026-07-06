@@ -1,0 +1,141 @@
+@reference "../../../app.css";
+
+/*
+ * StyleNest e-commerce navbar.
+ * Colors taken directly from the reference designs: neutral-600 (#525252) for
+ * inline links / icons, near-black (#171717) for the logo + drawer links, and
+ * the indigo brand accent (#6366f1) for focus rings and drawer hover.
+ *
+ * Breakpoint note: inline links collapse into the hamburger drawer below `lg`
+ * (1024px). The reference Tablet (768px) shows the hamburger and Desktop shows
+ * inline links, so the exact switch point is an assumption within (768, 1440].
+ */
+
+.root {
+  @apply w-full;
+}
+
+.container {
+  @apply mx-auto flex max-w-[1280px] items-center justify-between px-4 py-5 md:px-8 lg:py-7;
+}
+
+.leftCluster {
+  @apply flex items-center gap-x-10 lg:gap-x-14;
+}
+
+.brand {
+  @apply flex shrink-0 items-center rounded-sm;
+}
+
+.logo {
+  @apply h-8 w-auto;
+}
+
+.desktopNav {
+  @apply hidden lg:block;
+}
+
+.navList {
+  @apply flex list-none items-center gap-x-8;
+}
+
+.link {
+  @apply font-medium text-base leading-6 text-muted transition-colors hover:text-ink;
+}
+
+.actions {
+  @apply flex items-center gap-x-2;
+}
+
+.iconButton {
+  @apply inline-flex cursor-pointer items-center justify-center rounded-sm border-0 bg-transparent p-1 text-muted transition-colors hover:text-ink;
+}
+
+.menuButton {
+  @apply lg:hidden;
+}
+
+.icon {
+  @apply h-6 w-6;
+}
+
+/* Keyboard focus affordance */
+.link:focus-visible,
+.iconButton:focus-visible,
+.brand:focus-visible,
+.drawerLink:focus-visible {
+  @apply focus-ring;
+}
+
+/*
+ * Mobile drawer — rendered as a native <dialog> opened with showModal().
+ * The transform/overlay/display transitions (plus @starting-style) animate the
+ * slide-in even though the dialog toggles `display` on open/close.
+ * Requires Baseline-2024 browsers (Chrome 116+, Safari 17.4+, Firefox 129+).
+ */
+/* Lock background scroll while the drawer is open — no JS/Effect needed.
+   Scoped to the navbar's own dialog via the data attribute. */
+:global(body:has(dialog[data-navbar-drawer][open])) {
+  overflow: hidden;
+}
+
+.drawer {
+  @apply fixed left-0 top-0 m-0 h-dvh max-h-none w-[calc(100%-1.5rem)] max-w-md border-0 bg-white p-0 shadow-xl;
+  transform: translateX(-100%);
+  transition:
+    transform 200ms ease-out,
+    overlay 200ms ease-out allow-discrete,
+    display 200ms ease-out allow-discrete;
+}
+
+.drawer[open] {
+  transform: translateX(0);
+}
+
+/* Entry animation: start off-screen, then transition to the [open] position. */
+@starting-style {
+  .drawer[open] {
+    transform: translateX(-100%);
+  }
+}
+
+.drawer::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition:
+    opacity 200ms ease-out,
+    overlay 200ms ease-out allow-discrete,
+    display 200ms ease-out allow-discrete;
+}
+
+.drawer[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  .drawer[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* Inner wrapper holds the padding so clicks on the dialog's own box (the
+   backdrop) are distinguishable from clicks on the content. */
+.drawerInner {
+  @apply flex h-full flex-col px-6 py-5;
+}
+
+.drawerHeader {
+  @apply flex items-center justify-between;
+}
+
+.drawerNav {
+  @apply mt-8;
+}
+
+.drawerList {
+  @apply flex list-none flex-col gap-y-6;
+}
+
+.drawerLink {
+  @apply rounded-sm text-xl leading-7 text-ink transition-colors hover:text-brand;
+}

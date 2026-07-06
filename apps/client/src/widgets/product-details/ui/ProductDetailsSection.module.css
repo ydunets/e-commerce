@@ -1,0 +1,9 @@
+@reference "../../../app.css";
+
+.status {
+  @apply w-full rounded-2xl bg-white p-10 text-center text-base text-muted shadow-xs;
+}
+
+.error {
+  @apply w-full rounded-2xl bg-white p-10 text-center text-base text-danger shadow-xs;
+}

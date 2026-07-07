@@ -27,6 +27,8 @@ So plan for **compute ≈ $0**, **DB ≈ free for 12 months, then ~$13/month**.
 ## Prerequisites
 
 - Azure CLI (`az`) logged in (`az login`), and you are **Owner** of the subscription (confirmed).
+  Run `az upgrade` first: an outdated CLI rejects newer flags (e.g. `--database-name`,
+  `--public-network-access`) with "unrecognized arguments".
 - The images exist in GHCR. They are published by [`docker-images.yml`](../.github/workflows/docker-images.yml)
   on push to `main`, so **merge the deploy PR first**, then provision.
 

@@ -20,6 +20,9 @@ const schema = Type.Object({
   POSTGRES_PASSWORD: Type.String(),
   POSTGRES_USER: Type.String(),
   POSTGRES_DB: Type.String(),
+  // Local Postgres runs without TLS; managed Postgres (e.g. Azure) requires it.
+  // postgres.js maps this URL sslmode to its `ssl` option automatically.
+  POSTGRES_SSLMODE: Type.String({ default: 'disable' }),
   LOG_LEVEL: Type.Enum(LogLevel),
   NODE_ENV: Type.Enum(NodeEnv),
   HOST: Type.String({ default: 'localhost' }),
@@ -44,6 +47,6 @@ export default {
     port: env.PORT,
   },
   db: {
-    url: `postgres://${env.POSTGRES_USER}:${env.POSTGRES_PASSWORD}@${env.POSTGRES_URL}/${env.POSTGRES_DB}?sslmode=disable`,
+    url: `postgres://${env.POSTGRES_USER}:${env.POSTGRES_PASSWORD}@${env.POSTGRES_URL}/${env.POSTGRES_DB}?sslmode=${env.POSTGRES_SSLMODE}`,
   },
 };

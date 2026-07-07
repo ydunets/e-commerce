@@ -14,6 +14,8 @@
     "test": "pnpm --filter @e-commerce/client test",
     "check": "pnpm -r --parallel --aggregate-output run check",
     "e2e": "pnpm --filter @e-commerce/e2e test",
+    "e2e:desktop": "pnpm --filter @e-commerce/e2e test:desktop",
+    "e2e:mobile": "pnpm --filter @e-commerce/e2e test:mobile",
     "e2e:ui": "pnpm --filter @e-commerce/e2e test:ui",
     "check:client": "pnpm --filter @e-commerce/client check",
     "format": "pnpm --filter @e-commerce/client format",

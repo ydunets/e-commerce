@@ -1,0 +1,30 @@
+# .github/actions/setup/action.yml
+# Composite action: install pnpm + Node (with pnpm cache) and install the
+# workspace with a frozen lockfile. Shared by every job that needs deps.
+
+name: Setup workspace
+description: Install pnpm and Node with cache, then install the workspace with a frozen lockfile.
+
+inputs:
+  node-version:
+    description: Node.js version to use.
+    required: false
+    default: '24'
+
+runs:
+  using: composite
+  steps:
+    # pnpm MUST be set up before setup-node, otherwise `cache: pnpm` cannot find it.
+    # Version is read from the root package.json `packageManager` field, so none is passed here.
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v6
+
+    - name: Setup Node
+      uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: pnpm
+
+    - name: Install
+      run: pnpm install --frozen-lockfile
+      shell: bash

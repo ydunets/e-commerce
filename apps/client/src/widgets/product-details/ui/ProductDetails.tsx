@@ -1,6 +1,7 @@
 import type { Product } from '@/entities/product';
 import { squareImage } from '@/shared/lib/image';
 import { Accordion } from '@/shared/ui/accordion';
+import { Button } from '@/shared/ui/button';
 import { ColorSwatches } from '@/shared/ui/color-swatches';
 import { ImageGallery } from '@/shared/ui/image-gallery';
 import { PriceTag } from '@/shared/ui/price-tag';
@@ -99,13 +100,9 @@ export const ProductDetails = ({
             </p>
           )}
 
-          <button
-            type="button"
-            className={styles.addToCart}
-            disabled={isOutOfStock}
-          >
+          <Button size="xl" className="w-full" disabled={isOutOfStock}>
             Add to Cart
-          </button>
+          </Button>
 
           <div className={styles.accordions}>
             {product.info.map((section) => (

@@ -15,7 +15,3 @@
 .list {
   @apply text-lg font-normal text-gray-300 line-through;
 }
-
-.badge {
-  @apply rounded-md bg-sale-soft px-2 py-1 text-sm font-medium text-sale;
-}

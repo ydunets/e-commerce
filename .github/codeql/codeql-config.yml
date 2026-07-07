@@ -1,0 +1,16 @@
+# CodeQL config for the monorepo. Scans app source; skips build outputs,
+# vendored reference snippets, tests, and generated artifacts.
+
+name: CodeQL config (monorepo)
+
+paths-ignore:
+  - '**/node_modules'
+  - '**/dist'
+  - '**/storybook-static'
+  - '**/coverage'
+  - '**/test-results'
+  - '**/playwright-report'
+  - 'examples'
+  - 'docs'
+  - '**/*.spec.ts'
+  - '**/*.stories.tsx'

@@ -86,8 +86,12 @@ Downloads the Chromium build Playwright drives (~95 MB, cached in `~/Library/Cac
 
 ```bash
 pnpm e2e            # whole suite: desktop + mobile projects (~10s when servers are warm)
+pnpm e2e:desktop    # desktop-chromium project only (skips the 2 mobile specs)
+pnpm e2e:mobile     # mobile-chromium project only (the mobile-*.spec.ts files)
 pnpm e2e:ui         # interactive UI mode (watch, pick tests, time-travel DOM)
 ```
+
+Scope narrower by appending a file or `-g <title>` to any of these, e.g. `pnpm e2e:desktop tests/product-details.spec.ts`. Rule of thumb: single route/spec → run that file; shared component, tokens, or `__root` → run the full `pnpm e2e` (a shared change often fails a *different* spec than the one you edited).
 
 Nothing needs to be started beforehand — the suite is self-provisioning:
 

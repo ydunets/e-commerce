@@ -1,0 +1,37 @@
+# .github/actions/build-client/action.yml
+# Composite action: set up the workspace, build the SSR client, and upload
+# its dist/ output as an artifact. Consumed by the reusable _build.yml workflow.
+
+name: Build client
+description: Set up the pnpm workspace, build the SSR client, and upload the dist artifact.
+
+inputs:
+  node-version:
+    description: Node.js version to use for the build.
+    required: false
+    default: '24'
+  artifact-name:
+    description: Name to give the uploaded build artifact.
+    required: false
+    default: dist
+
+runs:
+  using: composite
+  steps:
+    - name: Setup workspace
+      uses: ./.github/actions/setup
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Build
+      run: pnpm build
+      shell: bash
+
+    - name: Upload dist
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.artifact-name }}
+        # rsbuild emits the client build (plus the dist/server SSR bundle) here.
+        path: apps/client/dist/
+        # Fail loudly instead of uploading an empty artifact if the path ever moves.
+        if-no-files-found: error

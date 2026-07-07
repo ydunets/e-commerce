@@ -55,6 +55,10 @@ Route loaders run on the server for the initial request (their data is dehydrate
 
 `apps/server` is a Fastify boilerplate with its own tooling (dbmate migrations, docker-compose for Postgres, Cucumber e2e). See [apps/server/README.md](apps/server/README.md). REST routes are prefixed with `/api`; default port 4000 is expected by the upcoming client integration (see the migration plan).
 
+## CI/CD
+
+GitHub Actions: PR validation (client build + workspace checks), server Docker image to GHCR, CodeQL, and semantic-release GitHub Releases. Full breakdown with a block diagram: [docs/ci-cd.md](docs/ci-cd.md).
+
 ## Migration
 
 UI components are being migrated from `~/eduspace/ui-kit` — see [docs/ui-kit-migration-plan.md](docs/ui-kit-migration-plan.md).

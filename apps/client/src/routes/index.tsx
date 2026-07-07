@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
+import { Button } from '@/shared/ui/button';
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -14,13 +15,13 @@ function Home() {
         Timeless pieces, honest materials. Server-rendered with TanStack Router,
         styled with Tailwind.
       </p>
-      <Link
-        to="/products/$productId"
+      <Button
+        href="/products/$productId"
         params={{ productId: 'voyager-hoodie' }}
-        className="focus-ring rounded-lg bg-brand px-6 py-3 font-medium text-white transition-colors hover:bg-brand-dark"
+        size="lg"
       >
         Shop the Voyager Hoodie
-      </Link>
+      </Button>
     </main>
   );
 }

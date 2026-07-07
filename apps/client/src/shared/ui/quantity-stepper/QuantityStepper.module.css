@@ -1,7 +1,7 @@
 @reference "../../../app.css";
 
 .root {
-  @apply inline-flex items-center rounded-lg border border-gray-200 bg-white;
+  @apply w-[125px] flex justify-center items-center rounded-lg border border-gray-200 bg-white;
 }
 
 .disabled {
@@ -23,16 +23,4 @@
 
 .value {
   @apply min-w-8 select-none text-center text-base text-ink;
-}
-
-.plusWrap {
-  @apply relative flex;
-}
-
-.tooltip {
-  @apply pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs text-white opacity-0 transition-opacity;
-}
-
-.plusWrap:hover .tooltip {
-  @apply opacity-100;
 }

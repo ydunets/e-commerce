@@ -1,4 +1,5 @@
 import { cx } from '@/shared/lib/cx';
+import { Tooltip } from '@/shared/ui/tooltip';
 import styles from './QuantityStepper.module.css';
 
 export type TQuantityStepperProps = {
@@ -42,7 +43,10 @@ export const QuantityStepper = ({
   const atMax = value >= max;
 
   return (
-    <div className={cx(styles.root, disabled && styles.disabled)}>
+    <fieldset
+      aria-label="Quantity"
+      className={cx(styles.root, disabled && styles.disabled)}
+    >
       <button
         type="button"
         className={styles.button}
@@ -57,29 +61,17 @@ export const QuantityStepper = ({
         {value}
       </span>
 
-      <span className={styles.plusWrap}>
+      <Tooltip content="Insufficient stock" enabled={atMax && !disabled}>
         <button
           type="button"
           className={styles.button}
           aria-label="Increase quantity"
-          aria-describedby={
-            atMax && !disabled ? 'quantity-max-hint' : undefined
-          }
           disabled={disabled || atMax}
           onClick={() => onChange(value + 1)}
         >
           {plusIcon}
         </button>
-        {atMax && !disabled && (
-          <span
-            id="quantity-max-hint"
-            role="tooltip"
-            className={styles.tooltip}
-          >
-            Insufficient stock
-          </span>
-        )}
-      </span>
-    </div>
+      </Tooltip>
+    </fieldset>
   );
 };

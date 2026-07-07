@@ -35,7 +35,11 @@ Set shared variables (run everything from the repo root):
 ```bash
 SUB=$(az account show --query id -o tsv)
 RG=e-commerce-rg
-LOC=westeurope
+# Container Apps runs on a managed AKS backend, so a full region fails env
+# creation with "not accepting new customers" or "AKSCapacityHeavyUsage".
+# If so, try another: germanywestcentral, northeurope, uksouth, or eastus2.
+# Use the SAME region for the Postgres server in step 2.
+LOC=germanywestcentral
 ENV=e-commerce-env
 REPO=ydunets/e-commerce
 PG=ecommerce-pg-$RANDOM            # must be globally unique
@@ -53,16 +57,25 @@ az containerapp env create -n $ENV -g $RG -l $LOC
 
 ## Step 2: PostgreSQL Flexible Server + database
 
+The DB can live in a different region than the apps (its DNS name is global and the
+`AllowAzureServices` rule permits cross-region access). Some regions restrict Flexible Server
+provisioning, so pick a supported one for `PG_LOC` (e.g. northeurope, francecentral, uksouth):
+
 ```bash
+PG_LOC=northeurope   # DB region; may differ from the apps' $LOC
+
+# `--public-access 0.0.0.0` enables the public endpoint AND adds the "allow Azure
+# services" firewall rule in one step. (Do not use `None`: in current CLI it
+# disables public access entirely, so no firewall rules can be added afterwards.)
 az postgres flexible-server create \
-  -g $RG -n $PG -l $LOC \
+  -g $RG -n $PG -l $PG_LOC \
   --tier Burstable --sku-name Standard_B1ms --storage-size 32 \
   --admin-user $PG_ADMIN --admin-password "$PG_PASS" \
-  --database-name $PG_DB --public-access None
+  --public-access 0.0.0.0
 
-# Allow Azure services (the Container Apps) to reach the DB.
-az postgres flexible-server firewall-rule create -g $RG -n $PG \
-  --rule-name AllowAzureServices --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+# Create the application database (separate command works across az CLI versions;
+# some versions of `flexible-server create` do not accept --database-name).
+az postgres flexible-server db create -g $RG -s $PG -d $PG_DB
 
 # Allow your laptop's IP so you can run migrations from here.
 MY_IP=$(curl -s https://api.ipify.org)
@@ -192,6 +205,18 @@ On every push to `main`:
 
 ## Hardening / follow-ups (not required for first deploy)
 
+- **Make the database private (VNet), remove public access.** The first deploy uses a public
+  Postgres endpoint restricted by firewall (protected by password + enforced TLS), but the
+  `AllowAzureServices` rule is broad. To eliminate the public endpoint entirely:
+  1. Create a VNet with a subnet delegated to `Microsoft.DBforPostgreSQL/flexibleServers`, plus a
+     separate subnet for the Container Apps environment.
+  2. Recreate the **Container Apps environment** with VNet integration
+     (`az containerapp env create ... --infrastructure-subnet-resource-id <caEnvSubnetId>`), and
+     recreate the apps in it.
+  3. Recreate (or reconfigure) the **Postgres server** with private access
+     (`--vnet <vnet> --subnet <dbSubnet> --private-dns-zone <zone>`), which drops the public
+     endpoint. Then the server reaches the DB over the private network and no firewall rule is
+     needed. This is a rebuild of the environment, hence deferred.
 - **Internal ingress for the server:** once the round trip works, switch the server to
   `--ingress internal` and point the client's `API_URL` at the internal address (read the exact FQDN
   from `az containerapp show`), so the API is not publicly reachable.

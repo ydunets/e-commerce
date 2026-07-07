@@ -1,3 +1,15 @@
+# 1.0.0 (2026-07-07)
+
+
+### Features
+
+* **client:** add design-system primitives and reconcile tokens with Figma ([77ab0a2](https://github.com/ydunets/e-commerce/commit/77ab0a244f6c273e8b716caa58b4c826fd1daa0c)), closes [#e5e5e5](https://github.com/ydunets/e-commerce/issues/e5e5e5) [#f5f5f5](https://github.com/ydunets/e-commerce/issues/f5f5f5) [#facc15](https://github.com/ydunets/e-commerce/issues/facc15)
+* **client:** add Rsbuild app with TanStack Router SSR ([aa8d633](https://github.com/ydunets/e-commerce/commit/aa8d6336505329dea70f3ec65c51376cf55525e4))
+* **client:** migrate StyleNest UI from ui-kit with FSD structure ([7d6a98f](https://github.com/ydunets/e-commerce/commit/7d6a98f0b0b3d25ebab01dbd29c588e04bd9fd4e))
+* **e2e:** add Playwright end-to-end suite ([d944cd1](https://github.com/ydunets/e-commerce/commit/d944cd14af2f228dd2abf03131a484952f225bc3))
+* **server:** add Fastify API with product and user modules ([04caa1e](https://github.com/ydunets/e-commerce/commit/04caa1e842f23feaa27d33031cceec26532f714b))
+* **storybook:** add storybook workspace package ([0c1a177](https://github.com/ydunets/e-commerce/commit/0c1a177083176ac36b6ba09756c0542828c3a02b))
+
 ## [2.4.44](https://github.com/marcoturi/fastify-boilerplate/compare/v2.4.43...v2.4.44) (2026-04-23)
 
 

@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/ydunets/e-commerce/compare/v1.0.0...v1.1.0) (2026-07-07)
+
+
+### Features
+
+* **server:** make Postgres sslmode configurable for managed databases ([67dfaee](https://github.com/ydunets/e-commerce/commit/67dfaee72f15518a854026f5d066f87abe25c2e9))
+
 # 1.0.0 (2026-07-07)
 
 

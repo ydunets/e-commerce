@@ -9,9 +9,12 @@ How continuous integration and delivery work in this monorepo. All workflows liv
 | Workflow | Trigger | What it does | Publishes |
 |---|---|---|---|
 | [`ci.yml`](../.github/workflows/ci.yml) | PR → `main` | Build the client + validate the whole workspace | `dist` artifact |
-| [`docker-server.yml`](../.github/workflows/docker-server.yml) | PR → `main` (build only), push → `main` (build + push) | Build the server container image | GHCR image (on `main`) |
+| [`docker-images.yml`](../.github/workflows/docker-images.yml) | PR → `main` (build only), push → `main` (build + push) | Build the client + server container images | GHCR images (on `main`) |
 | [`codeql.yml`](../.github/workflows/codeql.yml) | PR → `main`, push → `main`, weekly cron | Static analysis (JS/TS) | Security tab alerts |
 | [`release.yml`](../.github/workflows/release.yml) | push → `main` | Validate, then cut a versioned GitHub Release | Git tag + GitHub Release + CHANGELOG |
+| [`deploy.yml`](../.github/workflows/deploy.yml) | after `Docker images` on `main`, or manual | Roll both Azure Container Apps to the new images (OIDC) | Live deploy |
+
+Azure setup and provisioning steps: [deploy-azure.md](deploy-azure.md).
 
 `_build.yml` is a **reusable** workflow (`workflow_call`), not triggered on its own; `ci.yml` calls it.
 
@@ -40,9 +43,9 @@ flowchart LR
     CHECK["check job → pnpm check"]
   end
 
-  %% ---- docker-server.yml ----
-  subgraph DOCKER["docker-server.yml"]
-    IMG["build image (apps/server/Dockerfile)"]
+  %% ---- docker-images.yml ----
+  subgraph DOCKER["docker-images.yml"]
+    IMG["build client + server images"]
   end
 
   %% ---- codeql.yml ----
@@ -65,7 +68,7 @@ flowchart LR
 
   %% ---- Outputs ----
   BUILDC -. "artifact" .-> ARTIFACT[("dist")]
-  IMG -. "push on main" .-> GHCR[("ghcr.io/OWNER/REPO/server")]
+  IMG -. "push on main" .-> GHCR[("ghcr.io/OWNER/REPO/{client,server}")]
   ANALYZE -. results .-> SEC[("Security tab")]
   RSR -. "tag + notes" .-> REL[("GitHub Release + CHANGELOG")]
 ```
@@ -84,20 +87,27 @@ Two jobs run in parallel on every PR to `main`:
   (Biome + `tsc --noEmit` + unit tests), storybook (build). **No database required**: the server
   unit tests are pure.
 
-### `docker-server.yml`: server image
+### `docker-images.yml`: client + server images
 
-The server has **no JS bundle**; it runs TypeScript directly on Node 24. Its deployable artifact is
-a **container image**. The [Dockerfile](../apps/server/Dockerfile) builds from the **monorepo root**
-context (pnpm needs the root lockfile) and uses `pnpm deploy` to produce a self-contained runtime:
+Both apps ship as **container images** (a matrix over `client` and `server`). Each
+[Dockerfile](../apps/server/Dockerfile) builds from the **monorepo root** context (pnpm needs the
+root lockfile) and uses `pnpm deploy` for a self-contained runtime. The client image also carries
+the SSR build output and the Express prod server ([apps/client/Dockerfile](../apps/client/Dockerfile)).
 
-- **On a PR:** the image is **built only** (verifies the Dockerfile). No registry login, so it is
-  safe for forks.
-- **On push to `main`:** the image is built **and pushed** to `ghcr.io/<owner>/<repo>/server`,
+- **On a PR:** images are **built only** (verify the Dockerfiles). No registry login, so it is safe
+  for forks.
+- **On push to `main`:** images are built **and pushed** to `ghcr.io/<owner>/<repo>/{client,server}`,
   tagged `sha-<commit>` and `latest`. Uses the built-in `GITHUB_TOKEN` (`packages: write`); no
   secrets to configure. Layer caching via `type=gha`.
 
-Path-filtered: only runs when `apps/server/**`, the lockfile, the workspace file, or the workflow
-itself changes.
+Path-filtered to `apps/client/**`, `apps/server/**`, the lockfile, the workspace file, or the
+workflow itself.
+
+### `deploy.yml`: Azure Container Apps
+
+After `Docker images` succeeds on `main`, this rolls both Azure Container Apps to the freshly pushed
+`:latest` images (server first, then client) via `azure/login@v2` with **OIDC** (no long-lived
+secrets). Also runs on demand (`workflow_dispatch`). Full Azure provisioning: [deploy-azure.md](deploy-azure.md).
 
 ### `codeql.yml`: static analysis
 
@@ -150,6 +160,7 @@ secrets required.
 pnpm check                               # exactly what the check job runs
 pnpm build                               # client build → apps/client/dist
 docker build -f apps/server/Dockerfile -t e-commerce-server .   # server image (root context)
+docker build -f apps/client/Dockerfile -t e-commerce-client .   # client image (root context)
 docker compose -f apps/server/docker-compose.yml build app      # same via compose
 ```
 

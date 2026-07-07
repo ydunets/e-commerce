@@ -1,0 +1,39 @@
+# Docker build context = monorepo root (see apps/server/Dockerfile).
+# Keep the context small and reproducible: manifests + lockfile + source only.
+
+# Dependencies and build outputs (reinstalled/regenerated inside the image)
+**/node_modules
+**/dist
+**/storybook-static
+**/.rspack-profile-*
+**/.tanstack
+
+# Never bake secrets or local env into the image
+**/.env
+**/.env.*
+!**/.env.example
+
+# VCS and CI
+.git
+.gitignore
+.github
+
+# Test/report artifacts
+**/coverage
+**/test-results
+**/playwright-report
+apps/server/tests
+
+# Server dev-only bits (not needed at runtime; migrations run separately)
+apps/server/db
+apps/server/doc
+
+# Docs, examples, editor, misc
+docs
+examples
+**/*.md
+!**/README.md
+.vscode
+.idea
+.DS_Store
+**/*.log

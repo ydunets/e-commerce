@@ -10,7 +10,7 @@ on:
       node-version:
         description: Node.js version to use for the build.
         required: false
-        default: '24'
+        default: '24.18'
         type: string
       artifact-name:
         description: Name of the uploaded artifact.

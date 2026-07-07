@@ -6,7 +6,7 @@
 # Build locally from the repo root with:
 #   docker build -f apps/server/Dockerfile -t e-commerce-server .
 
-ARG NODE_VERSION=24
+ARG NODE_VERSION=24.18
 
 # ---- Base ----
 # Node Alpine for a small image; native TS execution (no compile step).

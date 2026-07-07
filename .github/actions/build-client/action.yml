@@ -9,7 +9,7 @@ inputs:
   node-version:
     description: Node.js version to use for the build.
     required: false
-    default: '24'
+    default: '24.18'
   artifact-name:
     description: Name to give the uploaded build artifact.
     required: false

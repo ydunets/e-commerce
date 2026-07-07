@@ -33,7 +33,7 @@ jobs:
     environment: production
     steps:
       - name: Azure login (OIDC)
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -41,7 +41,7 @@ jobs:
 
       # Server first: the client proxies /api to it.
       - name: Deploy server
-        uses: azure/cli@v2
+        uses: azure/cli@v3
         with:
           azcliversion: latest
           inlineScript: |
@@ -51,7 +51,7 @@ jobs:
               --image ghcr.io/${{ github.repository }}/server:latest
 
       - name: Deploy client
-        uses: azure/cli@v2
+        uses: azure/cli@v3
         with:
           azcliversion: latest
           inlineScript: |

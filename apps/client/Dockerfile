@@ -9,7 +9,7 @@
 # Build locally from the repo root with:
 #   docker build -f apps/client/Dockerfile -t e-commerce-client .
 
-ARG NODE_VERSION=24
+ARG NODE_VERSION=24.18
 
 # ---- Base ----
 FROM node:${NODE_VERSION}-alpine AS base

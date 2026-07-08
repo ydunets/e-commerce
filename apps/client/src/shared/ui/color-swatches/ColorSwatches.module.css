@@ -6,6 +6,10 @@
 
 .swatch {
   @apply relative h-10 w-10 cursor-pointer rounded-full transition-shadow;
+  /* --swatch-fill / --swatch-ring are set inline from the swatch-colors catalog.
+     `color` drives the selected ring below via currentColor. */
+  background-color: var(--swatch-fill);
+  color: var(--swatch-ring);
 }
 
 .swatch:focus-visible {
@@ -30,46 +34,4 @@
 .disabled::after {
   content: "";
   @apply absolute inset-0 m-auto h-[2px] w-[120%] -translate-x-[10%] rotate-45 bg-muted;
-}
-
-/* Swatch fills; `color` also drives the selected ring (currentColor). */
-.swatch[data-color="green"] {
-  color: #2cc190;
-  background-color: #2cc190;
-}
-.swatch[data-color="brown"] {
-  color: #c8870c;
-  background-color: #c8870c;
-}
-.swatch[data-color="blue"] {
-  color: #3b82f6;
-  background-color: #3b82f6;
-}
-.swatch[data-color="white"] {
-  color: #d2d6db;
-  background-color: #f3f4f6;
-}
-.swatch[data-color="black"] {
-  color: #171717;
-  background-color: #171717;
-}
-.swatch[data-color="red"] {
-  color: #ef4444;
-  background-color: #ef4444;
-}
-.swatch[data-color="orange"] {
-  color: #f97316;
-  background-color: #f97316;
-}
-.swatch[data-color="yellow"] {
-  color: #facc15;
-  background-color: #facc15;
-}
-.swatch[data-color="pink"] {
-  color: #ec4899;
-  background-color: #ec4899;
-}
-.swatch[data-color="purple"] {
-  color: #a855f7;
-  background-color: #a855f7;
 }

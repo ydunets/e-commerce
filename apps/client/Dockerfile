@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build context is the MONOREPO ROOT (not apps/client): pnpm needs the root
-# lockfile + workspace manifests to resolve this package's dependencies.
+# lockfile to resolve this package's dependencies.
 #
 # Builds the SSR client and assembles a runtime image that serves dist/ through
 # the Express production server (ssr/prod.mjs), proxying /api to $API_URL.
@@ -17,21 +17,21 @@ RUN corepack enable
 WORKDIR /app
 
 # ---- Build ----
-# Install the workspace, build the SSR client, then deploy a self-contained
-# prod node_modules (express + runtime deps).
+# Fetch deps from the lockfile, install offline, build the SSR client, then
+# deploy a self-contained prod node_modules (express + runtime deps).
 FROM base AS build
 
-# Manifests first for cached installs (all are needed for --frozen-lockfile).
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-COPY apps/client/package.json apps/client/package.json
-COPY apps/server/package.json apps/server/package.json
-COPY apps/e2e/package.json apps/e2e/package.json
-COPY apps/storybook/package.json apps/storybook/package.json
-
+# `pnpm fetch` populates the store from the lockfile alone (manifests ignored),
+# so this layer is cached until the lockfile itself changes.
+COPY pnpm-lock.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --filter @e-commerce/client...
+    pnpm fetch
 
-COPY apps/client apps/client
+# Bring in the workspace and install from the pre-fetched store (no network).
+COPY . .
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --prefer-offline --filter @e-commerce/client...
+
 # Produce the SSR build: dist/ (static + manifest.json) and dist/server (SSR bundle).
 RUN pnpm --filter @e-commerce/client build
 # Portable prod node_modules (real tree, no workspace symlinks).

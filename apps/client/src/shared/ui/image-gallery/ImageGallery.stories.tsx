@@ -26,3 +26,26 @@ export const SingleImage: Story = {
     alt: 'Voyager Hoodie',
   },
 };
+
+export const TwoImages: Story = {
+  args: {
+    images: [
+      'https://picsum.photos/seed/gallery-a/800',
+      'https://picsum.photos/seed/gallery-b/800',
+    ],
+    alt: 'Voyager Hoodie',
+  },
+};
+
+export const ManyThumbnails: Story = {
+  args: {
+    images: [
+      'https://picsum.photos/seed/gallery-a/800',
+      'https://picsum.photos/seed/gallery-b/800',
+      'https://picsum.photos/seed/gallery-c/800',
+      'https://picsum.photos/seed/gallery-d/800',
+      'https://picsum.photos/seed/gallery-e/800',
+    ],
+    alt: 'Voyager Hoodie',
+  },
+};

@@ -11,12 +11,17 @@ export type TImageGalleryProps = {
 const MAIN_WIDTH = 800;
 const THUMB_WIDTH = 200;
 
+const MAX_FILLED_THUMBS = 3;
+
 export const ImageGallery = ({ images, alt }: TImageGalleryProps) => {
   // Selection tracked by URL: when the image set changes (colour switch) the old
   // URL drops out, so the main image derives back to the first — no reset needed.
   const [activeUrl, setActiveUrl] = useState<string | null>(null);
   const mainImage =
     activeUrl && images.includes(activeUrl) ? activeUrl : images[0];
+  // Up to 3 thumbnails stretch to fill the row; beyond that they hold a fixed
+  // width and the row scrolls, per the Figma "more than 3 thumbnails" variant.
+  const isScrollable = images.length > MAX_FILLED_THUMBS;
 
   return (
     <div className={styles.root}>
@@ -32,13 +37,16 @@ export const ImageGallery = ({ images, alt }: TImageGalleryProps) => {
       </div>
 
       {images.length > 1 && (
-        <div className={styles.thumbs}>
+        <div
+          className={cx(styles.thumbs, isScrollable && styles.thumbsScroll)}
+        >
           {images.map((url, index) => (
             <button
               key={url}
               type="button"
               className={cx(
                 styles.thumb,
+                isScrollable ? styles.thumbFixed : styles.thumbFill,
                 url === mainImage && styles.thumbActive,
               )}
               aria-label={`View image ${index + 1} of ${images.length}`}

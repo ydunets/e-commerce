@@ -5,7 +5,7 @@
 }
 
 .value {
-  @apply font-medium text-ink;
+  @apply text-xl font-normal text-ink;
 }
 
 .stars {
@@ -25,11 +25,11 @@
 }
 
 .link {
-  @apply font-medium text-brand hover:underline;
+  @apply text-sm font-medium text-brand hover:underline;
 }
 
 .empty {
-  @apply text-muted;
+  @apply text-sm text-muted;
 }
 
 .root :focus-visible {

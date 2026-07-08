@@ -49,7 +49,7 @@ const variantClasses: Record<TButtonVariant, string> = {
 const sizeClasses: Record<TButtonSize, string> = {
   md: 'px-4 py-2.5 text-sm',
   lg: 'px-6 py-3 text-base',
-  xl: 'px-6 py-3.5 text-base',
+  xl: 'px-6 py-4 text-lg',
 };
 
 export const Button = ({

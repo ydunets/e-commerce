@@ -37,9 +37,7 @@ export const ImageGallery = ({ images, alt }: TImageGalleryProps) => {
       </div>
 
       {images.length > 1 && (
-        <div
-          className={cx(styles.thumbs, isScrollable && styles.thumbsScroll)}
-        >
+        <div className={cx(styles.thumbs, isScrollable && styles.thumbsScroll)}>
           {images.map((url, index) => (
             <button
               key={url}

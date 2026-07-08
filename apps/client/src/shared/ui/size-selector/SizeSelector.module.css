@@ -1,11 +1,12 @@
 @reference "../../../app.css";
 
 .root {
-  @apply flex flex-wrap gap-3;
+  @apply flex flex-wrap gap-4;
 }
 
+/* Figma: fixed 64px pills, left-packed (wrap when the row is full) — not stretched. */
 .size {
-  @apply flex h-12 min-w-[64px] flex-1 cursor-pointer items-center justify-center rounded-lg border border-gray-200 bg-white px-4 text-base font-medium text-ink transition-colors;
+  @apply flex h-12 min-w-[64px] cursor-pointer items-center justify-center rounded-sm border border-line bg-white px-5 text-base font-medium text-ink transition-colors;
   @apply hover:border-gray-300;
 }
 
@@ -13,8 +14,9 @@
   @apply focus-ring;
 }
 
+/* Figma selected state: indigo-600 border, text stays ink. */
 .selected {
-  @apply border-brand text-brand;
+  @apply border-brand-solid;
 }
 
 .disabled {

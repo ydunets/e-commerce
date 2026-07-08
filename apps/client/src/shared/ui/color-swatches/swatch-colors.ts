@@ -10,8 +10,8 @@
 export type TSwatchColor = { fill: string; ring: string };
 
 const SWATCH_COLORS: Record<string, TSwatchColor> = {
-  green: { fill: '#2cc190', ring: '#2cc190' },
-  brown: { fill: '#c8870c', ring: '#c8870c' },
+  green: { fill: '#10b981', ring: '#10b981' } /* emerald-500 */,
+  brown: { fill: '#ca8a04', ring: '#ca8a04' } /* yellow-600 */,
   blue: { fill: '#3b82f6', ring: '#3b82f6' },
   white: { fill: '#f3f4f6', ring: '#d2d6db' },
   black: { fill: '#171717', ring: '#171717' },

@@ -1,7 +1,7 @@
 @reference "../../../app.css";
 
 .root {
-  @apply w-[125px] flex justify-center items-center rounded-lg border border-gray-200 bg-white;
+  @apply w-[125px] flex justify-center items-center rounded-md border border-line bg-field;
 }
 
 .disabled {
@@ -22,5 +22,5 @@
 }
 
 .value {
-  @apply min-w-8 select-none text-center text-base text-ink;
+  @apply min-w-8 select-none text-center text-sm font-medium text-muted;
 }

@@ -1,7 +1,9 @@
 @reference "../../../app.css";
 
+/* Items are laid out with a gap by the parent; every item except the first
+   carries a top divider + padding (Figma: 32px gap, then border, then 24px). */
 .root {
-  @apply border-t border-line py-5;
+  @apply first:pt-0 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-line [&:not(:first-child)]:pt-6;
 }
 
 .summary {
@@ -18,7 +20,7 @@
 }
 
 .icon {
-  @apply h-6 w-6 shrink-0 text-gray-300;
+  @apply h-6 w-6 shrink-0 text-disabled;
 }
 
 /* Hide the vertical stroke when open → the "+" becomes a "−". */
@@ -27,5 +29,5 @@
 }
 
 .list {
-  @apply mt-4 flex list-disc flex-col gap-2 pl-5 text-base leading-6 text-muted;
+  @apply mt-2 flex list-disc flex-col gap-2 pl-5 text-base leading-6 text-muted;
 }

@@ -24,8 +24,7 @@ const commonClasses = cx(
 );
 
 // Figma `shadow` token: a subtle two-layer drop shadow on filled/bordered buttons.
-const shadow =
-  'shadow-[0px_1px_2px_0px_rgba(0,0,0,0.06),0px_1px_3px_0px_rgba(0,0,0,0.1)]';
+const shadow = 'shadow-card';
 
 const variantClasses: Record<TButtonVariant, string> = {
   primary: cx(

@@ -1,5 +1,7 @@
+import type { CSSProperties } from 'react';
 import { cx } from '@/shared/lib/cx';
 import styles from './ColorSwatches.module.css';
+import { resolveSwatchColor } from './swatch-colors';
 
 export type TColorOption = {
   value: string;
@@ -36,6 +38,7 @@ export const ColorSwatches = ({
   <div className={styles.root} role="radiogroup" aria-label={label}>
     {options.map((option) => {
       const selected = option.value === value;
+      const { fill, ring } = resolveSwatchColor(option.value);
       return (
         // biome-ignore lint/a11y/useSemanticElements: WAI-ARIA radiogroup composite with roving tabindex; native radios cannot be styled as these controls.
         <button
@@ -46,6 +49,9 @@ export const ColorSwatches = ({
           aria-label={option.label}
           disabled={option.disabled}
           data-color={option.value}
+          style={
+            { '--swatch-fill': fill, '--swatch-ring': ring } as CSSProperties
+          }
           className={cx(
             styles.swatch,
             selected && styles.selected,

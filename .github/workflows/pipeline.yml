@@ -1,0 +1,154 @@
+# .github/workflows/pipeline.yml
+# End-to-end CI/CD pipeline, run as a gated sequence:
+#
+#   validate ─┐
+#             ├─▶ build ─▶ release ─▶ deploy      (push to main)
+#   security ─┘   build                            (pull request: no push/release/deploy)
+#
+# Nothing deploys unless tests, security, and the image build all pass first.
+# The weekly CodeQL scan lives in codeql.yml; docs-only changes are skipped.
+
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+  # Manual full run to prod (rebuild + push + release + deploy).
+  workflow_dispatch:
+
+# One run per ref. Cancel superseded PR runs; never cancel a main run mid-deploy.
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # 1. Lint + types + unit tests across the whole workspace.
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup workspace
+        uses: ./.github/actions/setup
+      - name: Check
+        run: pnpm check
+
+  # 2. CodeQL security scan (runs in parallel with validate).
+  security:
+    uses: ./.github/workflows/_codeql.yml
+
+  # 3. Build the client + server images. Push to GHCR only on main.
+  #    Gated on both tests and security passing.
+  build:
+    needs: [validate, security]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # push to GHCR
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: client
+            dockerfile: apps/client/Dockerfile
+          - app: server
+            dockerfile: apps/server/Dockerfile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request' # push or manual dispatch
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository }}/${{ matrix.app }}
+          tags: |
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # 4. Cut a versioned GitHub Release from conventional commits (main only).
+  release:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push the CHANGELOG/tag commit + create the release
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # semantic-release needs full history + tags
+      - name: Setup workspace
+        uses: ./.github/actions/setup
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HUSKY: '0'
+        run: pnpm --filter @e-commerce/server semantic-release
+
+  # 5. Roll both Azure Container Apps to the freshly pushed images (main only).
+  deploy:
+    needs: release
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      id-token: write # OIDC token for azure/login
+      contents: read
+    steps:
+      - name: Azure login (OIDC)
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      # Server first: the client proxies /api to it.
+      - name: Deploy server
+        uses: azure/cli@v3
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az containerapp update \
+              --name ${{ vars.AZURE_SERVER_APP }} \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --image ghcr.io/${{ github.repository }}/server:latest
+      - name: Deploy client
+        uses: azure/cli@v3
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az containerapp update \
+              --name ${{ vars.AZURE_CLIENT_APP }} \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --image ghcr.io/${{ github.repository }}/client:latest

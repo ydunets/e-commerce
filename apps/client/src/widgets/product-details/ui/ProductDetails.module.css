@@ -4,34 +4,59 @@
   @apply w-full rounded-2xl bg-white p-6 shadow-xs lg:p-10;
 }
 
+/* Figma: gallery/info sit 48px apart when stacked, 32px apart side-by-side. */
 .layout {
-  @apply grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12;
+  @apply grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-8;
 }
 
+/* Info column vertical rhythm mirrors the Figma frame:
+   40px between the details block and the accordions. */
 .info {
-  @apply flex flex-col gap-6;
+  @apply flex flex-col gap-10;
+}
+
+/* 32px between header, description, options and the Add to Cart button. */
+.details {
+  @apply flex flex-col gap-8;
+}
+
+/* 20px between the title and the price/rating meta. */
+.header {
+  @apply flex flex-col gap-5;
+}
+
+/* 12px between the price block and the rating row. */
+.meta {
+  @apply flex flex-col gap-3;
 }
 
 .title {
-  @apply text-3xl font-semibold leading-tight text-ink lg:text-4xl;
+  @apply text-3xl font-semibold leading-tight text-ink lg:text-5xl lg:leading-none;
 }
 
 .description {
   @apply text-base leading-6 text-muted;
 }
 
+/* 32px between the colour, size and quantity fields. */
+.options {
+  @apply flex flex-col gap-8;
+}
+
+/* 16px between a field label and its control. */
 .field {
-  @apply flex flex-col gap-3;
+  @apply flex flex-col gap-4;
 }
 
 .label {
-  @apply text-sm text-muted;
+  @apply text-sm text-tertiary;
 }
 
 .outOfStock {
   @apply text-lg font-semibold text-ink;
 }
 
+/* 32px between accordion sections. */
 .accordions {
-  @apply mt-2 flex flex-col;
+  @apply flex flex-col gap-8;
 }

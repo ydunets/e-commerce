@@ -58,7 +58,7 @@ export const Tooltip = ({
             'pointer-events-none absolute z-10 whitespace-nowrap',
             'rounded-lg bg-ink-strong px-3 py-2',
             'text-xs font-medium text-white',
-            'shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.1),0px_10px_15px_-3px_rgba(0,0,0,0.1)]',
+            'shadow-card-lg',
             panelPosition[position],
           )}
         >

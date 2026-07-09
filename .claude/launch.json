@@ -5,7 +5,19 @@
       "name": "ssr-dev",
       "runtimeExecutable": "node",
       "runtimeArgs": ["--experimental-vm-modules", "apps/client/ssr/dev.mjs"],
-      "port": 5173
+      "port": 5173,
+      "autoPort": true
+    },
+    {
+      "name": "storybook",
+      "runtimeExecutable": "/Users/yurydunets/.nvm/versions/node/v24.18.0/bin/node",
+      "runtimeArgs": [
+        "/Users/yurydunets/.nvm/versions/node/v24.18.0/lib/node_modules/corepack/dist/pnpm.js",
+        "--filter",
+        "storybook",
+        "storybook"
+      ],
+      "port": 6006
     }
   ]
 }

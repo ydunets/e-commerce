@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build context is the MONOREPO ROOT (not apps/server): pnpm needs the root
-# lockfile + workspace manifests to resolve this package's dependencies.
+# lockfile to resolve this package's dependencies.
 #
 # Build locally from the repo root with:
 #   docker build -f apps/server/Dockerfile -t e-commerce-server .
@@ -15,24 +15,21 @@ RUN corepack enable
 WORKDIR /app
 
 # ---- Build ----
-# Install the workspace (frozen), then `pnpm deploy` the server into a
-# self-contained /prod folder: a real node_modules with no workspace symlinks.
+# Fetch deps from the lockfile, install offline, then `pnpm deploy` the server
+# into a self-contained /prod folder: a real node_modules, no workspace symlinks.
 FROM base AS build
 
-# Copy only the manifests first so `pnpm install` is cached until deps change.
-# All workspace package.json files are required for a --frozen-lockfile install.
-# (Add a line here if a new apps/* package is introduced.)
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-COPY apps/client/package.json apps/client/package.json
-COPY apps/server/package.json apps/server/package.json
-COPY apps/e2e/package.json apps/e2e/package.json
-COPY apps/storybook/package.json apps/storybook/package.json
-
+# `pnpm fetch` populates the store from the lockfile alone (manifests ignored),
+# so this layer is cached until the lockfile itself changes.
+COPY pnpm-lock.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --filter @e-commerce/server...
+    pnpm fetch
 
-# Now copy the server source and produce the deployable bundle.
-COPY apps/server apps/server
+# Bring in the workspace and install from the pre-fetched store (no network).
+COPY . .
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --prefer-offline --filter @e-commerce/server...
+
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm --filter @e-commerce/server --legacy deploy --prod /prod
 

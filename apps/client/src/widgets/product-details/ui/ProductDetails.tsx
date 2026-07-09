@@ -47,62 +47,70 @@ export const ProductDetails = ({
         <ImageGallery images={galleryImages} alt={product.name} />
 
         <div className={styles.info}>
-          <h1 className={styles.title}>{product.name}</h1>
+          <div className={styles.details}>
+            <div className={styles.header}>
+              <h1 className={styles.title}>{product.name}</h1>
 
-          {currentVariant && (
-            <PriceTag
-              salePrice={currentVariant.salePrice}
-              listPrice={currentVariant.listPrice}
-              discountPercentage={currentVariant.discountPercentage}
-            />
-          )}
+              <div className={styles.meta}>
+                {currentVariant && (
+                  <PriceTag
+                    salePrice={currentVariant.salePrice}
+                    listPrice={currentVariant.listPrice}
+                    discountPercentage={currentVariant.discountPercentage}
+                  />
+                )}
 
-          <StarRating
-            rating={product.reviews.average}
-            reviewCount={product.reviews.count}
-          />
-
-          <p className={styles.description}>{product.description}</p>
-
-          <div className={styles.field}>
-            <span className={styles.label}>Available Colors</span>
-            <ColorSwatches
-              options={colorOptions}
-              value={selectedColor}
-              onChange={selectColor}
-            />
-          </div>
-
-          {sizeOptions.length > 0 && (
-            <div className={styles.field}>
-              <span className={styles.label}>Available Sizes</span>
-              <SizeSelector
-                options={sizeOptions}
-                value={selectedSize}
-                onChange={selectSize}
-              />
+                <StarRating
+                  rating={product.reviews.average}
+                  reviewCount={product.reviews.count}
+                />
+              </div>
             </div>
-          )}
 
-          <div className={styles.field}>
-            <span className={styles.label}>Quantity</span>
-            <QuantityStepper
-              value={displayedQuantity}
-              max={maxStock}
-              disabled={isOutOfStock}
-              onChange={setQuantity}
-            />
+            <p className={styles.description}>{product.description}</p>
+
+            <div className={styles.options}>
+              <div className={styles.field}>
+                <span className={styles.label}>Available Colors</span>
+                <ColorSwatches
+                  options={colorOptions}
+                  value={selectedColor}
+                  onChange={selectColor}
+                />
+              </div>
+
+              {sizeOptions.length > 0 && (
+                <div className={styles.field}>
+                  <span className={styles.label}>Available Sizes</span>
+                  <SizeSelector
+                    options={sizeOptions}
+                    value={selectedSize}
+                    onChange={selectSize}
+                  />
+                </div>
+              )}
+
+              <div className={styles.field}>
+                <span className={styles.label}>Quantity</span>
+                <QuantityStepper
+                  value={displayedQuantity}
+                  max={maxStock}
+                  disabled={isOutOfStock}
+                  onChange={setQuantity}
+                />
+              </div>
+
+              {isOutOfStock && (
+                <p className={styles.outOfStock}>
+                  Sorry, this item is out of stock
+                </p>
+              )}
+            </div>
+
+            <Button size="xl" className="w-full" disabled={isOutOfStock}>
+              Add to Cart
+            </Button>
           </div>
-
-          {isOutOfStock && (
-            <p className={styles.outOfStock}>
-              Sorry, this item is out of stock
-            </p>
-          )}
-
-          <Button size="xl" className="w-full" disabled={isOutOfStock}>
-            Add to Cart
-          </Button>
 
           <div className={styles.accordions}>
             {product.info.map((section) => (

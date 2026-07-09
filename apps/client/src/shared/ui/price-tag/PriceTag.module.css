@@ -9,9 +9,9 @@
 }
 
 .sale {
-  @apply text-3xl font-semibold leading-none text-ink;
+  @apply text-3xl font-medium leading-none text-muted;
 }
 
 .list {
-  @apply text-lg font-normal text-gray-300 line-through;
+  @apply text-lg font-normal text-disabled line-through;
 }

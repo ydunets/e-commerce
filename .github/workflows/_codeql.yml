@@ -1,6 +1,6 @@
 # .github/workflows/_codeql.yml
-# Reusable CodeQL analysis (JavaScript/TypeScript). Called by pipeline.yml on
-# every PR/push and by codeql.yml on the weekly schedule.
+# Reusable CodeQL analysis (JavaScript/TypeScript). Called by pr-checks.yml,
+# release-deploy.yml, and by codeql.yml on the weekly schedule.
 
 name: CodeQL (reusable)
 

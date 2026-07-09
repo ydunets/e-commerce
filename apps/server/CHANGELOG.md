@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/ydunets/e-commerce/compare/v1.1.0...v1.1.1) (2026-07-09)
+
+
+### Bug Fixes
+
+* **client:** match image gallery to Figma design spec ([595b2f8](https://github.com/ydunets/e-commerce/commit/595b2f82fd0109abc95f4490452b66c2f324cd52))
+
 # [1.1.0](https://github.com/ydunets/e-commerce/compare/v1.0.0...v1.1.0) (2026-07-07)
 
 

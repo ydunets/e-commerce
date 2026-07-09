@@ -1,0 +1,37 @@
+# .github/workflows/_codeql.yml
+# Reusable CodeQL analysis (JavaScript/TypeScript). Called by pipeline.yml on
+# every PR/push and by codeql.yml on the weekly schedule.
+
+name: CodeQL (reusable)
+
+on:
+  workflow_call:
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write # upload results to the Security tab
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        # javascript-typescript is one CodeQL language covering both.
+        language: [javascript-typescript]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          config-file: ./.github/codeql/codeql-config.yml
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: '/language:${{ matrix.language }}'

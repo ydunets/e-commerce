@@ -1,6 +1,6 @@
 # .github/workflows/codeql.yml
-# Weekly scheduled CodeQL scan. Per-PR and per-push CodeQL runs inside the
-# pipeline (pipeline.yml -> security job); both share the reusable _codeql.yml.
+# Weekly scheduled CodeQL scan. Per-PR CodeQL runs inside pr-checks.yml and
+# per-push runs inside release-deploy.yml; all three share the reusable _codeql.yml.
 
 name: CodeQL (scheduled)
 
@@ -10,4 +10,8 @@ on:
 
 jobs:
   analyze:
+    permissions:
+      security-events: write # upload results to the Security tab
+      contents: read
+      actions: read
     uses: ./.github/workflows/_codeql.yml

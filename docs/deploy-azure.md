@@ -29,7 +29,7 @@ So plan for **compute ≈ $0**, **DB ≈ free for 12 months, then ~$13/month**.
 - Azure CLI (`az`) logged in (`az login`), and you are **Owner** of the subscription (confirmed).
   Run `az upgrade` first: an outdated CLI rejects newer flags (e.g. `--database-name`,
   `--public-network-access`) with "unrecognized arguments".
-- The images exist in GHCR. They are published by the [`pipeline.yml`](../.github/workflows/pipeline.yml)
+- The images exist in GHCR. They are published by the [`release-deploy.yml`](../.github/workflows/release-deploy.yml)
   build stage on push to `main`, so **merge the deploy PR first**, then provision.
 
 Set shared variables (run everything from the repo root):
@@ -197,7 +197,7 @@ required reviewer so deploys wait for approval.
 
 ## How continuous deploy works after setup
 
-On every push to `main`, the single [`pipeline.yml`](../.github/workflows/pipeline.yml) runs as a
+On every push to `main`, [`release-deploy.yml`](../.github/workflows/release-deploy.yml) runs as a
 gated sequence (validate → security → build → release → deploy):
 
 1. The **build** stage pushes the `client` and `server` images to GHCR (tags `sha-<commit>` and

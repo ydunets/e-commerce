@@ -5,10 +5,14 @@ export interface ProductMapper {
   toResponse(entity: ProductEntity): ProductResponseDto;
 }
 
+function toPriceRange(salePrices: number[]): ProductResponseDto['priceRange'] {
+  if (salePrices.length === 0) return { highest: 0, lowest: 0 };
+  return { highest: Math.max(...salePrices), lowest: Math.min(...salePrices) };
+}
+
 export default function productMapper(): ProductMapper {
   return {
     toResponse(entity: ProductEntity): ProductResponseDto {
-      const salePrices = entity.variants.map((variant) => variant.salePrice);
       return {
         product_id: entity.id,
         name: entity.name,
@@ -28,10 +32,7 @@ export default function productMapper(): ProductMapper {
           sold: variant.sold,
           stock: variant.stock,
         })),
-        priceRange: {
-          highest: salePrices.length > 0 ? Math.max(...salePrices) : 0,
-          lowest: salePrices.length > 0 ? Math.min(...salePrices) : 0,
-        },
+        priceRange: toPriceRange(entity.variants.map((variant) => variant.salePrice)),
         rating: entity.reviews.average,
         reviews: entity.reviews.count,
       };

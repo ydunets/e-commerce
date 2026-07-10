@@ -1,3 +1,4 @@
+import { compareSizes } from '@e-commerce/contracts';
 import type { ProductRepository } from '#src/modules/product/database/product.repository.port.ts';
 import type { ProductEntity, ProductVariant } from '#src/modules/product/domain/product.types.ts';
 
@@ -33,15 +34,6 @@ interface ReviewSummaryRow {
   average: number;
 }
 
-const SIZE_RANK: Record<string, number> = { xs: 0, sm: 1, md: 2, lg: 3, xl: 4, xxl: 5 };
-
-function sizeRank(size: string): number {
-  const known = SIZE_RANK[size];
-  if (known !== undefined) return known;
-  const numeric = Number(size);
-  return Number.isNaN(numeric) ? 900 : 100 + numeric;
-}
-
 // Distinct colours ordered by where their first image appears (image ids are
 // seeded in source order), so the product's primary colour comes first.
 function orderedColors(inventory: InventoryRow[], images: ImageRow[]): string[] {
@@ -52,6 +44,35 @@ function orderedColors(inventory: InventoryRow[], images: ImageRow[]): string[] 
   const rank = (color: string) => imageOrder.get(color) ?? Number.MAX_SAFE_INTEGER;
   const colors = [...new Set(inventory.map((row) => row.color))];
   return colors.sort((first, second) => rank(first) - rank(second) || first.localeCompare(second));
+}
+
+function toVariant(row: InventoryRow): ProductVariant {
+  return {
+    sku: row.sku,
+    color: row.color,
+    size: row.size,
+    listPrice: Number(row.list_price),
+    salePrice: Number(row.sale_price),
+    discountPercentage: row.discount_percentage === null ? null : Number(row.discount_percentage),
+    stock: Number(row.stock),
+    sold: Number(row.sold),
+  };
+}
+
+function byColorThenSize(colors: string[]) {
+  const colorRank = (color: string) => {
+    const index = colors.indexOf(color);
+    return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+  };
+  return (first: ProductVariant, second: ProductVariant) =>
+    colorRank(first.color) - colorRank(second.color) ||
+    compareSizes(first.size ?? '', second.size ?? '');
+}
+
+function distinctSizes(variants: ProductVariant[]): string[] {
+  return [...new Set(variants.map((variant) => variant.size))]
+    .filter((size): size is string => size !== null)
+    .sort(compareSizes);
 }
 
 export default function productRepository({ db }: Dependencies): ProductRepository {
@@ -73,39 +94,14 @@ export default function productRepository({ db }: Dependencies): ProductReposito
       `;
 
       const colors = orderedColors(inventory, images);
-      const colorRank = (color: string) => {
-        const index = colors.indexOf(color);
-        return index === -1 ? Number.MAX_SAFE_INTEGER : index;
-      };
-
-      const variants: ProductVariant[] = inventory
-        .map((row) => ({
-          sku: row.sku,
-          color: row.color,
-          size: row.size,
-          listPrice: Number(row.list_price),
-          salePrice: Number(row.sale_price),
-          discountPercentage:
-            row.discount_percentage === null ? null : Number(row.discount_percentage),
-          stock: Number(row.stock),
-          sold: Number(row.sold),
-        }))
-        .sort(
-          (first, second) =>
-            colorRank(first.color) - colorRank(second.color) ||
-            sizeRank(first.size ?? '') - sizeRank(second.size ?? ''),
-        );
-
-      const sizes = [...new Set(variants.map((variant) => variant.size))]
-        .filter((size): size is string => size !== null)
-        .sort((first, second) => sizeRank(first) - sizeRank(second));
+      const variants = inventory.map(toVariant).sort(byColorThenSize(colors));
 
       return {
         id: product.product_id,
         name: product.name,
         description: product.description,
         colors,
-        sizes,
+        sizes: distinctSizes(variants),
         variants,
         images: images.map((image) => ({ color: image.color, url: image.image_url })),
         info: info.map((section) => ({ title: section.title, description: section.description })),

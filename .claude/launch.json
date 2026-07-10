@@ -9,6 +9,15 @@
       "autoPort": true
     },
     {
+      "name": "api-dev",
+      "runtimeExecutable": "/bin/zsh",
+      "runtimeArgs": [
+        "-c",
+        "export PATH=/Users/yurydunets/.nvm/versions/node/v24.18.0/bin:$PATH && pnpm --filter @e-commerce/server dev"
+      ],
+      "port": 4000
+    },
+    {
       "name": "storybook",
       "runtimeExecutable": "/Users/yurydunets/.nvm/versions/node/v24.18.0/bin/node",
       "runtimeArgs": [

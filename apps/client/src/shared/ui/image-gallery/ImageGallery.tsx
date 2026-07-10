@@ -9,9 +9,15 @@ export type TImageGalleryProps = {
 };
 
 const MAIN_WIDTH = 800;
+const MAIN_WIDTHS = [400, 800, 1200];
 const THUMB_WIDTH = 200;
 
 const MAX_FILLED_THUMBS = 3;
+
+export const MAIN_IMAGE_SIZES = '(min-width: 1024px) 592px, 100vw';
+
+export const mainImageSrcSet = (url: string): string =>
+  MAIN_WIDTHS.map((width) => `${squareImage(url, width)} ${width}w`).join(', ');
 
 export const ImageGallery = ({ images, alt }: TImageGalleryProps) => {
   // Selection tracked by URL: when the image set changes (colour switch) the old
@@ -29,8 +35,13 @@ export const ImageGallery = ({ images, alt }: TImageGalleryProps) => {
         {mainImage && (
           <img
             src={squareImage(mainImage, MAIN_WIDTH)}
+            srcSet={mainImageSrcSet(mainImage)}
+            sizes={MAIN_IMAGE_SIZES}
             alt={alt}
+            width={MAIN_WIDTH}
+            height={MAIN_WIDTH}
             className={styles.main}
+            fetchPriority="high"
             decoding="async"
           />
         )}

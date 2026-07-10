@@ -14,6 +14,17 @@ export interface UseReviewsResult {
   loadMore: () => void;
 }
 
+function toStatus(query: {
+  isError: boolean;
+  isPending: boolean;
+  isFetchingNextPage: boolean;
+}): ReviewsStatus {
+  if (query.isError) return 'error';
+  if (query.isPending) return 'loading';
+  if (query.isFetchingNextPage) return 'loadingMore';
+  return 'success';
+}
+
 export function useReviews(
   productId: string,
   perPage: number,
@@ -35,13 +46,7 @@ export function useReviews(
         : undefined,
   });
 
-  const status: ReviewsStatus = query.isError
-    ? 'error'
-    : query.isPending
-      ? 'loading'
-      : query.isFetchingNextPage
-        ? 'loadingMore'
-        : 'success';
+  const status = toStatus(query);
 
   const loadMore = () => {
     if (query.hasNextPage && !query.isFetchingNextPage) query.fetchNextPage();

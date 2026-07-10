@@ -43,6 +43,7 @@
   },
   "packageManager": "pnpm@10.34.3",
   "dependencies": {
+    "@e-commerce/contracts": "workspace:*",
     "@fastify/autoload": "6.3.1",
     "@fastify/awilix": "8.2.0",
     "@fastify/cors": "11.2.0",

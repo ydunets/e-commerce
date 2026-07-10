@@ -1,8 +1,8 @@
+import { useQuery } from '@tanstack/react-query';
 import { fetchUsers } from '@/shared/api';
-import { useQuery } from '@/shared/lib/use-query';
 
 export function ServerStatus() {
-  const request = useQuery(fetchUsers);
+  const request = useQuery({ queryKey: ['users'], queryFn: fetchUsers });
 
   return (
     <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-5 shadow-xs">
@@ -22,7 +22,7 @@ export function ServerStatus() {
         </h2>
       </div>
 
-      {request.status === 'loading' && (
+      {request.status === 'pending' && (
         <p className="text-sm text-gray-500">Contacting the server…</p>
       )}
 

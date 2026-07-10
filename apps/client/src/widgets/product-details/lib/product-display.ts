@@ -1,6 +1,5 @@
+import { compareSizes } from '@e-commerce/contracts';
 import type { Product, ProductVariant } from '@/entities/product';
-
-export type DemoState = 'default' | 'out-of-stock' | 'max';
 
 const SIZE_LABELS: Record<string, string> = {
   xs: 'XS',
@@ -9,15 +8,6 @@ const SIZE_LABELS: Record<string, string> = {
   lg: 'L',
   xl: 'XL',
   xxl: 'XXL',
-};
-
-const SIZE_RANK: Record<string, number> = {
-  xs: 0,
-  sm: 1,
-  md: 2,
-  lg: 3,
-  xl: 4,
-  xxl: 5,
 };
 
 export function colorLabel(name: string): string {
@@ -34,18 +24,7 @@ export function sizesForColor(product: Product, color: string): string[] {
     .map((variant) => variant.size)
     .filter((size): size is string => size !== null);
 
-  return [...new Set(sizes)].sort((first, second) => {
-    const rankFirst = SIZE_RANK[first];
-    const rankSecond = SIZE_RANK[second];
-    if (rankFirst !== undefined && rankSecond !== undefined)
-      return rankFirst - rankSecond;
-    const numberFirst = Number(first);
-    const numberSecond = Number(second);
-    if (!Number.isNaN(numberFirst) && !Number.isNaN(numberSecond)) {
-      return numberFirst - numberSecond;
-    }
-    return first.localeCompare(second);
-  });
+  return [...new Set(sizes)].sort(compareSizes);
 }
 
 export function imagesForColor(product: Product, color: string): string[] {

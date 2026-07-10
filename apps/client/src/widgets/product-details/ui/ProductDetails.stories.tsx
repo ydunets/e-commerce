@@ -1,23 +1,32 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import type { Product } from '@/entities/product';
 import { productFixture } from '@/entities/product/model/product.fixture';
 import { ProductDetails } from './ProductDetails';
+
+const withStock = (stock: number): Product => ({
+  ...productFixture,
+  variants: productFixture.variants.map((variant) => ({
+    ...variant,
+    stock,
+  })),
+});
 
 const meta = {
   title: 'Widgets/ProductDetails',
   component: ProductDetails,
-  argTypes: {
-    demoState: {
-      control: 'select',
-      options: ['default', 'out-of-stock', 'max'],
-    },
-  },
 } satisfies Meta<typeof ProductDetails>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: { product: productFixture, demoState: 'default' },
-  // Re-key on demo state so selection state re-initialises when the control changes.
-  render: (args) => <ProductDetails key={args.demoState} {...args} />,
+  args: { product: productFixture },
+};
+
+export const OutOfStock: Story = {
+  args: { product: withStock(0) },
+};
+
+export const LastItem: Story = {
+  args: { product: withStock(1) },
 };

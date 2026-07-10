@@ -13,19 +13,15 @@ import { QuantityStepper } from '@/shared/ui/quantity-stepper';
 import { SizeSelector } from '@/shared/ui/size-selector';
 import { StarRating } from '@/shared/ui/star-rating';
 import { ProductReviewsDialog } from '@/widgets/product-reviews';
-import { colorPreviewImages, type DemoState } from '../lib/product-display';
+import { colorPreviewImages } from '../lib/product-display';
 import { useProductSelection } from '../lib/useProductSelection';
 import styles from './ProductDetails.module.css';
 
 export type TProductDetailsProps = {
   product: Product;
-  demoState?: DemoState;
 };
 
-export const ProductDetails = ({
-  product,
-  demoState = 'default',
-}: TProductDetailsProps) => {
+export const ProductDetails = ({ product }: TProductDetailsProps) => {
   const {
     selectedColor,
     selectedSize,
@@ -39,7 +35,7 @@ export const ProductDetails = ({
     selectColor,
     selectSize,
     setQuantity,
-  } = useProductSelection(product, demoState);
+  } = useProductSelection(product);
 
   const [reviewsOpen, setReviewsOpen] = useState(false);
 
@@ -65,13 +61,7 @@ export const ProductDetails = ({
               <h1 className={styles.title}>{product.name}</h1>
 
               <div className={styles.meta}>
-                {currentVariant && (
-                  <PriceTag
-                    salePrice={currentVariant.salePrice}
-                    listPrice={currentVariant.listPrice}
-                    discountPercentage={currentVariant.discountPercentage}
-                  />
-                )}
+                {currentVariant && <PriceTag price={currentVariant.price} />}
 
                 <StarRating
                   rating={product.reviews.average}

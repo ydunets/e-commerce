@@ -1,11 +1,11 @@
+import type { Price } from '@/shared/lib/price';
+
 export interface ProductVariant {
   sku: string;
   color: string;
   /** Clothing sizes are strings ('xs'); shoe sizes numbers-as-strings ('4.5'); one-size is null. */
   size: string | null;
-  listPrice: number;
-  salePrice: number;
-  discountPercentage: number | null;
+  price: Price;
   stock: number;
   sold: number;
 }

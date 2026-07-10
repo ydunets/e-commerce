@@ -1,38 +1,15 @@
+import type { ProductResponseDto } from '@e-commerce/contracts';
 import { apiGet } from '@/shared/api';
 import type { Product } from '../model/types';
-
-// The GreatFrontend e-commerce product shape the server mirrors.
-interface GfeInventoryItem {
-  sku: string;
-  color: string;
-  size: string | number | null;
-  list_price: number;
-  discount_percentage: number | null;
-  sale_price: number;
-  stock: number;
-  sold: number;
-}
-
-interface GfeProduct {
-  product_id: string;
-  name: string;
-  description: string;
-  colors: string[];
-  images: { color: string; image_url: string }[];
-  info: { title: string; description: string[] }[];
-  inventory: GfeInventoryItem[];
-  rating: number;
-  reviews: number;
-}
-
-const toSize = (size: string | number | null): string | null =>
-  size === null ? null : String(size);
 
 export async function getProduct(
   productId: string,
   baseUrl = '',
 ): Promise<Product> {
-  const data = await apiGet<GfeProduct>(`/v1/products/${productId}`, baseUrl);
+  const data = await apiGet<ProductResponseDto>(
+    `/v1/products/${productId}`,
+    baseUrl,
+  );
 
   return {
     id: data.product_id,
@@ -42,10 +19,12 @@ export async function getProduct(
     variants: data.inventory.map((item) => ({
       sku: item.sku,
       color: item.color,
-      size: toSize(item.size),
-      listPrice: item.list_price,
-      salePrice: item.sale_price,
-      discountPercentage: item.discount_percentage,
+      size: item.size,
+      price: {
+        sale: item.sale_price,
+        list: item.list_price,
+        discountPercentage: item.discount_percentage,
+      },
       stock: item.stock,
       sold: item.sold,
     })),

@@ -1,4 +1,3 @@
-export type { DemoState } from './lib/product-display';
 export type { TProductDetailsProps } from './ui/ProductDetails';
 export { ProductDetails } from './ui/ProductDetails';
 export type { TProductDetailsSectionProps } from './ui/ProductDetailsSection';

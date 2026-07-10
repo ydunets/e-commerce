@@ -1,23 +1,9 @@
+import type {
+  ReviewResponseDto,
+  ReviewsPageResponseDto,
+} from '@e-commerce/contracts';
 import { apiGet } from '@/shared/api';
 import type { Review, ReviewsPage } from '../model/types';
-
-// The GreatFrontend e-commerce reviews shape the server mirrors (snake_case).
-interface GfeReview {
-  id: number;
-  user_id: string;
-  name: string;
-  avatar_url: string | null;
-  rating: number;
-  content: string | null;
-  created_at: string;
-}
-
-interface GfeReviewsResponse {
-  count: number;
-  limit: number;
-  page: number;
-  data: GfeReview[];
-}
 
 export interface GetProductReviewsParams {
   page?: number;
@@ -25,7 +11,7 @@ export interface GetProductReviewsParams {
   rating?: number | null;
 }
 
-const toReview = (review: GfeReview): Review => ({
+const toReview = (review: ReviewResponseDto): Review => ({
   id: review.id,
   userId: review.user_id,
   name: review.name,
@@ -46,7 +32,7 @@ export async function getProductReviews(
   });
   if (rating != null) params.set('rating', String(rating));
 
-  const data = await apiGet<GfeReviewsResponse>(
+  const data = await apiGet<ReviewsPageResponseDto>(
     `/v1/products/${productId}/reviews?${params.toString()}`,
     baseUrl,
   );

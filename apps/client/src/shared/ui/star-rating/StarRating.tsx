@@ -1,4 +1,5 @@
 import { type KeyboardEvent, type SVGProps, useRef } from 'react';
+import { Stars } from '@/shared/ui/stars';
 import styles from './StarRating.module.css';
 
 const Star = (props: SVGProps<SVGSVGElement>) => (
@@ -17,6 +18,8 @@ export type TStarRatingProps = {
   reviewCount?: number;
   reviewsHref?: string;
   writeReviewHref?: string;
+  /** When set, "See all reviews" becomes a button firing this instead of a link. */
+  onReviewsClick?: () => void;
 };
 
 export const StarRating = ({
@@ -29,6 +32,7 @@ export const StarRating = ({
   reviewCount,
   reviewsHref = '#',
   writeReviewHref = '#',
+  onReviewsClick,
 }: TStarRatingProps) => {
   const stars = Array.from({ length: max }, (_, index) => index + 1);
 
@@ -47,7 +51,20 @@ export const StarRating = ({
   }
 
   const hasReviews = (reviewCount ?? 0) > 0;
-  const fillPercent = Math.max(0, Math.min(100, (rating / max) * 100));
+
+  const seeAllReviews = onReviewsClick ? (
+    <button
+      type="button"
+      onClick={onReviewsClick}
+      className={styles.linkButton}
+    >
+      See all {reviewCount} reviews
+    </button>
+  ) : (
+    <a href={reviewsHref} className={styles.link}>
+      See all {reviewCount} reviews
+    </a>
+  );
 
   return (
     <div className={styles.root}>
@@ -55,34 +72,14 @@ export const StarRating = ({
         {hasReviews ? rating.toFixed(1) : '0'}
       </span>
 
-      <span
-        className={styles.stars}
-        role="img"
-        aria-label={
-          hasReviews
-            ? `Rated ${rating.toFixed(1)} out of ${max}`
-            : 'Not yet rated'
-        }
-      >
-        <span className={styles.starsBase}>
-          {stars.map((starValue) => (
-            <Star key={starValue} className={styles.star} />
-          ))}
-        </span>
-        <span
-          className={styles.starsFill}
-          style={{ width: `${hasReviews ? fillPercent : 0}%` }}
-        >
-          {stars.map((starValue) => (
-            <Star key={starValue} className={styles.star} />
-          ))}
-        </span>
-      </span>
+      <Stars
+        rating={hasReviews ? rating : 0}
+        max={max}
+        label={hasReviews ? undefined : 'Not yet rated'}
+      />
 
       {hasReviews ? (
-        <a href={reviewsHref} className={styles.link}>
-          See all {reviewCount} reviews
-        </a>
+        seeAllReviews
       ) : (
         <span className={styles.empty}>
           No reviews yet.{' '}

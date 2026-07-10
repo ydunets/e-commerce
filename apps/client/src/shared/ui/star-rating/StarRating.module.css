@@ -8,24 +8,16 @@
   @apply text-xl font-normal text-ink;
 }
 
-.stars {
-  @apply relative inline-flex;
-}
-
-.starsBase {
-  @apply flex text-gray-200;
-}
-
-.starsFill {
-  @apply absolute inset-y-0 left-0 flex overflow-hidden text-star;
-}
-
 .star {
   @apply h-5 w-5 shrink-0;
 }
 
 .link {
   @apply text-sm font-medium text-brand hover:underline;
+}
+
+.linkButton {
+  @apply cursor-pointer border-0 bg-transparent p-0 text-sm font-medium text-brand hover:underline;
 }
 
 .empty {

@@ -35,8 +35,8 @@ const EmptyState = ({
   action?: ReactNode;
 }) => (
   <div className="flex h-full flex-col items-center justify-center gap-2 py-16 text-center">
-    <p className="text-lg font-semibold text-ink">{title}</p>
-    <p className="text-muted">{body}</p>
+    <p className="text-base font-semibold text-ink lg:text-lg">{title}</p>
+    <p className="text-sm text-muted lg:text-base">{body}</p>
     {action}
   </div>
 );

@@ -24,6 +24,10 @@ export const ReviewItem = ({ review }: TReviewItemProps) => (
         <Stars rating={review.rating} />
       </div>
     </div>
-    {review.content && <p className="leading-6 text-muted">{review.content}</p>}
+    {review.content && (
+      <p className="text-sm leading-6 text-muted lg:text-base">
+        {review.content}
+      </p>
+    )}
   </article>
 );

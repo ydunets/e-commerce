@@ -22,9 +22,11 @@ export const ReviewSummary = ({
   return (
     <div className="flex flex-col items-center gap-6">
       <div className="flex w-full flex-col gap-2">
-        <h2 className="text-xl font-semibold text-ink">Overall Rating</h2>
+        <h2 className="text-lg font-semibold text-ink lg:text-xl">
+          Overall Rating
+        </h2>
         <div className="flex items-center gap-2">
-          <span className="text-base font-semibold text-ink">
+          <span className="text-base font-semibold text-ink lg:text-lg">
             {hasReviews ? summary.average.toFixed(1) : '0'}
           </span>
           <Stars rating={hasReviews ? summary.average : 0} />

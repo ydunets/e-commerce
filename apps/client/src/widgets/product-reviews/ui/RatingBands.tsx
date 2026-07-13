@@ -30,7 +30,7 @@ export const RatingBands = ({
           >
             <span
               className={cx(
-                'w-[120px] shrink-0 text-base font-medium transition-colors',
+                'w-[120px] shrink-0 text-sm font-medium transition-colors lg:text-base',
                 active ? 'text-brand' : 'text-muted group-hover:text-ink',
               )}
             >
@@ -42,7 +42,7 @@ export const RatingBands = ({
                 style={{ width: `${percent}%` }}
               />
             </span>
-            <span className="w-[42px] shrink-0 text-right text-base text-muted">
+            <span className="w-[42px] shrink-0 text-right text-sm text-muted lg:text-base">
               {percent}%
             </span>
           </button>

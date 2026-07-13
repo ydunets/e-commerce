@@ -1,3 +1,18 @@
+# [1.3.0](https://github.com/ydunets/e-commerce/compare/v1.2.0...v1.3.0) (2026-07-13)
+
+
+### Bug Fixes
+
+* **client:** avoid skeleton flash on first review rating filter ([985624d](https://github.com/ydunets/e-commerce/commit/985624db18e8f4d64a9f242552a54a06cd2c26ef))
+* **client:** lock background scroll while a dialog is open ([0203489](https://github.com/ydunets/e-commerce/commit/02034898e0e7a9f878477026b31eed4b7692f872))
+
+
+### Features
+
+* **client:** prevent drag conflicts on gallery main image ([d15b122](https://github.com/ydunets/e-commerce/commit/d15b1228a34c0f7ea4b343327bf2f11c4c25a16b))
+* **client:** swap gallery image on threshold swipe ([dcbc0e5](https://github.com/ydunets/e-commerce/commit/dcbc0e555d8cd06de55ce35e2a476d01b4fd079e))
+* **client:** track drag gesture on gallery main image ([1aa976f](https://github.com/ydunets/e-commerce/commit/1aa976f1df74dcb787964abced15bce390bc5cb7))
+
 # [1.2.0](https://github.com/ydunets/e-commerce/compare/v1.1.1...v1.2.0) (2026-07-13)
 
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { getReviewSummaryQuery } from '#src/modules/review/index.ts';
+import type { getReviewSummaryQuery } from '#src/modules/review/index.ts';
 import makeFindProductQuery from './find-product.handler.ts';
 
 const baseProduct = {

@@ -77,6 +77,7 @@ export const ImageGallery = ({ images, alt }: TImageGalleryProps) => {
             className={styles.main}
             fetchPriority="high"
             decoding="async"
+            draggable={false}
           />
         )}
       </div>

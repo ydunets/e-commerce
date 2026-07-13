@@ -5,7 +5,7 @@
 }
 
 .mainWrap {
-  @apply aspect-[592/800] w-full overflow-hidden rounded-lg bg-surface;
+  @apply aspect-[592/800] w-full touch-pan-y overflow-hidden rounded-lg bg-surface;
 }
 
 .main {

@@ -7,8 +7,9 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "pnpm --parallel --filter @e-commerce/client --filter @e-commerce/server run dev",
-    "dev:client": "pnpm --filter @e-commerce/client dev",
+    "postinstall": "pnpm --filter @e-commerce/contracts build",
+    "dev": "pnpm --parallel --filter @e-commerce/contracts --filter @e-commerce/client --filter @e-commerce/server run dev",
+    "dev:client": "pnpm --parallel --filter @e-commerce/contracts --filter @e-commerce/client run dev",
     "build": "pnpm --filter @e-commerce/client build",
     "preview": "pnpm --filter @e-commerce/client preview",
     "test": "pnpm --filter @e-commerce/client test",

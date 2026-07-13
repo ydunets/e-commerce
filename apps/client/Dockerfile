@@ -32,6 +32,12 @@ COPY . .
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prefer-offline --filter @e-commerce/client...
 
+# @e-commerce/contracts resolves to raw TS via its "exports" field for local
+# dev; Rsbuild's bundler resolves the same "default" condition at build time,
+# so it needs a compiled dist/ to exist before bundling (Rsbuild inlines the
+# package into dist/server/index.js, so nothing further is needed at runtime).
+RUN pnpm --filter @e-commerce/contracts build
+
 # Produce the SSR build: dist/ (static + manifest.json) and dist/server (SSR bundle).
 RUN pnpm --filter @e-commerce/client build
 # Portable prod node_modules (real tree, no workspace symlinks).

@@ -30,6 +30,13 @@ COPY . .
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prefer-offline --filter @e-commerce/server...
 
+# @e-commerce/contracts ships raw TS from its "exports" field so that Node's
+# native type-stripping picks it up in dev; `pnpm deploy` below materializes
+# it as a real (non-symlinked) node_modules package, and Node refuses to
+# strip types under node_modules. Build it to plain JS first so the deployed
+# copy resolves via its "default" export condition instead.
+RUN pnpm --filter @e-commerce/contracts build
+
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm --filter @e-commerce/server --legacy deploy --prod /prod
 

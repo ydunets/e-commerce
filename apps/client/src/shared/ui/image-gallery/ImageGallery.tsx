@@ -1,7 +1,13 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { cx } from '@/shared/lib/cx';
 import { squareImage } from '@/shared/lib/image';
 import styles from './ImageGallery.module.css';
+
+type TDragState = {
+  active: boolean;
+  startX: number;
+  deltaX: number;
+};
 
 export type TImageGalleryProps = {
   images: string[];
@@ -25,9 +31,33 @@ export const ImageGallery = ({ images, alt }: TImageGalleryProps) => {
     activeUrl && images.includes(activeUrl) ? activeUrl : images[0];
   const isScrollable = images.length > MAX_FILLED_THUMBS;
 
+  const dragRef = useRef<TDragState>({ active: false, startX: 0, deltaX: 0 });
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    dragRef.current = { active: true, startX: event.clientX, deltaX: 0 };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current.active) return;
+    dragRef.current.deltaX = event.clientX - dragRef.current.startX;
+  };
+
+  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current.active) return;
+    dragRef.current.active = false;
+    event.currentTarget.releasePointerCapture(event.pointerId);
+  };
+
   return (
     <div className={styles.root}>
-      <div className={styles.mainWrap}>
+      <div
+        className={styles.mainWrap}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+      >
         {mainImage && (
           <img
             src={squareImage(mainImage, MAIN_WIDTH)}

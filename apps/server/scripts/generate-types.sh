@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Starts the server, generates REST + GraphQL client types, then stops the server.
+# Starts the server, generates REST client types, then stops the server.
 # Used by CI (release pipeline) and can be run locally.
+# GraphQL type generation was removed with the GraphQL surface (no schema left to
+# generate from); reintroduce the graphql-codegen step here if GraphQL comes back.
 set -euo pipefail
 
 SERVER_URL="http://127.0.0.1:3000"
@@ -27,9 +29,5 @@ echo "Server is ready (took ${elapsed}s)"
 # ── Generate REST types (OpenAPI) ───────────────────────────────────────────
 echo "Generating REST client types…"
 pnpm openapi-typescript "$SERVER_URL/api-docs/json" -o ./client/rest.d.ts
-
-# ── Generate GraphQL types ──────────────────────────────────────────────────
-echo "Generating GraphQL client types…"
-pnpm graphql-codegen --config scripts/codegen.ts
 
 echo "Done — client types written to client/"

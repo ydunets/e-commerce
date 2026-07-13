@@ -21,6 +21,7 @@ storybook-static
 # Agent skills
 .agents/
 skills-lock.json
+.claude/skills/
 
 # Local agent settings
 .claude/settings.local.json

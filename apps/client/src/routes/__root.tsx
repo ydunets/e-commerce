@@ -1,10 +1,11 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   createRootRouteWithContext,
   HeadContent,
   Outlet,
   Scripts,
 } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Navbar } from '@/shared/ui/navbar';
 import type { RouterContext } from '../router';
 import '../app.css';
@@ -41,6 +42,13 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootComponent() {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: { queries: { staleTime: 60_000, retry: 1 } },
+      }),
+  );
+
   // Synchronizes hydration state to the DOM for e2e tests: effects only run
   // after hydration commits, so the attribute marks the page as interactive.
   useEffect(() => {
@@ -53,20 +61,22 @@ function RootComponent() {
         <HeadContent />
       </head>
       <body>
-        <Navbar
-          links={[
-            { label: 'Home', href: '/' },
-            {
-              label: 'Products',
-              href: '/products/$productId',
-              params: { productId: 'voyager-hoodie' },
-            },
-            { label: 'About', href: '/about' },
-          ]}
-          brandHref="/"
-          cartHref="/"
-        />
-        <Outlet />
+        <QueryClientProvider client={queryClient}>
+          <Navbar
+            links={[
+              { label: 'Home', href: '/' },
+              {
+                label: 'Products',
+                href: '/products/$productId',
+                params: { productId: 'voyager-hoodie' },
+              },
+              { label: 'About', href: '/about' },
+            ]}
+            brandHref="/"
+            cartHref="/"
+          />
+          <Outlet />
+        </QueryClientProvider>
         <Scripts />
       </body>
     </html>

@@ -1,0 +1,20 @@
+@reference "../../../app.css";
+
+/* w-fit: as a flex item the root would stretch to the cross axis (e.g. inside
+   a flex-col review card), and the fill overlay's percentage width must
+   resolve against the star row, not the stretched box. */
+.root {
+  @apply relative inline-flex w-fit;
+}
+
+.base {
+  @apply flex text-gray-200;
+}
+
+.fill {
+  @apply absolute inset-y-0 left-0 flex overflow-hidden text-star;
+}
+
+.star {
+  @apply h-5 w-5 shrink-0;
+}

@@ -1,16 +1,13 @@
 import { expect, test } from '@rstest/core';
 import { act, renderHook } from '@testing-library/react';
-import { productFixture } from '../src/entities/product/model/product.fixture';
-import type { DemoState } from '../src/widgets/product-details/lib/product-display';
-import { useProductSelection } from '../src/widgets/product-details/lib/useProductSelection';
+import type { Product } from '@/entities/product';
+import { productFixture } from '@/entities/product/model/product.fixture.ts';
+import { useProductSelection } from '@/widgets/product-details/lib/useProductSelection.ts';
 
 const COLOR_GREEN = 'green';
 const COLOR_BROWN = 'brown';
 const SIZE_SM = 'sm';
 const SIZE_MD = 'md';
-
-const DEMO_DEFAULT: DemoState = 'default';
-const DEMO_OUT_OF_STOCK: DemoState = 'out-of-stock';
 
 const RESET_QUANTITY = 1;
 const EMPTY = 0;
@@ -22,8 +19,16 @@ const stockFor = (color: string, size: string) =>
     (variant) => variant.color === color && variant.size === size,
   )?.stock ?? 0;
 
-const renderSelection = (demoState: DemoState = DEMO_DEFAULT) =>
-  renderHook(() => useProductSelection(productFixture, demoState));
+const outOfStockProduct: Product = {
+  ...productFixture,
+  variants: productFixture.variants.map((variant) => ({
+    ...variant,
+    stock: EMPTY,
+  })),
+};
+
+const renderSelection = (product: Product = productFixture) =>
+  renderHook(() => useProductSelection(product));
 
 // `act` is required here (and only here): each call imperatively drives a hook
 // state update outside React's event system, which the component tests avoid by
@@ -62,10 +67,13 @@ test('selecting a smaller-stock size clamps the quantity down to it', () => {
   expect(result.current.maxStock).toBe(brownSmStock);
 });
 
-test('the out-of-stock demo state zeroes the displayed quantity and max', () => {
-  const { result } = renderSelection(DEMO_OUT_OF_STOCK);
+test('a fully sold-out product zeroes the displayed quantity and max', () => {
+  const { result } = renderSelection(outOfStockProduct);
 
   expect(result.current.isOutOfStock).toBe(true);
   expect(result.current.displayedQuantity).toBe(EMPTY);
   expect(result.current.maxStock).toBe(EMPTY);
+  expect(result.current.colorOptions.every((option) => option.disabled)).toBe(
+    true,
+  );
 });

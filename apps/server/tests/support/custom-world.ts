@@ -4,7 +4,6 @@ import type { FastifyInstance, LightMyRequestResponse } from 'fastify';
 import type postgres from 'postgres';
 
 export interface TestContext {
-  createUserDto?: Record<string, string>;
   latestResponse?: LightMyRequestResponse;
   [key: string]: unknown;
 }

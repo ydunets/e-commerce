@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import compression from 'compression';
 import express from 'express';
 import { createApiProxy, sendResponse, toWebRequest } from './helpers.mjs';
 
@@ -19,6 +20,8 @@ const { render } = await import(
 
 const app = express();
 
+app.use(compression());
+
 // Forward API calls to the Fastify server (apps/server).
 app.use('/api', createApiProxy(process.env.API_URL ?? 'http://localhost:4000'));
 
@@ -30,6 +33,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// Rsbuild content-hashes every filename under static/, so it can be cached forever.
+app.use(
+  '/static',
+  express.static(path.join(distDir, 'static'), {
+    immutable: true,
+    maxAge: '1y',
+  }),
+);
 app.use(express.static(distDir, { index: false }));
 
 app.use(async (req, res, next) => {

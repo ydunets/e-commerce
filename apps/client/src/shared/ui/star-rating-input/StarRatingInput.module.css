@@ -1,0 +1,29 @@
+@reference "../../../app.css";
+
+.input {
+  @apply inline-flex items-center gap-0.5;
+}
+
+.star {
+  @apply h-5 w-5 shrink-0;
+}
+
+.starButton {
+  @apply cursor-pointer rounded-sm border-0 bg-transparent p-0.5 leading-none text-gray-200 transition-colors;
+}
+
+.starButton[data-active="true"] {
+  @apply text-star;
+}
+
+.starButton:not(:disabled):hover {
+  @apply text-star;
+}
+
+.starButton:disabled {
+  @apply cursor-default;
+}
+
+.starButton:focus-visible {
+  @apply focus-ring rounded-sm;
+}

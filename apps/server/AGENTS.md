@@ -136,7 +136,7 @@ vs `register`/`execute` for commands and queries.
 
 DI uses [Awilix](https://github.com/jeffijoe/awilix) with `@fastify/awilix`.
 
-- Global dependencies (`db`, `logger`, `commandBus`, `queryBus`, `eventBus`, `repositoryBase`) are registered in `src/modules/index.ts`
+- Global dependencies (`db`, `logger`, `commandBus`, `queryBus`, `eventBus`) are registered in `src/modules/index.ts`
 - Module-specific dependencies are declared via `declare global { export interface Dependencies { ... } }` in the module's `index.ts`
 - Repositories, mappers, domain services are auto-loaded as singletons from `src/modules/**/*.{repository,mapper,service,domain}.ts`
 - Handlers and event-handlers are auto-loaded with `asyncInit: 'init'` from `src/modules/**/*.{handler,event-handler}.ts`
@@ -149,9 +149,8 @@ DI uses [Awilix](https://github.com/jeffijoe/awilix) with `@fastify/awilix`.
 - Connection: lazy singleton via `getDb()` in `src/shared/db/postgres.ts`; close with `closeDbConnection()`
 - Migrations/seeds: DBMate (SQL files in `db/migrations/` and `db/seeds/`)
 - Transaction support: `withTransaction(async (tx) => { ... })`
-- Repository base: `SqlRepositoryBase` (in `src/shared/db/sql-repository.base.ts`) provides generic CRUD (insert, findOneById, findAll, findAllPaginated, update, delete)
-- Repository ports extend `RepositoryPort<Entity>` (in `src/shared/db/repository.port.ts`)
-- Mapper interface: `Mapper<DomainEntity, DbRecord, Response>` with `toPersistence`, `toDomain`, `toResponse` (in `src/shared/ddd/mapper.interface.ts`)
+- Repositories are hand-written per module (no generic base) — each repository port declares only the queries its module needs, and the adapter issues its own SQL and maps rows directly to domain shapes
+- Mappers are hand-written per module too: for read-only modules (no commands), a mapper only needs `toResponse(entity): ResponseDto`; add `toDomain`/`toPersistence` only if the module actually writes to the database
 
 SQL parameterization rules:
 - Always use tagged templates: `` db`SELECT * FROM ${db(tableName)} WHERE id = ${id}` ``
@@ -198,9 +197,9 @@ SQL parameterization rules:
 1. Create `src/modules/<name>/` with the vertical slice structure
 2. Create `src/modules/<name>/index.ts` with `actionCreatorFactory('<name>')` and `declare global` Dependencies
 3. Create domain types in `domain/<name>.types.ts`
-4. Create repository port in `database/<name>.repository.port.ts` (interface extending `RepositoryPort<Entity>`)
-5. Create repository adapter in `database/<name>.repository.ts` (implements the port)
-6. Create mapper in `<name>.mapper.ts` (implements `Mapper<Entity, DbModel, ResponseDto>`)
+4. Create repository port in `database/<name>.repository.port.ts` (an interface declaring only the queries this module needs)
+5. Create repository adapter in `database/<name>.repository.ts` (implements the port; hand-written SQL, no generic base)
+6. Create mapper in `<name>.mapper.ts` (`toResponse(entity): ResponseDto`; add `toDomain`/`toPersistence` only if the module writes to the database)
 7. Create command/query handlers with action creators embedding `<Payload, Result>` types
 8. Create routes and/or resolvers — call `bus.execute(action)` without manual generics
 9. Create a DB migration: `pnpm db:create-migration <name>`

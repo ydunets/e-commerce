@@ -33,6 +33,5 @@ coverage
 
 # Generated client types (produced by generate:types script)
 client/rest.d.ts
-client/graphql.ts
 .agents/skills/
 .claude/settings.local.json

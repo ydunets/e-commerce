@@ -1,7 +1,7 @@
 @reference "../../../app.css";
 
 .root {
-  @apply flex flex-col gap-6;
+  @apply mx-auto flex w-full max-w-[592px] flex-col gap-6;
 }
 
 .mainWrap {

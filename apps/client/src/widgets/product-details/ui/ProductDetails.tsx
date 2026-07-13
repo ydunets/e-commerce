@@ -1,26 +1,27 @@
+import { useState } from 'react';
 import type { Product } from '@/entities/product';
-import { squareImage } from '@/shared/lib/image';
 import { Accordion } from '@/shared/ui/accordion';
 import { Button } from '@/shared/ui/button';
 import { ColorSwatches } from '@/shared/ui/color-swatches';
-import { ImageGallery } from '@/shared/ui/image-gallery';
+import {
+  ImageGallery,
+  MAIN_IMAGE_SIZES,
+  mainImageSrcSet,
+} from '@/shared/ui/image-gallery';
 import { PriceTag } from '@/shared/ui/price-tag';
 import { QuantityStepper } from '@/shared/ui/quantity-stepper';
 import { SizeSelector } from '@/shared/ui/size-selector';
 import { StarRating } from '@/shared/ui/star-rating';
-import { colorPreviewImages, type DemoState } from '../lib/product-display';
+import { ProductReviewsDialog } from '@/widgets/product-reviews';
+import { colorPreviewImages } from '../lib/product-display';
 import { useProductSelection } from '../lib/useProductSelection';
 import styles from './ProductDetails.module.css';
 
 export type TProductDetailsProps = {
   product: Product;
-  demoState?: DemoState;
 };
 
-export const ProductDetails = ({
-  product,
-  demoState = 'default',
-}: TProductDetailsProps) => {
+export const ProductDetails = ({ product }: TProductDetailsProps) => {
   const {
     selectedColor,
     selectedSize,
@@ -34,13 +35,21 @@ export const ProductDetails = ({
     selectColor,
     selectSize,
     setQuantity,
-  } = useProductSelection(product, demoState);
+  } = useProductSelection(product);
+
+  const [reviewsOpen, setReviewsOpen] = useState(false);
 
   return (
     <section className={styles.root} aria-label={product.name}>
       {/* Preload each colour's first image (hoisted to <head> by React) so switching colours is instant. */}
       {colorPreviewImages(product).map((url) => (
-        <link key={url} rel="preload" as="image" href={squareImage(url, 800)} />
+        <link
+          key={url}
+          rel="preload"
+          as="image"
+          imageSrcSet={mainImageSrcSet(url)}
+          imageSizes={MAIN_IMAGE_SIZES}
+        />
       ))}
 
       <div className={styles.layout}>
@@ -52,17 +61,12 @@ export const ProductDetails = ({
               <h1 className={styles.title}>{product.name}</h1>
 
               <div className={styles.meta}>
-                {currentVariant && (
-                  <PriceTag
-                    salePrice={currentVariant.salePrice}
-                    listPrice={currentVariant.listPrice}
-                    discountPercentage={currentVariant.discountPercentage}
-                  />
-                )}
+                {currentVariant && <PriceTag price={currentVariant.price} />}
 
                 <StarRating
                   rating={product.reviews.average}
                   reviewCount={product.reviews.count}
+                  onReviewsClick={() => setReviewsOpen(true)}
                 />
               </div>
             </div>
@@ -123,6 +127,13 @@ export const ProductDetails = ({
           </div>
         </div>
       </div>
+
+      <ProductReviewsDialog
+        open={reviewsOpen}
+        onClose={() => setReviewsOpen(false)}
+        productId={product.id}
+        productName={product.name}
+      />
     </section>
   );
 };

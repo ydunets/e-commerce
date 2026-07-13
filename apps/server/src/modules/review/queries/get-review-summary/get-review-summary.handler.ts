@@ -1,7 +1,7 @@
 import type { ReviewSummary } from '#src/modules/review/domain/review.types.ts';
+import { ensureProductExists } from '#src/modules/review/queries/ensure-product-exists.ts';
 import { reviewActionCreator } from '#src/modules/review/review.action-creator.ts';
 import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
-import { NotFoundException } from '#src/shared/exceptions/index.ts';
 
 export type GetReviewSummaryResult = ReviewSummary;
 
@@ -15,9 +15,7 @@ export default function makeGetReviewSummaryQuery({ queryBus, reviewRepository }
     async handler({
       payload,
     }: HandlerAction<typeof getReviewSummaryQuery>): Promise<GetReviewSummaryResult> {
-      if (!(await reviewRepository.productExists(payload.productId))) {
-        throw new NotFoundException(`Product ${payload.productId} not found`);
-      }
+      await ensureProductExists(reviewRepository, payload.productId);
       return reviewRepository.getSummary(payload.productId);
     },
     init() {

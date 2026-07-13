@@ -1,10 +1,10 @@
 import type { ReviewFilters } from '#src/modules/review/database/review.repository.port.ts';
 import type { ReviewEntity } from '#src/modules/review/domain/review.types.ts';
+import { ensureProductExists } from '#src/modules/review/queries/ensure-product-exists.ts';
 import { reviewActionCreator } from '#src/modules/review/review.action-creator.ts';
 import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
 import type { Paginated, PaginatedQueryParams } from '#src/shared/db/repository.port.ts';
 import { paginatedQueryBase } from '#src/shared/ddd/query.base.ts';
-import { NotFoundException } from '#src/shared/exceptions/index.ts';
 
 export type FindProductReviewsResult = Paginated<ReviewEntity>;
 
@@ -18,9 +18,7 @@ export default function makeFindProductReviewsQuery({ queryBus, reviewRepository
     async handler({
       payload,
     }: HandlerAction<typeof findProductReviewsQuery>): Promise<FindProductReviewsResult> {
-      if (!(await reviewRepository.productExists(payload.productId))) {
-        throw new NotFoundException(`Product ${payload.productId} not found`);
-      }
+      await ensureProductExists(reviewRepository, payload.productId);
       const query = paginatedQueryBase(payload);
       return reviewRepository.findAllPaginatedByProduct(payload.productId, query, {
         rating: payload.rating,

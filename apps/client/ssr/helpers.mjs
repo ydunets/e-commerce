@@ -48,9 +48,16 @@ const HOP_BY_HOP_HEADERS = new Set([
 
 /** Forward /api/* requests to the Fastify server. */
 export function createApiProxy(apiUrl) {
+  const baseUrl = new URL(apiUrl);
+
   return async (req, res, next) => {
     try {
-      const target = new URL(req.originalUrl, apiUrl);
+      const target = new URL(req.originalUrl ?? req.url, baseUrl);
+      if (target.origin !== baseUrl.origin) {
+        res.statusCode = 400;
+        res.end('Forbidden target origin');
+        return;
+      }
 
       const headers = new Headers();
       for (const [key, value] of Object.entries(req.headers)) {

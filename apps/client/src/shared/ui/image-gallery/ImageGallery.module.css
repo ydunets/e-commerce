@@ -5,7 +5,7 @@
 }
 
 .mainWrap {
-  @apply aspect-[592/800] w-full overflow-hidden rounded-lg bg-surface;
+  @apply aspect-[592/800] w-full touch-pan-y overflow-hidden rounded-lg bg-surface;
 }
 
 .main {
@@ -18,6 +18,12 @@
 
 .thumbsScroll {
   @apply overflow-x-auto pb-1;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.thumbsScroll::-webkit-scrollbar {
+  display: none;
 }
 
 .thumb {

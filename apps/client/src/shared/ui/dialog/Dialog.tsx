@@ -48,6 +48,15 @@ export const Dialog = ({ open, onClose, label, children }: TDialogProps) => {
     setShown(open);
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const { overflow } = document.documentElement.style;
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.documentElement.style.overflow = overflow;
+    };
+  }, [open]);
+
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: backdrop dismissal is mouse-only; Esc closes the dialog via the native close event.
     <dialog

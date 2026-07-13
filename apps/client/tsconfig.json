@@ -11,6 +11,7 @@
     /* modules */
     "moduleDetection": "force",
     "moduleResolution": "bundler",
+    "customConditions": ["development"],
     "paths": {
       "@/*": ["./src/*"]
     },

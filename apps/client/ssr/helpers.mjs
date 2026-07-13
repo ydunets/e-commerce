@@ -48,9 +48,24 @@ const HOP_BY_HOP_HEADERS = new Set([
 
 /** Forward /api/* requests to the Fastify server. */
 export function createApiProxy(apiUrl) {
+  const baseUrl = new URL(apiUrl);
+
   return async (req, res, next) => {
     try {
-      const target = new URL(req.originalUrl, apiUrl);
+      // Only a path is accepted: absolute and protocol-relative URLs could
+      // redirect the proxy to another host.
+      const rawUrl = req.originalUrl ?? req.url;
+      if (!rawUrl.startsWith('/') || rawUrl.startsWith('//')) {
+        res.statusCode = 400;
+        res.end('Forbidden target origin');
+        return;
+      }
+
+      const queryIndex = rawUrl.indexOf('?');
+      const target = new URL(baseUrl);
+      target.pathname =
+        queryIndex === -1 ? rawUrl : rawUrl.slice(0, queryIndex);
+      target.search = queryIndex === -1 ? '' : rawUrl.slice(queryIndex);
 
       const headers = new Headers();
       for (const [key, value] of Object.entries(req.headers)) {

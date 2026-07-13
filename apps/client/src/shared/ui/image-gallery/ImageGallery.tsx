@@ -19,6 +19,7 @@ const MAIN_WIDTHS = [400, 800, 1200];
 const THUMB_WIDTH = 200;
 
 const MAX_FILLED_THUMBS = 3;
+const SWIPE_THRESHOLD_PX = 50;
 
 export const MAIN_IMAGE_SIZES = '(min-width: 768px) 592px, 100vw';
 
@@ -45,8 +46,15 @@ export const ImageGallery = ({ images, alt }: TImageGalleryProps) => {
 
   const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!dragRef.current.active) return;
+    const { deltaX } = dragRef.current;
     dragRef.current.active = false;
     event.currentTarget.releasePointerCapture(event.pointerId);
+
+    if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX || !mainImage) return;
+    const currentIndex = images.indexOf(mainImage);
+    const nextIndex = deltaX < 0 ? currentIndex + 1 : currentIndex - 1;
+    const nextImage = images[nextIndex];
+    if (nextImage) setActiveUrl(nextImage);
   };
 
   return (

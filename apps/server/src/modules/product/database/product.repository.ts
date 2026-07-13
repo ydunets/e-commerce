@@ -1,5 +1,9 @@
-import { compareSizes } from '@e-commerce/contracts';
 import type { ProductRepository } from '#src/modules/product/database/product.repository.port.ts';
+import {
+  byColorThenSize,
+  distinctSizes,
+  orderedColors,
+} from '#src/modules/product/domain/product.ordering.ts';
 import type { ProductEntity, ProductVariant } from '#src/modules/product/domain/product.types.ts';
 
 interface ProductRow {
@@ -34,18 +38,6 @@ interface ReviewSummaryRow {
   average: number;
 }
 
-// Distinct colours ordered by where their first image appears (image ids are
-// seeded in source order), so the product's primary colour comes first.
-function orderedColors(inventory: InventoryRow[], images: ImageRow[]): string[] {
-  const imageOrder = new Map<string, number>();
-  for (const image of images) {
-    if (!imageOrder.has(image.color)) imageOrder.set(image.color, imageOrder.size);
-  }
-  const rank = (color: string) => imageOrder.get(color) ?? Number.MAX_SAFE_INTEGER;
-  const colors = [...new Set(inventory.map((row) => row.color))];
-  return colors.sort((first, second) => rank(first) - rank(second) || first.localeCompare(second));
-}
-
 function toVariant(row: InventoryRow): ProductVariant {
   return {
     sku: row.sku,
@@ -57,22 +49,6 @@ function toVariant(row: InventoryRow): ProductVariant {
     stock: Number(row.stock),
     sold: Number(row.sold),
   };
-}
-
-function byColorThenSize(colors: string[]) {
-  const colorRank = (color: string) => {
-    const index = colors.indexOf(color);
-    return index === -1 ? Number.MAX_SAFE_INTEGER : index;
-  };
-  return (first: ProductVariant, second: ProductVariant) =>
-    colorRank(first.color) - colorRank(second.color) ||
-    compareSizes(first.size ?? '', second.size ?? '');
-}
-
-function distinctSizes(variants: ProductVariant[]): string[] {
-  return [...new Set(variants.map((variant) => variant.size))]
-    .filter((size): size is string => size !== null)
-    .sort(compareSizes);
 }
 
 export default function productRepository({ db }: Dependencies): ProductRepository {

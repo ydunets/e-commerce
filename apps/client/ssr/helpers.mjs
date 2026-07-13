@@ -52,12 +52,20 @@ export function createApiProxy(apiUrl) {
 
   return async (req, res, next) => {
     try {
-      const target = new URL(req.originalUrl ?? req.url, baseUrl);
-      if (target.origin !== baseUrl.origin) {
+      // Only a path is accepted: absolute and protocol-relative URLs could
+      // redirect the proxy to another host.
+      const rawUrl = req.originalUrl ?? req.url;
+      if (!rawUrl.startsWith('/') || rawUrl.startsWith('//')) {
         res.statusCode = 400;
         res.end('Forbidden target origin');
         return;
       }
+
+      const queryIndex = rawUrl.indexOf('?');
+      const target = new URL(baseUrl);
+      target.pathname =
+        queryIndex === -1 ? rawUrl : rawUrl.slice(0, queryIndex);
+      target.search = queryIndex === -1 ? '' : rawUrl.slice(queryIndex);
 
       const headers = new Headers();
       for (const [key, value] of Object.entries(req.headers)) {

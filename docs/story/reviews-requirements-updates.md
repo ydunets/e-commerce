@@ -125,7 +125,34 @@ glance at the two "needs design eyes" rows.
 
 ### Task 4 report
 
-_(appended after the pass runs)_
+Run 2026-07-13 against the live dev stack. Engine coverage: Chromium (embedded
+browser pane, full feature pass during Task 3), Firefox 26.x and WebKit 26.5 via
+Playwright engines, headless, scripted checklist. Caveat recorded: Playwright's
+WebKit is Safari's engine, not the Safari app; Safari-app-specific chrome
+(gesture nav, toolbar overlap) is not covered.
+
+| Check | Chromium | Firefox | WebKit |
+|---|---|---|---|
+| Dialog opens via `showModal` | Pass | Pass | Pass |
+| Esc closes | Pass (native close event) | Pass | Pass |
+| Close button closes | Pass | Pass | Pass |
+| Backdrop click closes | Pass | Pass | Pass |
+| Intl date "May 26, 2024" | Pass | Pass | Pass |
+| Fractional star fill identical | 81.29% | 81.29% | 81.29% |
+| Virtualized list scrolls, rows advance | Pass | Pass | Pass |
+| Load-more appends | Pass | Pass | Pass |
+| Band filter → only 5-star, Clear restores | Pass | Pass | Pass |
+| Keyboard focus-visible ring | Pass | Pass | Pass |
+| Live 1440→768 crossing refetches page size 10 | Pass* | Pass | Pass |
+
+*Chromium note: passed in Playwright-driven runs and on fresh loads; the embedded
+preview pane's emulated resize does not dispatch `matchMedia` change events, which
+produced a false alarm during Task 3 (documented there; real browsers fire it).
+
+**Deviations found: none.** All three engines behave identically on every check.
+
+**Verdict: R20 Met** at the engine level (Chromium/Gecko/WebKit). Residual risk is
+limited to Safari-app chrome behaviors, which no local automation can cover.
 
 ## Decisions
 

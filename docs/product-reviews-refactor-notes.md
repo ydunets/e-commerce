@@ -64,3 +64,11 @@ from `ReviewRepository`/`review.repository.ts` entirely.
 
 This keeps the existence check just as cheap, while scoping the coupling to `product`'s public
 query contract (types, enforced by `pnpm deps:validate`) instead of its raw schema.
+
+Need to fix: 
+`for (const dimension of ['offsetWidth', 'offsetHeight'] as const) {
+  Object.defineProperty(HTMLElement.prototype, dimension, {
+    configurable: true,
+    get: () => VIEWPORT_SIZE,
+  });
+}`

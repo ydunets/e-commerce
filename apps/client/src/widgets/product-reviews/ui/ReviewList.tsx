@@ -1,4 +1,8 @@
-import { useVirtualizer, type Virtualizer } from '@tanstack/react-virtual';
+import {
+  useVirtualizer,
+  type VirtualItem,
+  type Virtualizer,
+} from '@tanstack/react-virtual';
 import type { ReactNode, RefObject } from 'react';
 import type { Review } from '@/entities/review';
 import { Button } from '@/shared/ui/button';
@@ -80,6 +84,15 @@ const NoReviewsYet = () => (
   />
 );
 
+// The virtualizer instance is mutable and referentially stable, so compiled
+// (memoized) components must receive its state as plain data; reading it here
+// would go stale between scroll updates.
+type TVirtualListState = {
+  virtualItems: VirtualItem[];
+  totalSize: number;
+  measureElement: Virtualizer<HTMLDivElement, Element>['measureElement'];
+};
+
 type TVirtualizedReviewsProps = {
   items: Review[];
   total: number;
@@ -87,8 +100,7 @@ type TVirtualizedReviewsProps = {
   hasMore: boolean;
   perPage: number;
   onLoadMore: () => void;
-  virtualizer: Virtualizer<HTMLDivElement, Element>;
-};
+} & TVirtualListState;
 
 const VirtualizedReviews = ({
   items,
@@ -97,21 +109,20 @@ const VirtualizedReviews = ({
   hasMore,
   perPage,
   onLoadMore,
-  virtualizer,
+  virtualItems,
+  totalSize,
+  measureElement,
 }: TVirtualizedReviewsProps) => {
   const loadingMore = status === 'loadingMore';
   const remainingCount = Math.min(perPage, total - items.length);
 
   return (
     <>
-      <ul
-        className="relative w-full"
-        style={{ height: virtualizer.getTotalSize() }}
-      >
-        {virtualizer.getVirtualItems().map((virtualItem) => (
+      <ul className="relative w-full" style={{ height: totalSize }}>
+        {virtualItems.map((virtualItem) => (
           <li
             key={items[virtualItem.index].id}
-            ref={virtualizer.measureElement}
+            ref={measureElement}
             data-index={virtualItem.index}
             className="absolute top-0 left-0 w-full"
             style={{ transform: `translateY(${virtualItem.start}px)` }}
@@ -136,11 +147,7 @@ const VirtualizedReviews = ({
   );
 };
 
-const ReviewListContent = (
-  props: TReviewListProps & {
-    virtualizer: Virtualizer<HTMLDivElement, Element>;
-  },
-) => {
+const ReviewListContent = (props: TReviewListProps & TVirtualListState) => {
   const { items, status, activeRating, onClearFilter } = props;
 
   if (status === 'loading') return <ReviewSkeleton />;
@@ -172,7 +179,12 @@ export const ReviewList = (props: TReviewListProps) => {
       ref={props.listRef}
       className="min-h-0 flex-1 overflow-y-auto px-6 py-6 md:pt-0 md:pr-8 md:pb-8 md:pl-0"
     >
-      <ReviewListContent {...props} virtualizer={virtualizer} />
+      <ReviewListContent
+        {...props}
+        virtualItems={virtualizer.getVirtualItems()}
+        totalSize={virtualizer.getTotalSize()}
+        measureElement={virtualizer.measureElement}
+      />
     </div>
   );
 };

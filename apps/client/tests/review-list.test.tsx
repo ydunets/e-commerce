@@ -1,5 +1,5 @@
 import { expect, rstest, test } from '@rstest/core';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
 import type { Review } from '@/entities/review';
@@ -142,4 +142,31 @@ test('the load-more button disappears on the last page', () => {
   render(<ReviewList {...makeProps({ items: twoReviews, total: TOTAL })} />);
 
   expect(screen.queryByRole('button')).not.toBeInTheDocument();
+});
+
+test('scrolling renders the rows of the new visible range', async () => {
+  const listRef = createRef<HTMLDivElement>();
+  const manyReviews = Array.from({ length: 20 }, (_, index) =>
+    makeReview({ id: index + 1, name: `Reviewer ${index + 1}` }),
+  );
+  const { container } = render(
+    <ReviewList
+      {...makeProps({ items: manyReviews, total: manyReviews.length, listRef })}
+    />,
+  );
+
+  const firstRenderedIndex = () =>
+    Number(
+      container.querySelector('li[data-index]')?.getAttribute('data-index'),
+    );
+  expect(firstRenderedIndex()).toBe(0);
+
+  // Every element measures VIEWPORT_SIZE tall under the happy-dom stub, so
+  // jump several row heights to move the rendered range past overscan.
+  const scroller = listRef.current;
+  if (!scroller) throw new Error('list ref not attached');
+  scroller.scrollTop = VIEWPORT_SIZE * 4;
+  fireEvent.scroll(scroller);
+
+  await waitFor(() => expect(firstRenderedIndex()).toBeGreaterThan(0));
 });

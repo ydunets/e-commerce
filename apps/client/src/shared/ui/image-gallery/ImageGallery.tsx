@@ -14,19 +14,15 @@ const THUMB_WIDTH = 200;
 
 const MAX_FILLED_THUMBS = 3;
 
-export const MAIN_IMAGE_SIZES = '(min-width: 1024px) 592px, 100vw';
+export const MAIN_IMAGE_SIZES = '(min-width: 768px) 592px, 100vw';
 
 export const mainImageSrcSet = (url: string): string =>
   MAIN_WIDTHS.map((width) => `${squareImage(url, width)} ${width}w`).join(', ');
 
 export const ImageGallery = ({ images, alt }: TImageGalleryProps) => {
-  // Selection tracked by URL: when the image set changes (colour switch) the old
-  // URL drops out, so the main image derives back to the first — no reset needed.
   const [activeUrl, setActiveUrl] = useState<string | null>(null);
   const mainImage =
     activeUrl && images.includes(activeUrl) ? activeUrl : images[0];
-  // Up to 3 thumbnails stretch to fill the row; beyond that they hold a fixed
-  // width and the row scrolls, per the Figma "more than 3 thumbnails" variant.
   const isScrollable = images.length > MAX_FILLED_THUMBS;
 
   return (

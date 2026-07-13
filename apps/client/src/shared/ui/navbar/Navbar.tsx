@@ -1,5 +1,6 @@
 import { Link, type LinkProps } from '@tanstack/react-router';
 import { useId, useRef, useState } from 'react';
+import { DESKTOP_MEDIA_QUERY } from '@/shared/lib/breakpoints';
 import { cx } from '@/shared/lib/cx';
 import { useMediaQuery } from '@/shared/lib/useMediaQuery';
 import { CloseIcon, MenuIcon, ShoppingBagIcon, StyleNestLogo } from './icons';
@@ -32,7 +33,7 @@ export const Navbar = ({
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const [open, setOpen] = useState(false);
-  const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY);
 
   // The drawer only exists below the desktop breakpoint. Crossing up unmounts
   // the <dialog> without firing onClose, so reconcile the flag during render

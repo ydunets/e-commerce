@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRef } from 'react';
 import { getReviewSummary } from '@/entities/review';
+import { DESKTOP_MEDIA_QUERY } from '@/shared/lib/breakpoints';
 import { useMediaQuery } from '@/shared/lib/useMediaQuery';
 import { Dialog } from '@/shared/ui/dialog';
 import { useReviews } from '../lib/useReviews';
@@ -37,7 +38,7 @@ const SummarySkeleton = () => (
 );
 
 const ReviewsContent = ({ productId }: { productId: string }) => {
-  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isDesktop = useMediaQuery(DESKTOP_MEDIA_QUERY);
   const perPage = isDesktop ? 12 : 10;
 
   const { items, total, status, hasMore, filter, setFilter, loadMore } =

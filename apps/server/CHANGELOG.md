@@ -1,3 +1,12 @@
+## [1.3.1](https://github.com/ydunets/e-commerce/compare/v1.3.0...v1.3.1) (2026-07-13)
+
+
+### Bug Fixes
+
+* **client:** pin proxy target origin so user input never reaches URL host ([eb8f369](https://github.com/ydunets/e-commerce/commit/eb8f3691241cdeb5dc4a02675672fbf87d146e27))
+* **client:** prevent SSRF via absolute-URL origin spoofing in API proxy ([402be35](https://github.com/ydunets/e-commerce/commit/402be351180deb48a9398b2cb52bf2c7d82639c5))
+* **server:** build @e-commerce/contracts to plain JS for pnpm deploy ([a1bfdfd](https://github.com/ydunets/e-commerce/commit/a1bfdfdd41c68e1a9d1977d688f596d0ce0f4f5e))
+
 # [1.3.0](https://github.com/ydunets/e-commerce/compare/v1.2.0...v1.3.0) (2026-07-13)
 
 

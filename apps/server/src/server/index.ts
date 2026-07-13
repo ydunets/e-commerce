@@ -5,23 +5,13 @@ import Helmet from '@fastify/helmet';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import UnderPressure from '@fastify/under-pressure';
 import type { FastifyInstance } from 'fastify';
-import mercurius from 'mercurius';
 import env from '#src/config/env.ts';
 import { di } from '#src/server/di/index.ts';
-import getGQL from '#src/server/plugins/gql.ts';
 
 export default async function createServer(fastify: FastifyInstance) {
-  // Graphql
-  await fastify.register(mercurius, {
-    schema: await getGQL(),
-    graphiql: env.isDevelopment,
-    defineMutation: true,
-  });
-
   // Set sensible default security headers
   await fastify.register(Helmet, {
     global: true,
-    // The following settings are needed for graphiql, see https://github.com/graphql/graphql-playground/issues/1283
     contentSecurityPolicy: !env.isDevelopment,
     crossOriginEmbedderPolicy: !env.isDevelopment,
   });

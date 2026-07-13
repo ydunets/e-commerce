@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { getProductReviews, type Review } from '@/entities/review';
 
@@ -44,6 +44,7 @@ export function useReviews(
       (lastPage.page + 1) * lastPage.limit < lastPage.count
         ? lastPage.page + 1
         : undefined,
+    placeholderData: keepPreviousData,
   });
 
   const status = toStatus(query);

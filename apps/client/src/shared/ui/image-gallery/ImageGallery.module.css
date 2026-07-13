@@ -18,6 +18,12 @@
 
 .thumbsScroll {
   @apply overflow-x-auto pb-1;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.thumbsScroll::-webkit-scrollbar {
+  display: none;
 }
 
 .thumb {

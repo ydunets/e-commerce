@@ -2,13 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import productRepository from './product.repository.ts';
 
-const TABLES = [
-  'products',
-  'product_inventory',
-  'product_images',
-  'product_info',
-  'product_reviews',
-] as const;
+const TABLES = ['products', 'product_inventory', 'product_images', 'product_info'] as const;
 
 type Table = (typeof TABLES)[number];
 type Rows = Record<Table, unknown[]>;
@@ -68,7 +62,6 @@ const rows: Partial<Rows> = {
     { color: 'green', image_url: 'https://img/green-1' },
   ],
   product_info: [{ title: 'Features', description: ['Warm', 'Light'] }],
-  product_reviews: [{ count: 3, average: 4.5 }],
 };
 
 const findTestProduct = () =>
@@ -111,10 +104,9 @@ describe('productRepository().findOneById()', () => {
     assert.equal(brownMd?.discountPercentage, null);
   });
 
-  it('maps images, info, and the review summary', async () => {
+  it('maps images and info', async () => {
     const product = await findTestProduct();
     assert.deepEqual(product?.images[0], { color: 'brown', url: 'https://img/brown-1' });
     assert.deepEqual(product?.info, [{ title: 'Features', description: ['Warm', 'Light'] }]);
-    assert.deepEqual(product?.reviews, { count: 3, average: 4.5 });
   });
 });

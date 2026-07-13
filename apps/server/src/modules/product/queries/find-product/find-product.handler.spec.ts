@@ -12,7 +12,6 @@ const baseProduct = {
   variants: [],
   images: [],
   info: [],
-  reviews: { count: 0, average: 0 },
 };
 
 describe('findProductQuery handler', () => {

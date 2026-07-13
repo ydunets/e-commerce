@@ -33,11 +33,6 @@ interface InfoRow {
   description: string[];
 }
 
-interface ReviewSummaryRow {
-  count: number;
-  average: number;
-}
-
 function toVariant(row: InventoryRow): ProductVariant {
   return {
     sku: row.sku,
@@ -53,7 +48,7 @@ function toVariant(row: InventoryRow): ProductVariant {
 
 export default function productRepository({ db }: Dependencies): ProductRepository {
   return {
-    async findOneById(id: string): Promise<ProductEntity | undefined> {
+    async findOneById(id: string): Promise<Omit<ProductEntity, 'reviews'> | undefined> {
       const [product]: [ProductRow?] =
         await db`SELECT product_id, name, description FROM products WHERE product_id = ${id} LIMIT 1`;
       if (!product) return undefined;
@@ -64,10 +59,6 @@ export default function productRepository({ db }: Dependencies): ProductReposito
         await db`SELECT color, image_url FROM product_images WHERE product_id = ${id} ORDER BY id`;
       const info: InfoRow[] =
         await db`SELECT title, description FROM product_info WHERE product_id = ${id} ORDER BY id`;
-      const reviewSummary: ReviewSummaryRow[] = await db`
-        SELECT COUNT(*)::int AS count, COALESCE(AVG(rating), 0)::float AS average
-        FROM product_reviews WHERE product_id = ${id}
-      `;
 
       const colors = orderedColors(inventory, images);
       const variants = inventory.map(toVariant).sort(byColorThenSize(colors));
@@ -81,10 +72,6 @@ export default function productRepository({ db }: Dependencies): ProductReposito
         variants,
         images: images.map((image) => ({ color: image.color, url: image.image_url })),
         info: info.map((section) => ({ title: section.title, description: section.description })),
-        reviews: {
-          count: Number(reviewSummary[0].count),
-          average: Number(reviewSummary[0].average),
-        },
       };
     },
   };

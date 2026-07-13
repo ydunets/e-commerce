@@ -6,7 +6,6 @@ export const inventoryItemDtoSchema = Type.Object({
   color: Type.String(),
   size: Type.Union([Type.String(), Type.Null()]),
   list_price: Type.Number(),
-  discount: Type.Union([Type.Number(), Type.Null()]),
   discount_percentage: Type.Union([Type.Number(), Type.Null()]),
   sale_price: Type.Number(),
   sold: Type.Integer(),

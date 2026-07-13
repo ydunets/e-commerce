@@ -26,7 +26,6 @@ export default function productMapper(): ProductMapper {
           color: variant.color,
           size: variant.size,
           list_price: variant.listPrice,
-          discount: null,
           discount_percentage: variant.discountPercentage,
           sale_price: variant.salePrice,
           sold: variant.sold,

@@ -1,3 +1,25 @@
+# [1.2.0](https://github.com/ydunets/e-commerce/compare/v1.1.1...v1.2.0) (2026-07-13)
+
+
+### Bug Fixes
+
+* **client:** use shared 1024px desktop boundary for reviews page size ([a671513](https://github.com/ydunets/e-commerce/commit/a67151391d4422e3362438b1348a46ac365beec4))
+
+
+### Features
+
+* **client:** add product reviews dialog with virtualized list ([f8e3460](https://github.com/ydunets/e-commerce/commit/f8e3460093d8d839c2cbe76b699c80ce982ec4a5))
+* **client:** scale reviews typography at the desktop breakpoint ([bea3eae](https://github.com/ydunets/e-commerce/commit/bea3eaeadcbef728aee05e603c2acc93775c53fc))
+* **contracts:** extract shared API wire schemas and size ordering into workspace package ([000f6e1](https://github.com/ydunets/e-commerce/commit/000f6e14316103379bda61125e8db77fce732fea))
+* **server:** add product reviews read API ([ed668a0](https://github.com/ydunets/e-commerce/commit/ed668a0697766b89301ca8072cb095dbed866f30))
+* **server:** add review_authors table and seed ([1bbc712](https://github.com/ydunets/e-commerce/commit/1bbc71206e92b0297c840a6edf3a35ac54519246))
+
+
+### Performance Improvements
+
+* **client:** compress responses and cache hashed assets in prod server ([a759683](https://github.com/ydunets/e-commerce/commit/a75968354b8ca3640b49843189f41bbb5d95fd2b))
+* **client:** optimize main product image for LCP and CL ([585e419](https://github.com/ydunets/e-commerce/commit/585e419da559e45c38e5374e47a1071df0207f3e))
+
 ## [1.1.1](https://github.com/ydunets/e-commerce/compare/v1.1.0...v1.1.1) (2026-07-09)
 
 

@@ -1,6 +1,6 @@
 import type { ReviewFilters } from '#src/modules/review/database/review.repository.port.ts';
 import type { ReviewEntity } from '#src/modules/review/domain/review.types.ts';
-import { reviewActionCreator } from '#src/modules/review/index.ts';
+import { reviewActionCreator } from '#src/modules/review/review.action-creator.ts';
 import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
 import type { Paginated, PaginatedQueryParams } from '#src/shared/db/repository.port.ts';
 import { paginatedQueryBase } from '#src/shared/ddd/query.base.ts';

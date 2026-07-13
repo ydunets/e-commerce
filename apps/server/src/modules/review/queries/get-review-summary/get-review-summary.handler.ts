@@ -1,5 +1,5 @@
 import type { ReviewSummary } from '#src/modules/review/domain/review.types.ts';
-import { reviewActionCreator } from '#src/modules/review/index.ts';
+import { reviewActionCreator } from '#src/modules/review/review.action-creator.ts';
 import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
 import { NotFoundException } from '#src/shared/exceptions/index.ts';
 

@@ -148,6 +148,53 @@ CLIENT_FQDN=$(az containerapp show -n ecommerce-client -g $RG \
 echo "Open: https://$CLIENT_FQDN"
 ```
 
+## Step 6b: Migrations job (ecommerce-db-migrate)
+
+A manual-trigger **Container Apps Job** that runs the `migrations` image (dbmate + the SQL files,
+see [apps/server/db/Dockerfile](../apps/server/db/Dockerfile)). The deploy workflow points it at
+the freshly built image and starts it **before** rolling the apps, so migrations run inside Azure:
+the DB password never leaves the platform and no firewall changes are needed (the job reaches the
+DB through the `AllowAzureServices` rule).
+
+Both secrets are sourced from the server app rather than re-typed, so there is a single place to
+change them:
+
+```bash
+PG_PASS=$(az containerapp secret show -n ecommerce-server -g $RG \
+  --secret-name pg-password --query value -o tsv)
+GHCR_PAT=$(az containerapp secret show -n ecommerce-server -g $RG \
+  --secret-name ghcrio-ydunets --query value -o tsv)
+
+az containerapp job create \
+  -n ecommerce-db-migrate -g $RG --environment $ENV \
+  --trigger-type Manual \
+  --replica-timeout 600 --replica-retry-limit 1 --parallelism 1 \
+  --cpu 0.25 --memory 0.5Gi \
+  --image mcr.microsoft.com/k8se/quickstart-jobs:latest \
+  --registry-server ghcr.io --registry-username <gh-user> \
+  --registry-password "$GHCR_PAT" \
+  --secrets database-url="postgres://$PG_ADMIN:$PG_PASS@$PG_HOST:5432/$PG_DB?sslmode=require" \
+  --env-vars DATABASE_URL=secretref:database-url
+```
+
+Notes:
+
+- The image at create time is Microsoft's public quickstart placeholder: Container Apps validates
+  the image manifest at create, and the `migrations` package may not exist in GHCR yet at
+  provision time. Every deploy runs
+  `az containerapp job update --image ghcr.io/$REPO/migrations:sha-<commit>` before starting the
+  job, so executions always run the immutable tag of the commit being deployed.
+- To run migrations manually (replaces the old laptop-based Step 3 flow for prod):
+
+  ```bash
+  az containerapp job start -n ecommerce-db-migrate -g $RG
+  az containerapp job execution list -n ecommerce-db-migrate -g $RG -o table
+  ```
+
+- **Rotation:** the DB password now lives in two places (`pg-password` on `ecommerce-server` and
+  inside `database-url` on this job); update both. The GHCR PAT (`read:packages` only) is stored on
+  both the apps and this job.
+
 ## Step 7: OIDC for GitHub Actions (continuous deploy)
 
 Let the `Deploy` workflow authenticate without secrets. Note the deploy job uses

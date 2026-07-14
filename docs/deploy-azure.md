@@ -79,7 +79,9 @@ az postgres flexible-server create \
 # some versions of `flexible-server create` do not accept --database-name).
 az postgres flexible-server db create -g $RG -s $PG -d $PG_DB
 
-# Allow your laptop's IP so you can run migrations from here.
+# Optional: allow your laptop's IP, only needed for ad-hoc psql/debugging
+# (see "Ad-hoc DB access" at the end). Migrations do NOT need this: they run
+# inside Azure via the migrations job (Step 6b).
 MY_IP=$(curl -s https://api.ipify.org)
 az postgres flexible-server firewall-rule create -g $RG -s $PG \
   -n my-laptop --start-ip-address $MY_IP --end-ip-address $MY_IP
@@ -87,15 +89,20 @@ az postgres flexible-server firewall-rule create -g $RG -s $PG \
 PG_HOST=$PG.postgres.database.azure.com
 ```
 
-## Step 3: Run migrations (and optional seed)
+## Step 3: Run migrations (and seeds)
 
-Azure Postgres enforces TLS, so the connection string uses `sslmode=require`:
+Migrations and seeds run **inside Azure** as a Container Apps Job (created in Step 6b), so on a
+fresh provision continue with Steps 4-6b first, then start the job once. On the running system
+every deploy does this automatically; to trigger it manually:
 
 ```bash
-export DBMATE_DATABASE_URL="postgres://$PG_ADMIN:$PG_PASS@$PG_HOST:5432/$PG_DB?sslmode=require"
-pnpm --filter @e-commerce/server db:migrate
-pnpm --filter @e-commerce/server db:seed     # optional sample data
+az containerapp job start -n ecommerce-db-migrate -g $RG
+az containerapp job execution list -n ecommerce-db-migrate -g $RG -o table   # wait for Succeeded
 ```
+
+dbmate tracks applied files in `schema_migrations`, so starting the job when nothing is pending
+is a safe no-op. For running migrations from your laptop instead (bootstrap or debugging), see
+"Ad-hoc DB access" at the end of this document.
 
 ## Step 4: GHCR image access
 
@@ -247,10 +254,12 @@ required reviewer so deploys wait for approval.
 On every push to `main`, [`release-deploy.yml`](../.github/workflows/release-deploy.yml) runs as a
 gated sequence (validate → security → build → release → deploy):
 
-1. The **build** stage pushes the `client` and `server` images to GHCR (tags `sha-<commit>` and
-   `latest`).
-2. The **deploy** stage (after release) logs in via OIDC and rolls each Container App to `:latest`
-   (server first, then client). Nothing deploys unless tests, security, and the build all passed.
+1. The **build** stage pushes the `client`, `server`, and `migrations` images to GHCR (tags
+   `sha-<commit>` and `latest`).
+2. The **deploy** stage (after release) logs in via OIDC, points the `ecommerce-db-migrate` job at
+   `migrations:sha-<commit>` and runs it to completion (migrations + seeds execute inside Azure; a
+   failure blocks the rollout), then rolls each Container App to `:latest` (server first, then
+   client). Nothing deploys unless tests, security, the build, and the migration job all passed.
 
 See [ci-cd.md](ci-cd.md) for the full pipeline.
 
@@ -268,6 +277,10 @@ See [ci-cd.md](ci-cd.md) for the full pipeline.
      (`--vnet <vnet> --subnet <dbSubnet> --private-dns-zone <zone>`), which drops the public
      endpoint. Then the server reaches the DB over the private network and no firewall rule is
      needed. This is a rebuild of the environment, hence deferred.
+  4. Recreate the **migrations job** (`ecommerce-db-migrate`, Step 6b) in the new VNet-integrated
+     environment too; it currently reaches the DB through the `AllowAzureServices` rule, which this
+     hardening removes. If the DB hostname changes, update the job's `database-url` secret (it
+     embeds a copy of the password, see the rotation note in Step 6b).
 - **Internal ingress for the server:** once the round trip works, switch the server to
   `--ingress internal` and point the client's `API_URL` at the internal address (read the exact FQDN
   from `az containerapp show`), so the API is not publicly reachable.
@@ -275,3 +288,18 @@ See [ci-cd.md](ci-cd.md) for the full pipeline.
   the whole resource group.
 - **Deploy by digest** instead of `:latest` for fully immutable rollouts.
 - **Managed identity for DB:** replace the Postgres password with Entra/managed-identity auth.
+
+## Ad-hoc DB access (debugging only)
+
+Normal migrations go through the migrations job (Step 3 / Step 6b); this section is for poking at
+the database directly. It requires a firewall rule for your IP (the optional one from Step 2; on
+the live server the laptop rules were created via the portal, so their names differ). Azure
+Postgres enforces TLS, so connection strings use `sslmode=require`:
+
+```bash
+export DBMATE_DATABASE_URL="postgres://$PG_ADMIN:$PG_PASS@$PG_HOST:5432/$PG_DB?sslmode=require"
+pnpm --filter @e-commerce/server db:migrate   # bootstrap/debug only; deploys do this via the job
+pnpm --filter @e-commerce/server db:seed
+
+psql "$DBMATE_DATABASE_URL"                   # inspect directly
+```

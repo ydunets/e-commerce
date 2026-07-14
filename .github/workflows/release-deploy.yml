@@ -1,6 +1,6 @@
 # .github/workflows/release-deploy.yml
 # Runs after a merge to main (or manual dispatch): re-validates, then builds +
-# pushes both images, cuts a release, and deploys to Azure. Nothing here runs
+# pushes the images, cuts a release, and deploys to Azure. Nothing here runs
 # on a PR; see pr-checks.yml for what gates a merge.
 #
 #   validate ─┐
@@ -48,7 +48,7 @@ jobs:
       actions: read
     uses: ./.github/workflows/_codeql.yml
 
-  # 3. Build and push the client + server images to GHCR.
+  # 3. Build and push the client, server, and migrations images to GHCR.
   #    Gated on both tests and security passing.
   build:
     needs: [validate, security]
@@ -59,11 +59,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # The migrations image builds from its own directory: the root
+        # .dockerignore excludes apps/server/db from the root context.
         include:
           - app: client
             dockerfile: apps/client/Dockerfile
+            context: .
           - app: server
             dockerfile: apps/server/Dockerfile
+            context: .
+          - app: migrations
+            dockerfile: apps/server/db/Dockerfile
+            context: apps/server/db
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -86,7 +93,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
-          context: .
+          context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}

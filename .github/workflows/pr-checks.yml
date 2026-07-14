@@ -1,6 +1,6 @@
 # .github/workflows/pr-checks.yml
 # Runs on every PR to main: lint/types/tests, CodeQL, and a build-only check
-# of both Docker images (no push). Nothing here touches GHCR, releases, or
+# of the Docker images (no push). Nothing here touches GHCR, releases, or
 # Azure; see release-deploy.yml for what runs after a merge to main.
 
 name: PR Checks
@@ -40,8 +40,8 @@ jobs:
       actions: read
     uses: ./.github/workflows/_codeql.yml
 
-  # 3. Build the client + server images to verify the Dockerfiles. No
-  #    registry login, so this is safe to run for forks too.
+  # 3. Build the client, server, and migrations images to verify the
+  #    Dockerfiles. No registry login, so this is safe to run for forks too.
   build:
     needs: [validate, security]
     runs-on: ubuntu-latest
@@ -50,11 +50,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # The migrations image builds from its own directory: the root
+        # .dockerignore excludes apps/server/db from the root context.
         include:
           - app: client
             dockerfile: apps/client/Dockerfile
+            context: .
           - app: server
             dockerfile: apps/server/Dockerfile
+            context: .
+          - app: migrations
+            dockerfile: apps/server/db/Dockerfile
+            context: apps/server/db
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -63,7 +70,7 @@ jobs:
       - name: Build (no push)
         uses: docker/build-push-action@v7
         with:
-          context: .
+          context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: false
           cache-from: type=gha

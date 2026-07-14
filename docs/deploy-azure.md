@@ -81,8 +81,8 @@ az postgres flexible-server db create -g $RG -s $PG -d $PG_DB
 
 # Allow your laptop's IP so you can run migrations from here.
 MY_IP=$(curl -s https://api.ipify.org)
-az postgres flexible-server firewall-rule create -g $RG -n $PG \
-  --rule-name my-laptop --start-ip-address $MY_IP --end-ip-address $MY_IP
+az postgres flexible-server firewall-rule create -g $RG -s $PG \
+  -n my-laptop --start-ip-address $MY_IP --end-ip-address $MY_IP
 
 PG_HOST=$PG.postgres.database.azure.com
 ```

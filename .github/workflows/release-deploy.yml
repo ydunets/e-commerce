@@ -196,8 +196,8 @@ jobs:
           RUNNER_IP=$(curl -s https://api.ipify.org)
           az postgres flexible-server firewall-rule create \
             --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-            --name "${PG_HOST_PORT%%.*}" \
-            --rule-name "$FW_RULE" \
+            --server-name "${PG_HOST_PORT%%.*}" \
+            --name "$FW_RULE" \
             --start-ip-address "$RUNNER_IP" \
             --end-ip-address "$RUNNER_IP"
       # dbmate tracks applied files in schema_migrations, so this is a no-op
@@ -227,8 +227,8 @@ jobs:
         run: |
           az postgres flexible-server firewall-rule delete \
             --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-            --name "$PG_SERVER" \
-            --rule-name "$FW_RULE" --yes
+            --server-name "$PG_SERVER" \
+            --name "$FW_RULE" --yes
       # Server first: the client proxies /api to it.
       - name: Deploy server
         uses: azure/cli@v3

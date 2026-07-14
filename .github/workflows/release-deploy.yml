@@ -144,6 +144,44 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      # Shadow run of the job-based migration path: point the Container Apps
+      # Job at this commit's image (immutable sha tag, same commit the build
+      # stage pushed) and run it to completion inside Azure. Still
+      # continue-on-error: the runner-based step below remains authoritative
+      # until this path has proven itself on a real deploy.
+      # Poll ceiling (90 x 15s) deliberately exceeds the job's worst case of
+      # replica-timeout 600s x (1 + retry limit 1).
+      - name: Run migrations via Container Apps Job (shadow)
+        continue-on-error: true
+        run: |
+          az containerapp job update \
+            --name ecommerce-db-migrate \
+            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --image ghcr.io/${{ github.repository }}/migrations:sha-${GITHUB_SHA::7} \
+            --output none
+          EXEC=$(az containerapp job start \
+            --name ecommerce-db-migrate \
+            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --query name -o tsv)
+          echo "Started job execution: $EXEC"
+          for i in $(seq 1 90); do
+            sleep 15
+            STATUS=$(az containerapp job execution show \
+              --name ecommerce-db-migrate \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --job-execution-name "$EXEC" \
+              --query properties.status -o tsv)
+            echo "[poll $i] $STATUS"
+            case "$STATUS" in
+              Succeeded) exit 0 ;;
+              Failed|Stopped)
+                echo "::error::Migration job execution $EXEC ended as $STATUS." \
+                  "Logs: Container Apps > ecommerce-db-migrate > Execution history." >&2
+                exit 1 ;;
+            esac
+          done
+          echo "::error::Migration job execution $EXEC still $STATUS after poll ceiling" >&2
+          exit 1
       # The DB only allows known IPs; open a hole for this runner, closed
       # again below. Connection details come from the server app's own env,
       # so there is no second copy of them to keep in sync.

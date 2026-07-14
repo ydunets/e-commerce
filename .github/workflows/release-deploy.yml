@@ -131,28 +131,22 @@ jobs:
     permissions:
       id-token: write # OIDC token for azure/login
       contents: read
-    env:
-      FW_RULE: gh-runner-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-      - name: Setup workspace
-        uses: ./.github/actions/setup
       - name: Azure login (OIDC)
         uses: azure/login@v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      # Shadow run of the job-based migration path: point the Container Apps
-      # Job at this commit's image (immutable sha tag, same commit the build
-      # stage pushed) and run it to completion inside Azure. Still
-      # continue-on-error: the runner-based step below remains authoritative
-      # until this path has proven itself on a real deploy.
+      # Migrations run inside Azure as a Container Apps Job: point the job at
+      # this commit's image (immutable sha tag, same commit the build stage
+      # pushed) and run it to completion. The DB password never leaves Azure
+      # and no firewall changes are needed. A failure here fails this step and
+      # therefore blocks the image rollout below. dbmate tracks applied files
+      # in schema_migrations, so re-runs are no-ops.
       # Poll ceiling (90 x 15s) deliberately exceeds the job's worst case of
       # replica-timeout 600s x (1 + retry limit 1).
-      - name: Run migrations via Container Apps Job (shadow)
-        continue-on-error: true
+      - name: Run migrations via Container Apps Job
         run: |
           az containerapp job update \
             --name ecommerce-db-migrate \
@@ -182,53 +176,6 @@ jobs:
           done
           echo "::error::Migration job execution $EXEC still $STATUS after poll ceiling" >&2
           exit 1
-      # The DB only allows known IPs; open a hole for this runner, closed
-      # again below. Connection details come from the server app's own env,
-      # so there is no second copy of them to keep in sync.
-      - name: Open DB firewall for this runner
-        run: |
-          PG_HOST_PORT=$(az containerapp show \
-            --name ${{ vars.AZURE_SERVER_APP }} \
-            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-            --query "properties.template.containers[0].env[?name=='POSTGRES_URL'].value | [0]" -o tsv)
-          echo "PG_HOST_PORT=$PG_HOST_PORT" >> "$GITHUB_ENV"
-          echo "PG_SERVER=${PG_HOST_PORT%%.*}" >> "$GITHUB_ENV"
-          RUNNER_IP=$(curl -s https://api.ipify.org)
-          az postgres flexible-server firewall-rule create \
-            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-            --server-name "${PG_HOST_PORT%%.*}" \
-            --name "$FW_RULE" \
-            --start-ip-address "$RUNNER_IP" \
-            --end-ip-address "$RUNNER_IP"
-      # dbmate tracks applied files in schema_migrations, so this is a no-op
-      # when nothing is pending and safe to run on every deploy.
-      - name: Run DB migrations and seeds
-        env:
-          DBMATE_NO_DUMP_SCHEMA: 'true'
-        run: |
-          PG_USER=$(az containerapp show \
-            --name ${{ vars.AZURE_SERVER_APP }} \
-            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-            --query "properties.template.containers[0].env[?name=='POSTGRES_USER'].value | [0]" -o tsv)
-          PG_DB=$(az containerapp show \
-            --name ${{ vars.AZURE_SERVER_APP }} \
-            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-            --query "properties.template.containers[0].env[?name=='POSTGRES_DB'].value | [0]" -o tsv)
-          PG_PASS=$(az containerapp secret show \
-            --name ${{ vars.AZURE_SERVER_APP }} \
-            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-            --secret-name pg-password --query value -o tsv)
-          echo "::add-mask::$PG_PASS"
-          export DBMATE_DATABASE_URL="postgres://$PG_USER:$PG_PASS@$PG_HOST_PORT/$PG_DB?sslmode=require"
-          pnpm --filter @e-commerce/server db:migrate
-          pnpm --filter @e-commerce/server db:seed
-      - name: Close DB firewall
-        if: always() && env.PG_SERVER != ''
-        run: |
-          az postgres flexible-server firewall-rule delete \
-            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-            --server-name "$PG_SERVER" \
-            --name "$FW_RULE" --yes
       # Server first: the client proxies /api to it.
       - name: Deploy server
         uses: azure/cli@v3

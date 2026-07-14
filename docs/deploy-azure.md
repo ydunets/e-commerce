@@ -265,9 +265,13 @@ See [ci-cd.md](ci-cd.md) for the full pipeline.
 
 ## Hardening / follow-ups (not required for first deploy)
 
-- **Make the database private (VNet), remove public access.** The first deploy uses a public
-  Postgres endpoint restricted by firewall (protected by password + enforced TLS), but the
-  `AllowAzureServices` rule is broad. To eliminate the public endpoint entirely:
+- **Make the database private (VNet), remove public access.** *Deferred by decision (2026-07-14):
+  public endpoint + enforced TLS + strong password is an acceptable posture for this app, and
+  migrations no longer poke the firewall or carry the password through CI. Cost drove the call: a
+  Private Endpoint on the existing server bills ~$7-8/month; the ~$0 alternative is a NEW
+  VNet-injected server (public→private cannot be converted) plus a dump/restore, which likely
+  forfeits any active 12-month-free offer. Revisit if the threat model changes.* To eliminate the
+  public endpoint entirely:
   1. Create a VNet with a subnet delegated to `Microsoft.DBforPostgreSQL/flexibleServers`, plus a
      separate subnet for the Container Apps environment.
   2. Recreate the **Container Apps environment** with VNet integration

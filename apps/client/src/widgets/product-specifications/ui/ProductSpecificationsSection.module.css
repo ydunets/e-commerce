@@ -1,0 +1,85 @@
+@reference "../../../app.css";
+
+.root {
+  @apply flex flex-col gap-16 px-4 py-12 md:py-16 lg:p-24;
+}
+
+.header {
+  @apply flex flex-col gap-6;
+}
+
+.heading {
+  @apply text-3xl font-semibold text-ink md:text-5xl md:leading-12;
+}
+
+.intro {
+  @apply text-lg leading-7 text-muted;
+}
+
+.information {
+  @apply flex w-full flex-col gap-8;
+}
+
+.panel {
+  @apply flex flex-col gap-8 lg:flex-row lg:items-start;
+  animation: fade-in 250ms ease;
+}
+
+.panel[hidden] {
+  display: none;
+}
+
+.panel:focus-visible {
+  @apply focus-ring rounded-md;
+}
+
+.image {
+  @apply h-45 w-full rounded-lg object-cover md:h-96 lg:h-64 lg:w-[367px] lg:shrink-0;
+}
+
+.description {
+  @apply flex flex-col gap-8 lg:min-w-0 lg:flex-1;
+}
+
+.textPair {
+  @apply flex flex-col gap-2;
+}
+
+.title {
+  @apply text-2xl leading-8 font-medium text-ink;
+}
+
+.text {
+  @apply text-base leading-6 text-muted;
+}
+
+.featureList {
+  @apply m-0 flex list-none flex-wrap content-start gap-4 p-0 pb-1 md:gap-x-12 md:gap-y-8 md:pb-0 lg:gap-8;
+}
+
+.feature {
+  @apply flex w-[259px] items-center gap-2 text-base leading-6 text-muted md:w-[320px] md:gap-4 md:font-medium lg:w-[282px] lg:font-normal;
+}
+
+.featureIcon {
+  @apply flex size-12 shrink-0 items-center justify-center rounded-full bg-white text-brand shadow-card;
+}
+
+.icon {
+  @apply size-6;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+}

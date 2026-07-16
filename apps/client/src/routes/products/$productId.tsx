@@ -5,6 +5,7 @@ import {
   ProductError,
   ProductPending,
 } from '@/widgets/product-details';
+import { ProductSpecificationsSection } from '@/widgets/product-specifications';
 
 // During SSR the loader must hit the API directly; in the browser the
 // relative path goes through the express /api proxy.
@@ -33,8 +34,13 @@ function ProductPage() {
   const product = Route.useLoaderData();
 
   return (
-    <main className="mx-auto max-w-[1280px] px-4 py-10 md:px-8">
-      <ProductDetailsSection product={product} />
+    <main>
+      <div className="mx-auto max-w-[1280px] px-4 py-10 md:px-8">
+        <ProductDetailsSection product={product} />
+      </div>
+      <div className="mx-auto max-w-[1440px] px-4">
+        <ProductSpecificationsSection />
+      </div>
     </main>
   );
 }

@@ -32,3 +32,4 @@ playwright-report/
 
 # Reference examples (local design snippets, not part of the app)
 examples/
+.serena/

@@ -268,7 +268,9 @@ module.exports = {
     /* Which modules not to follow further when encountered */
     doNotFollow: {
       /* path: an array of regular expressions in strings to match against */
-      path: ['node_modules'],
+      // contracts dist d.ts files re-export with .ts specifiers (type-only,
+      // resolved fine by TypeScript consumers) - don't cruise into them.
+      path: ['node_modules', 'packages/contracts/dist'],
     },
 
     /* Which modules to exclude */

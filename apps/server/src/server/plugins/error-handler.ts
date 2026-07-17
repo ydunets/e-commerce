@@ -46,9 +46,13 @@ async function errorHandlerPlugin(fastify: FastifyInstance) {
       }
     }
 
-    // Catch all other errors
-    fastify.log.error(error);
     if (error instanceof ExceptionBase) {
+      // Expected domain outcomes (404 and friends) are warnings; only 5xx is an error.
+      if (error.statusCode >= 500) {
+        fastify.log.error(error);
+      } else {
+        fastify.log.warn(error);
+      }
       return res.status(error.statusCode).send({
         statusCode: error.statusCode,
         message: error.message,
@@ -57,6 +61,8 @@ async function errorHandlerPlugin(fastify: FastifyInstance) {
       } satisfies ApiErrorResponse);
     }
 
+    // Catch all other errors
+    fastify.log.error(error);
     return res.status(500).send({
       statusCode: 500,
       message: 'Internal Server Error', // https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1

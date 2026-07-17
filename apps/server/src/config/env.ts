@@ -47,6 +47,6 @@ export default {
     port: env.PORT,
   },
   db: {
-    url: `postgres://${env.POSTGRES_USER}:${env.POSTGRES_PASSWORD}@${env.POSTGRES_URL}/${env.POSTGRES_DB}?sslmode=${env.POSTGRES_SSLMODE}`,
+    url: `postgres://${encodeURIComponent(env.POSTGRES_USER)}:${encodeURIComponent(env.POSTGRES_PASSWORD)}@${env.POSTGRES_URL}/${env.POSTGRES_DB}?sslmode=${env.POSTGRES_SSLMODE}`,
   },
 };

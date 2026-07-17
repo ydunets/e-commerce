@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { getProduct } from '@/entities/product';
+import { getSpecifications } from '@/entities/specification';
 import {
   ProductDetailsSection,
   ProductError,
@@ -15,10 +16,21 @@ const API_BASE =
     : '';
 
 export const Route = createFileRoute('/products/$productId')({
-  loader: ({ params }) => getProduct(params.productId, API_BASE),
+  loader: async ({ params }) => {
+    // A specifications outage must not take down the product page.
+    const [product, specifications] = await Promise.all([
+      getProduct(params.productId, API_BASE),
+      getSpecifications(API_BASE).catch(() => null),
+    ]);
+    return { product, specifications };
+  },
   head: ({ loaderData }) => ({
     meta: [
-      { title: loaderData ? `${loaderData.name} — StyleNest` : 'StyleNest' },
+      {
+        title: loaderData
+          ? `${loaderData.product.name} — StyleNest`
+          : 'StyleNest',
+      },
     ],
   }),
   pendingComponent: ProductPending,
@@ -31,16 +43,18 @@ export const Route = createFileRoute('/products/$productId')({
 });
 
 function ProductPage() {
-  const product = Route.useLoaderData();
+  const { product, specifications } = Route.useLoaderData();
 
   return (
     <main>
       <div className="mx-auto max-w-[1280px] px-4 py-10 md:px-8">
         <ProductDetailsSection product={product} />
       </div>
-      <div className="mx-auto max-w-[1440px] px-4">
-        <ProductSpecificationsSection />
-      </div>
+      {specifications && specifications.length > 0 && (
+        <div className="mx-auto max-w-[1440px] px-4">
+          <ProductSpecificationsSection specifications={specifications} />
+        </div>
+      )}
     </main>
   );
 }

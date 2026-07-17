@@ -13,11 +13,13 @@ export const findProductQuery = productActionCreator<{ id: string }, FindProduct
 export default function makeFindProductQuery({ queryBus, productRepository }: Dependencies) {
   return {
     async handler({ payload }: HandlerAction<typeof findProductQuery>): Promise<FindProductResult> {
-      const product = await productRepository.findOneById(payload.id);
+      const [product, summary] = await Promise.all([
+        productRepository.findOneById(payload.id),
+        queryBus.execute(getReviewSummaryQuery({ productId: payload.id })),
+      ]);
       if (!product) {
         throw new NotFoundException(`Product ${payload.id} not found`);
       }
-      const summary = await queryBus.execute(getReviewSummaryQuery({ productId: payload.id }));
       return { ...product, reviews: { count: summary.total, average: summary.average } };
     },
     init() {

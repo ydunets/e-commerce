@@ -11,6 +11,27 @@ const TIMER_TOLERANCE_MS = 50;
 const BROWSER_UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 
+type Flush = { html: string; elapsedMs: number };
+
+/** Read the body flush by flush, snapshotting the HTML so far and when it arrived. */
+async function readInFlushes(
+  response: Response,
+  startedAt: number,
+): Promise<Flush[]> {
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  const flushes: Flush[] = [];
+  let html = '';
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    html += decoder.decode(value, { stream: true });
+    flushes.push({ html, elapsedMs: Date.now() - startedAt });
+  }
+  return flushes;
+}
+
 test('streams the product shell before the specifications section', async ({
   baseURL,
 }) => {
@@ -27,45 +48,32 @@ test('streams the product shell before the specifications section', async ({
   // A streamed response is chunked; a buffered one advertises its length.
   expect(response.headers.get('content-length')).toBeNull();
 
-  const reader = response.body!.getReader();
-  const decoder = new TextDecoder();
-  let html = '';
-  let flushes = 0;
-  let htmlWhenProductAppeared: string | null = null;
-  let productElapsedMs = Number.NaN;
-  let specsElapsedMs = Number.NaN;
+  const flushes = await readInFlushes(response, startedAt);
+  const productArrival = flushes.find((f) => f.html.includes(PRODUCT.name));
+  const specsArrival = flushes.find((f) => f.html.includes(SPECS_MARKER));
 
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    flushes += 1;
-    html += decoder.decode(value, { stream: true });
-    if (htmlWhenProductAppeared === null && html.includes(PRODUCT.name)) {
-      htmlWhenProductAppeared = html;
-      productElapsedMs = Date.now() - startedAt;
-    }
-    if (Number.isNaN(specsElapsedMs) && html.includes(SPECS_MARKER)) {
-      specsElapsedMs = Date.now() - startedAt;
-    }
-  }
-
-  expect(flushes, 'response must arrive in more than one flush').toBeGreaterThan(1);
   expect(
-    htmlWhenProductAppeared,
-    'product must arrive in an early flush',
-  ).not.toBeNull();
-  expect(htmlWhenProductAppeared!).not.toContain(SPECS_MARKER);
+    flushes.length,
+    'response must arrive in more than one flush',
+  ).toBeGreaterThan(1);
+  expect(productArrival, 'product must arrive in an early flush').toBeDefined();
+  expect(productArrival!.html).not.toContain(SPECS_MARKER);
+  expect(
+    specsArrival,
+    'specifications must arrive by stream end',
+  ).toBeDefined();
 
   // The shell must reach the client while the specifications request is
   // still pending; a buffered response delivers everything after the delay.
-  expect(productElapsedMs).toBeLessThan(SPECS_DELAY_MS);
-  expect(specsElapsedMs).toBeGreaterThanOrEqual(
+  expect(productArrival!.elapsedMs).toBeLessThan(SPECS_DELAY_MS);
+  expect(specsArrival!.elapsedMs).toBeGreaterThanOrEqual(
     SPECS_DELAY_MS - TIMER_TOLERANCE_MS,
   );
 
   // The deferred boundary streams in later as markup plus an inline script
   // carrying the dehydrated Await data.
-  const streamedTail = html.slice(htmlWhenProductAppeared!.length);
+  const fullHtml = flushes.at(-1)!.html;
+  const streamedTail = fullHtml.slice(productArrival!.html.length);
   expect(streamedTail).toContain(SPECS_MARKER);
   expect(streamedTail).toContain('<script');
 });

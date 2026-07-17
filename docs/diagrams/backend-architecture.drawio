@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="30.3.11">
+  <diagram name="Request flow" id="page-request-flow">
+    <mxGraphModel dx="1590" dy="1095" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="p1title" parent="1" style="text;html=1;fontSize=18;fontStyle=1;align=left;" value="Request flow: GET /api/v1/products/:id (one request, end to end)" vertex="1">
+          <mxGeometry height="30" width="900" x="40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="p1client" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" value="Browser / SSR route loader&#xa;(apps/client)" vertex="1">
+          <mxGeometry height="70" width="200" x="60" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="p1proxy" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" value="express /api proxy&#xa;(SSR server)" vertex="1">
+          <mxGeometry height="70" width="200" x="60" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="p1srv" parent="1" style="swimlane;startSize=30;fontStyle=1;fontSize=13;fillColor=none;strokeColor=#6c8ebf;pointerEvents=0;" value="apps/server (Fastify 5, Clean Architecture + CQRS)" vertex="1">
+          <mxGeometry height="700" width="860" x="520" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="p1route" parent="p1srv" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" value="find-product.route&#xa;(validates params, no logic)" vertex="1">
+          <mxGeometry height="70" width="200" x="40" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p1mapper" parent="p1srv" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" value="product.mapper&#xa;(entity &#8594; snake_case DTO)" vertex="1">
+          <mxGeometry height="70" width="230" x="330" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p1bus" parent="p1srv" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" value="Query bus&#xa;middlewares: metadata &#8594;&#xa;otel tracing &#8594; timing" vertex="1">
+          <mxGeometry height="90" width="200" x="40" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="p1fph" parent="p1srv" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" value="find-product.handler&#xa;(product module)" vertex="1">
+          <mxGeometry height="80" width="230" x="330" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="p1prepo" parent="p1srv" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" value="product.repository&#xa;findOneById(id)" vertex="1">
+          <mxGeometry height="80" width="200" x="630" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="p1grsh" parent="p1srv" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" value="get-review-summary.handler&#xa;(review module)" vertex="1">
+          <mxGeometry height="80" width="230" x="330" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="p1rrepo" parent="p1srv" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" value="review.repository&#xa;getSummary(productId)" vertex="1">
+          <mxGeometry height="80" width="200" x="630" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="p1note" parent="p1srv" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=11;fontColor=#666666;" value="Awilix DI autoloads repositories, mappers, and handlers by filename convention; handlers self-register on the bus in init(). Handlers depend on repository ports (interfaces) only; all SQL lives in repository adapters as parameterized tagged templates." vertex="1">
+          <mxGeometry height="80" width="790" x="40" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="p1pg" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;boundedLbl=1;backgroundOutline=1;size=15;" value="PostgreSQL&#xa;(dbmate migrations&#xa;+ seeds)" vertex="1">
+          <mxGeometry height="110" width="190" x="1460" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="p1e1" edge="1" parent="1" source="p1client" target="p1proxy" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" value="&#9312; loader fetches /products/:id">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1e2" edge="1" parent="1" source="p1proxy" target="p1route" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" value="&#9313; forwards /api/v1/products/:id">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1e3" edge="1" parent="1" source="p1route" target="p1bus" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" value="&#9314; executes findProductQuery">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1e4" edge="1" parent="1" source="p1bus" target="p1fph" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" value="&#9315; dispatches by action type">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1e5" edge="1" parent="1" source="p1fph" target="p1prepo" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" value="&#9316; Promise.all: findOneById">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1e6" edge="1" parent="1" source="p1fph" target="p1grsh" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" value="&#9316; Promise.all: getReviewSummaryQuery&#xa;(cross-module, via query bus)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1e7" edge="1" parent="1" source="p1prepo" target="p1pg" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" value="&#9317; SELECT product,&#xa;then 3 child SELECTs in parallel">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1e8" edge="1" parent="1" source="p1grsh" target="p1rrepo" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" value="calls port">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1e9" edge="1" parent="1" source="p1rrepo" target="p1pg" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" value="&#9317; EXISTS guard +&#xa;rating aggregate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1e10" edge="1" parent="1" source="p1fph" target="p1mapper" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" value="&#9318; returns ProductEntity + summary">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p1e11" edge="1" parent="1" source="p1mapper" target="p1route" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" value="&#9319; toResponse DTO">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-22" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p1e12" edge="1" parent="1" source="p1route" target="p1client" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" value="&#9320; 200 JSON (response-schema serialized)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="610" y="160" />
+              <mxPoint x="210" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p1legend" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;verticalAlign=top;fontStyle=1;fontSize=12;" value="Legend" vertex="1">
+          <mxGeometry height="150" width="300" x="40" y="880" as="geometry" />
+        </mxCell>
+        <mxCell id="p1leg1" parent="p1legend" style="rounded=1;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="" vertex="1">
+          <mxGeometry height="16" width="30" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="p1leg1t" parent="p1legend" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" value="Client side (browser, SSR proxy)" vertex="1">
+          <mxGeometry height="20" width="240" x="50" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="p1leg2" parent="p1legend" style="rounded=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="" vertex="1">
+          <mxGeometry height="16" width="30" x="10" y="54" as="geometry" />
+        </mxCell>
+        <mxCell id="p1leg2t" parent="p1legend" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" value="Server component (route, handler, repo)" vertex="1">
+          <mxGeometry height="20" width="240" x="50" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="p1leg3" parent="p1legend" style="rounded=1;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="" vertex="1">
+          <mxGeometry height="16" width="30" x="10" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="p1leg3t" parent="p1legend" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" value="CQRS query bus" vertex="1">
+          <mxGeometry height="20" width="240" x="50" y="76" as="geometry" />
+        </mxCell>
+        <mxCell id="p1leg4" parent="p1legend" style="rounded=0;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="" vertex="1">
+          <mxGeometry height="16" width="30" x="10" y="102" as="geometry" />
+        </mxCell>
+        <mxCell id="p1leg4t" parent="p1legend" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" value="PostgreSQL" vertex="1">
+          <mxGeometry height="20" width="240" x="50" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="p1leg5t" parent="p1legend" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" value="Dashed arrows: response path" vertex="1">
+          <mxGeometry height="20" width="240" x="50" y="124" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="Domains &amp; entities" id="page-domains-entities">
+    <mxGraphModel dx="1590" dy="1095" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="p2title" parent="1" style="text;html=1;fontSize=18;fontStyle=1;align=left;" value="Domains &amp;amp; entities: three read-only vertical slices" vertex="1">
+          <mxGeometry height="30" width="900" x="40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="p2contracts" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" value="packages/contracts: shared TypeBox response DTOs (snake_case) + 16-key specification icon enum; both apps compile against it" vertex="1">
+          <mxGeometry height="50" width="660" x="520" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="p2prod" parent="1" style="swimlane;startSize=30;fontStyle=1;fontSize=13;fillColor=none;strokeColor=#6c8ebf;pointerEvents=0;" value="product" vertex="1">
+          <mxGeometry height="560" width="460" x="40" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="p2prodr" parent="p2prod" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" value="GET /api/v1/products/:id" vertex="1">
+          <mxGeometry height="60" width="380" x="40" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p2prode" parent="p2prod" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;verticalAlign=top;spacing=8;fontSize=12;" value="&lt;b&gt;ProductEntity&lt;/b&gt;&#xa;colors[], sizes[], variants[] (sku, price, stock, sold),&#xa;images[], info[], reviews {count, average}&#xa;&#xa;Domain ordering: colors by first image appearance,&#xa;sizes by canonical rank (contracts SIZE_RANK)" vertex="1">
+          <mxGeometry height="150" width="380" x="40" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="p2prodt" parent="p2prod" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;boundedLbl=1;backgroundOutline=1;size=15;" value="products, product_inventory,&#xa;product_images, product_info" vertex="1">
+          <mxGeometry height="110" width="380" x="40" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="p2rev" parent="1" style="swimlane;startSize=30;fontStyle=1;fontSize=13;fillColor=none;strokeColor=#d6b656;pointerEvents=0;" value="review" vertex="1">
+          <mxGeometry height="560" width="460" x="580" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="p2revr" parent="p2rev" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" value="GET /api/v1/products/:id/reviews (paginated)&#xa;GET /api/v1/products/:id/reviews/summary" vertex="1">
+          <mxGeometry height="60" width="380" x="40" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p2reve" parent="p2rev" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;verticalAlign=top;spacing=8;fontSize=12;" value="&lt;b&gt;ReviewEntity&lt;/b&gt; (author, rating 1..5, content, createdAt)&#xa;&lt;b&gt;ReviewSummary&lt;/b&gt; (total, average, distribution 1..5)&#xa;&#xa;Pagination in SQL: LIMIT/OFFSET,&#xa;ORDER BY created_at DESC, id DESC&#xa;(closed querystring schema strips unknown keys)" vertex="1">
+          <mxGeometry height="150" width="380" x="40" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="p2revt" parent="p2rev" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;boundedLbl=1;backgroundOutline=1;size=15;" value="product_reviews,&#xa;review_authors" vertex="1">
+          <mxGeometry height="110" width="380" x="40" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="p2spec" parent="1" style="swimlane;startSize=30;fontStyle=1;fontSize=13;fillColor=none;strokeColor=#82b366;pointerEvents=0;" value="specification" vertex="1">
+          <mxGeometry height="560" width="460" x="1120" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="p2specr" parent="p2spec" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" value="GET /api/v1/specifications" vertex="1">
+          <mxGeometry height="60" width="380" x="40" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p2spece" parent="p2spec" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;verticalAlign=top;spacing=8;fontSize=12;" value="&lt;b&gt;SpecificationEntity&lt;/b&gt;&#xa;label, title, description, imageUrl, imageAlt,&#xa;features[] {icon (16-key enum), label}&#xa;&#xa;Collection-wide marketing content,&#xa;ordered by sort_order (in JS, unit-tested)" vertex="1">
+          <mxGeometry height="150" width="380" x="40" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="p2spect" parent="p2spec" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;boundedLbl=1;backgroundOutline=1;size=15;" value="specifications,&#xa;specification_features" vertex="1">
+          <mxGeometry height="110" width="380" x="40" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="p2users" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontSize=12;" value="users table + seed: unused placeholder (future auth context), referenced by no code" vertex="1">
+          <mxGeometry height="60" width="460" x="580" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="p2e1" edge="1" parent="1" source="p2prodr" target="p2revr" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" value="composes summary:&#xa;getReviewSummaryQuery (query bus)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p2e2" edge="1" parent="1" source="p2revt" target="p2prodt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;strokeColor=#b85450;fontColor=#b85450;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" value="existence check: direct SQL EXISTS on products&#xa;(documented exception to module independence)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p2legend" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;verticalAlign=top;fontStyle=1;fontSize=12;" value="Legend" vertex="1">
+          <mxGeometry height="174" width="330" x="40" y="740" as="geometry" />
+        </mxCell>
+        <mxCell id="p2leg1" parent="p2legend" style="rounded=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="" vertex="1">
+          <mxGeometry height="16" width="30" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="p2leg1t" parent="p2legend" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" value="REST routes owned by the slice" vertex="1">
+          <mxGeometry height="20" width="270" x="50" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="p2leg2" parent="p2legend" style="rounded=0;html=1;fillColor=#ffffff;strokeColor=#666666;" value="" vertex="1">
+          <mxGeometry height="16" width="30" x="10" y="54" as="geometry" />
+        </mxCell>
+        <mxCell id="p2leg2t" parent="p2legend" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" value="Domain entities + domain rules" vertex="1">
+          <mxGeometry height="20" width="270" x="50" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="p2leg3" parent="p2legend" style="rounded=0;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="" vertex="1">
+          <mxGeometry height="16" width="30" x="10" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="p2leg3t" parent="p2legend" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" value="DB tables the slice owns" vertex="1">
+          <mxGeometry height="20" width="270" x="50" y="76" as="geometry" />
+        </mxCell>
+        <mxCell id="p2leg4" parent="p2legend" style="rounded=1;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="" vertex="1">
+          <mxGeometry height="16" width="30" x="10" y="102" as="geometry" />
+        </mxCell>
+        <mxCell id="p2leg4t" parent="p2legend" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" value="Shared contracts package" vertex="1">
+          <mxGeometry height="20" width="270" x="50" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="p2leg5" parent="p2legend" style="rounded=0;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;" value="" vertex="1">
+          <mxGeometry height="16" width="30" x="10" y="126" as="geometry" />
+        </mxCell>
+        <mxCell id="p2leg5t" parent="p2legend" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" value="Unused (kept on purpose)" vertex="1">
+          <mxGeometry height="20" width="270" x="50" y="124" as="geometry" />
+        </mxCell>
+        <mxCell id="p2leg6t" parent="p2legend" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontColor=#b85450;" value="Red dashed arrow: boundary exception" vertex="1">
+          <mxGeometry height="20" width="270" x="50" y="148" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="Data model" id="page-data-model">
+    <mxGraphModel dx="1590" dy="1095" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="p3title" parent="1" style="text;html=1;fontSize=18;fontStyle=1;align=left;" value="Data model: apps/server/db/migrations (4 files)" vertex="1">
+          <mxGeometry height="30" width="900" x="40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="p3products" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;verticalAlign=top;spacing=8;fontSize=12;" value="&lt;b&gt;products&lt;/b&gt;&#xa;PK product_id&#xa;name, description,&#xa;category, collection" vertex="1">
+          <mxGeometry height="110" width="260" x="560" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="p3inventory" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;verticalAlign=top;spacing=8;fontSize=12;" value="&lt;b&gt;product_inventory&lt;/b&gt;&#xa;PK sku, FK product_id (cascade)&#xa;color, size, list/sale price,&#xa;discount, stock, sold" vertex="1">
+          <mxGeometry height="120" width="280" x="80" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="p3images" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;verticalAlign=top;spacing=8;fontSize=12;" value="&lt;b&gt;product_images&lt;/b&gt;&#xa;PK id, FK product_id (cascade)&#xa;color, image_url" vertex="1">
+          <mxGeometry height="100" width="280" x="80" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="p3info" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;verticalAlign=top;spacing=8;fontSize=12;" value="&lt;b&gt;product_info&lt;/b&gt;&#xa;PK id, FK product_id (cascade)&#xa;title, description[]" vertex="1">
+          <mxGeometry height="100" width="280" x="80" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="p3reviews" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;verticalAlign=top;spacing=8;fontSize=12;" value="&lt;b&gt;product_reviews&lt;/b&gt;&#xa;PK id, FK product_id (cascade)&#xa;user_id, rating (CHECK 1..5),&#xa;content, created_at&#xa;IDX (product_id, created_at DESC, id DESC)" vertex="1">
+          <mxGeometry height="140" width="300" x="560" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="p3authors" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;verticalAlign=top;spacing=8;fontSize=12;" value="&lt;b&gt;review_authors&lt;/b&gt;&#xa;PK user_id&#xa;name, avatar_url" vertex="1">
+          <mxGeometry height="100" width="260" x="1120" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="p3specs" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;verticalAlign=top;spacing=8;fontSize=12;" value="&lt;b&gt;specifications&lt;/b&gt;&#xa;PK specification_id&#xa;label, title, description,&#xa;image_url, image_alt, sort_order" vertex="1">
+          <mxGeometry height="110" width="280" x="1040" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="p3features" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;align=left;verticalAlign=top;spacing=8;fontSize=12;" value="&lt;b&gt;specification_features&lt;/b&gt;&#xa;PK id, FK specification_id (cascade)&#xa;icon (CHECK: 16 enum keys),&#xa;label, sort_order" vertex="1">
+          <mxGeometry height="120" width="280" x="1400" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="p3users" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;align=left;verticalAlign=top;spacing=8;fontSize=12;" value="&lt;b&gt;users&lt;/b&gt; (unused, future auth)&#xa;PK id, unique email,&#xa;address fields, role" vertex="1">
+          <mxGeometry height="100" width="280" x="80" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="p3e1" edge="1" parent="1" source="p3inventory" target="p3products" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" value="FK">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p3e2" edge="1" parent="1" source="p3images" target="p3products" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" value="FK">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p3e3" edge="1" parent="1" source="p3info" target="p3products" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" value="FK">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p3e4" edge="1" parent="1" source="p3reviews" target="p3products" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" value="FK">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p3e5" edge="1" parent="1" source="p3reviews" target="p3authors" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" value="joins on user_id: LEFT JOIN, no FK&#xa;(seeds run after migrations)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-34" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p3e6" edge="1" parent="1" source="p3features" target="p3specs" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" value="FK">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p3legend" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;verticalAlign=top;fontStyle=1;fontSize=12;" value="Legend" vertex="1">
+          <mxGeometry height="120" width="400" x="1040" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="p3leg1t" parent="p3legend" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" value="Solid arrow: foreign key (all ON DELETE CASCADE)" vertex="1">
+          <mxGeometry height="20" width="360" x="10" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="p3leg2t" parent="p3legend" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" value="Dashed arrow: join without FK constraint" vertex="1">
+          <mxGeometry height="20" width="360" x="10" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="p3leg3t" parent="p3legend" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" value="Grey dashed box: table unused by application code" vertex="1">
+          <mxGeometry height="20" width="360" x="10" y="76" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -2,12 +2,8 @@ import { expect, test } from '@playwright/test';
 import { gotoHydrated, PRODUCT } from './helpers';
 
 const SPECS_MARKER = 'aria-label="Product specifications"';
-// Must match the delay applied by scripts/start-prod-client.mjs.
 const SPECS_DELAY_MS = Number(process.env.E2E_SPECS_DELAY_MS ?? 800);
 const TIMER_TOLERANCE_MS = 50;
-// renderRouterToStream gates on isbot(): bots get fully buffered HTML
-// (await allReady), and Node's fetch default UA counts as a bot. A browser
-// UA is required to exercise the streaming path this spec exists to test.
 const BROWSER_UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 
@@ -18,15 +14,12 @@ async function readInFlushes(
   response: Response,
   startedAt: number,
 ): Promise<Flush[]> {
-  const reader = response.body!.getReader();
   const decoder = new TextDecoder();
   const flushes: Flush[] = [];
   let html = '';
 
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    html += decoder.decode(value, { stream: true });
+  for await (const chunk of response.body!) {
+    html += decoder.decode(chunk, { stream: true });
     flushes.push({ html, elapsedMs: Date.now() - startedAt });
   }
   return flushes;

@@ -1,5 +1,5 @@
 import { Type } from 'typebox';
-import { paginatedQueryRequestDtoSchema } from '#src/shared/api/paginated-query.request.dto.ts';
+import { paginatedQueryRequestProperties } from '#src/shared/api/paginated-query.request.dto.ts';
 
 export const findProductReviewsParamsSchema = Type.Object({
   productId: Type.String({
@@ -8,9 +8,11 @@ export const findProductReviewsParamsSchema = Type.Object({
   }),
 });
 
-export const findProductReviewsQuerySchema = Type.Intersect([
-  paginatedQueryRequestDtoSchema,
-  Type.Object({
+// additionalProperties: false + Fastify's removeAdditional strip unknown query
+// keys so they can never reach the action payload (and the SQL) unvalidated.
+export const findProductReviewsQuerySchema = Type.Object(
+  {
+    ...paginatedQueryRequestProperties,
     rating: Type.Optional(
       Type.Integer({
         minimum: 1,
@@ -19,5 +21,6 @@ export const findProductReviewsQuerySchema = Type.Intersect([
         description: 'Filter reviews by star rating',
       }),
     ),
-  }),
-]);
+  },
+  { additionalProperties: false },
+);

@@ -44,7 +44,10 @@ export default async function createServer(fastify: FastifyInstance) {
   });
 
   await fastify.register(UnderPressure, {
-    healthCheck: async () => true,
+    healthCheck: async () => {
+      await fastify.diContainer.cradle.db`SELECT 1`;
+      return true;
+    },
     healthCheckInterval: 5000,
     exposeStatusRoute: {
       routeOpts: { logLevel: 'silent' },

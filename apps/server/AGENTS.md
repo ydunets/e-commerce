@@ -53,6 +53,10 @@ uses the CQRS buses:
 - Commands/queries for request-response
 - Events for fire-and-forget notifications
 
+Known exception: the review module checks product existence with direct SQL against
+`products` (`review.repository.productExists`) to avoid a bus round-trip on the hot
+path. New modules should default to bus queries for cross-module reads.
+
 ## CQRS pattern
 
 This project uses three buses: `CommandBus`, `QueryBus`, and `EventBus`.
@@ -151,6 +155,8 @@ DI uses [Awilix](https://github.com/jeffijoe/awilix) with `@fastify/awilix`.
 - Transaction support: `withTransaction(async (tx) => { ... })`
 - Repositories are hand-written per module (no generic base) — each repository port declares only the queries its module needs, and the adapter issues its own SQL and maps rows directly to domain shapes
 - Mappers are hand-written per module too: for read-only modules (no commands), a mapper only needs `toResponse(entity): ResponseDto`; add `toDomain`/`toPersistence` only if the module actually writes to the database
+- The `users` table and its seed are an unused placeholder for a future auth context; no application code references them
+- `product_reviews.user_id` has no FK to `review_authors` on purpose (dbmate applies all migrations before any seeds, and the products seed inserts reviews before the authors seed runs); the reviews repository LEFT JOINs with a `COALESCE` display-name fallback, and `CHK_reviews_rating` / `CHK_features_icon` guard row invariants instead
 
 SQL parameterization rules:
 - Always use tagged templates: `` db`SELECT * FROM ${db(tableName)} WHERE id = ${id}` ``

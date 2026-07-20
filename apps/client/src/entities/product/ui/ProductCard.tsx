@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { useState } from 'react';
 import { squareImage } from '@/shared/lib/image';
 import { ColorSwatches } from '@/shared/ui/color-swatches';
 import { PriceTag } from '@/shared/ui/price-tag';
@@ -13,7 +14,10 @@ export type TProductCardProps = {
 const CARD_IMAGE_SIZE = 600;
 
 export const ProductCard = ({ product }: TProductCardProps) => {
-  const selected = product.colors[0];
+  const [selectedColor, setSelectedColor] = useState(product.colors[0]?.color);
+  const selected =
+    product.colors.find((variant) => variant.color === selectedColor) ??
+    product.colors[0];
 
   return (
     <article className={styles.root}>
@@ -48,9 +52,10 @@ export const ProductCard = ({ product }: TProductCardProps) => {
           options={product.colors.map((variant) => ({
             value: variant.color,
             label: colorLabel(variant.color),
+            outOfStock: variant.outOfStock,
           }))}
           value={selected.color}
-          onChange={() => {}}
+          onChange={setSelectedColor}
           label={`${product.name} colors`}
         />
       )}

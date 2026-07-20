@@ -64,6 +64,35 @@ test('shows the default colour variant with its card price on a card', async ({
   await expect(voyagerCard).toContainText('$95');
 });
 
+// The crossed out-of-stock swatch cannot be asserted here: the only fully
+// out-of-stock seeded colour (classic-canvas-tee beige) is the 9th-newest
+// product, outside the home grid. The /products spec (#22) covers it; the
+// ColorSwatches stories exercise the state interactively meanwhile.
+test('clicking a swatch swaps the card to that colour variant', async ({
+  page,
+}) => {
+  await gotoHydrated(page, ROUTES.home);
+
+  // Seeded facts: urban-drift-bucket-hat comes in black (default) and white,
+  // with a different catalog image per colour.
+  const card = page
+    .locator('article')
+    .filter({ has: page.getByRole('link', { name: LATEST_ARRIVALS[0] }) });
+  const image = card.getByRole('link').locator('img');
+  await expect(card).toContainText('Black');
+  const defaultImageSrc = await image.getAttribute('src');
+  expect(defaultImageSrc).toBeTruthy();
+
+  const whiteSwatch = card.getByRole('radio', { name: /White/ });
+  await whiteSwatch.click();
+
+  await expect(whiteSwatch).toHaveAttribute('aria-checked', 'true');
+  await expect(card).toContainText('White');
+  await expect(image).not.toHaveAttribute('src', defaultImageSrc ?? '');
+  // Selection is local card state: no navigation, no URL change.
+  await expect(page).toHaveURL(ROUTES.home);
+});
+
 test('opens the product details page from a card', async ({ page }) => {
   await gotoHydrated(page, ROUTES.home);
 

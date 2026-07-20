@@ -1,3 +1,28 @@
+# [1.4.0](https://github.com/ydunets/e-commerce/compare/v1.3.1...v1.4.0) (2026-07-20)
+
+
+### Bug Fixes
+
+* fail the health check when the database is unreachable ([c5030d7](https://github.com/ydunets/e-commerce/commit/c5030d7dacd11e350940bd8ce705b8d785d99b3c))
+* guard review and specification data invariants in the database ([d640e26](https://github.com/ydunets/e-commerce/commit/d640e26d2000fdbcb081eef2723791e3aae58e45))
+* load app styles and fix Tailwind scan scope in Storybook ([419987c](https://github.com/ydunets/e-commerce/commit/419987c4ee3b8d300917efc0416c9da0fb33d750))
+* reject forged request targets in the e2e delay proxy ([b172e43](https://github.com/ydunets/e-commerce/commit/b172e43e3c97c94350de8a5eb0980b595c962cbc))
+* strip unvalidated pagination params before they reach SQL ([c3da7ed](https://github.com/ydunets/e-commerce/commit/c3da7edadd41aa0a942efc63b9eab5920ddfcfca))
+
+
+### Features
+
+* add responsive product specifications tabs section ([932cfec](https://github.com/ydunets/e-commerce/commit/932cfec20f6f73bf6162568cf91fb0d63e46cfde))
+* add specification contracts with a typebox icon enum ([ca035fb](https://github.com/ydunets/e-commerce/commit/ca035fb57d93fafeffa25034eb2aa3299c77203b))
+* add specifications schema, seed, and GET /v1/specifications ([6c8b863](https://github.com/ydunets/e-commerce/commit/6c8b8634856f0c9fb119222722d158f74a97231a))
+* render the product specifications section from the API ([dc3b842](https://github.com/ydunets/e-commerce/commit/dc3b8428b5945f4376f0a77df2664b454bd4a8c5))
+
+
+### Performance Improvements
+
+* run product page queries concurrently ([f38f644](https://github.com/ydunets/e-commerce/commit/f38f6443360d4a0d1502575a554cc243e0122ef8))
+* stream the specifications section instead of blocking the product page ([783af0c](https://github.com/ydunets/e-commerce/commit/783af0c8f2ecc9ff977051acc9a659e69f6fcc88))
+
 ## [1.3.1](https://github.com/ydunets/e-commerce/compare/v1.3.0...v1.3.1) (2026-07-13)
 
 

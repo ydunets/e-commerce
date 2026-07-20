@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
+import { fn } from 'storybook/test';
 import { Tabs, type TTabsProps } from './Tabs';
 
 const meta = {
   title: 'Shared/Tabs',
   component: Tabs,
+  args: { onChange: fn() },
 } satisfies Meta<typeof Tabs>;
 
 export default meta;
@@ -19,14 +21,22 @@ const tabs = [
 
 const ControlledTabs = (args: TTabsProps) => {
   const [activeId, setActiveId] = useState(args.activeId);
-  return <Tabs {...args} activeId={activeId} onChange={setActiveId} />;
+  return (
+    <Tabs
+      {...args}
+      activeId={activeId}
+      onChange={(next) => {
+        args.onChange(next);
+        setActiveId(next);
+      }}
+    />
+  );
 };
 
 export const Default: Story = {
   args: {
     tabs,
     activeId: 'sustainability',
-    onChange: () => {},
     label: 'Product features',
     idPrefix: 'story',
   },

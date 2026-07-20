@@ -1,24 +1,33 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
+import { fn } from 'storybook/test';
 import { Button } from '@/shared/ui/button';
 import { Dialog } from './Dialog';
 
 const meta = {
   title: 'Shared/Dialog',
   component: Dialog,
+  args: { onClose: fn() },
 } satisfies Meta<typeof Dialog>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: { open: true, label: 'Example dialog', onClose: () => {} },
+  args: { open: true, label: 'Example dialog' },
   render: (args) => {
     const [open, setOpen] = useState(true);
     return (
       <>
         <Button onClick={() => setOpen(true)}>Open dialog</Button>
-        <Dialog {...args} open={open} onClose={() => setOpen(false)}>
+        <Dialog
+          {...args}
+          open={open}
+          onClose={() => {
+            args.onClose();
+            setOpen(false);
+          }}
+        >
           <div className="p-10">
             <h2 className="text-2xl font-semibold text-ink">Dialog title</h2>
             <p className="mt-2 text-muted">

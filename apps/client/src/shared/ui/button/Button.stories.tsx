@@ -1,9 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { fn } from 'storybook/test';
 import { Button } from './Button';
 
 const meta = {
   title: 'Shared/Button',
   component: Button,
+  args: { onClick: fn() },
   argTypes: {
     variant: {
       control: 'select',

@@ -1,9 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { fn } from 'storybook/test';
 import { RatingBands } from './RatingBands';
 
 const meta = {
   title: 'Widgets/ProductReviews/RatingBands',
   component: RatingBands,
+  args: { onSelect: fn() },
 } satisfies Meta<typeof RatingBands>;
 
 export default meta;
@@ -12,11 +14,11 @@ type Story = StoryObj<typeof meta>;
 const distribution = { 5: 24, 4: 22, 3: 12, 2: 4, 1: 0 } as const;
 
 export const Default: Story = {
-  args: { distribution, total: 62, activeRating: null, onSelect: () => {} },
+  args: { distribution, total: 62, activeRating: null },
 };
 
 export const Filtered: Story = {
-  args: { distribution, total: 62, activeRating: 2, onSelect: () => {} },
+  args: { distribution, total: 62, activeRating: 2 },
 };
 
 export const Empty: Story = {
@@ -24,6 +26,5 @@ export const Empty: Story = {
     distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
     total: 0,
     activeRating: null,
-    onSelect: () => {},
   },
 };

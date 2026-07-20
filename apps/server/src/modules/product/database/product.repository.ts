@@ -53,12 +53,11 @@ export default function productRepository({ db }: Dependencies): ProductReposito
         await db`SELECT product_id, name, description FROM products WHERE product_id = ${id} LIMIT 1`;
       if (!product) return undefined;
 
-      const inventory: InventoryRow[] =
-        await db`SELECT * FROM product_inventory WHERE product_id = ${id}`;
-      const images: ImageRow[] =
-        await db`SELECT color, image_url FROM product_images WHERE product_id = ${id} ORDER BY id`;
-      const info: InfoRow[] =
-        await db`SELECT title, description FROM product_info WHERE product_id = ${id} ORDER BY id`;
+      const [inventory, images, info] = (await Promise.all([
+        db`SELECT * FROM product_inventory WHERE product_id = ${id}`,
+        db`SELECT color, image_url FROM product_images WHERE product_id = ${id} ORDER BY id`,
+        db`SELECT title, description FROM product_info WHERE product_id = ${id} ORDER BY id`,
+      ])) as unknown as [InventoryRow[], ImageRow[], InfoRow[]];
 
       const colors = orderedColors(inventory, images);
       const variants = inventory.map(toVariant).sort(byColorThenSize(colors));

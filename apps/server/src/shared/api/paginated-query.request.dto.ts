@@ -1,12 +1,12 @@
 import { Type } from 'typebox';
 
-export const paginatedQueryRequestDtoSchema = Type.Object({
+export const paginatedQueryRequestProperties = {
   limit: Type.Optional(
     Type.Number({
       example: 10,
       description: 'Specifies a limit of returned records',
       minimum: 1,
-      maximum: 99_999,
+      maximum: 100,
     }),
   ),
   page: Type.Optional(
@@ -17,4 +17,6 @@ export const paginatedQueryRequestDtoSchema = Type.Object({
       maximum: 99_999,
     }),
   ),
-});
+};
+
+export const paginatedQueryRequestDtoSchema = Type.Object(paginatedQueryRequestProperties);

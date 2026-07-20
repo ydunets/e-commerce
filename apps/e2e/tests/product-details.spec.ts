@@ -19,7 +19,7 @@ test('server-renders the product with price and rating', async ({ page }) => {
     page.getByRole('heading', { name: PRODUCT.name }),
   ).toBeVisible();
   await expect(page.getByText('20% OFF')).toBeVisible();
-  await expect(page.getByRole('link', { name: /reviews/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /reviews/ })).toBeVisible();
   await expect(page.getByRole('button', ADD_TO_CART)).toBeEnabled();
 });
 

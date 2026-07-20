@@ -1,0 +1,68 @@
+@reference "../../../app.css";
+
+.root {
+  @apply relative border-b border-line-strong;
+}
+
+/* -mb-px drops the row onto the root divider so each tab's own bottom
+   border overlaps it: transparent for inactive tabs, brand for the active. */
+.scroller {
+  @apply -mb-px flex overflow-x-auto;
+  scrollbar-width: none;
+}
+
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.tabList {
+  @apply flex items-center gap-6;
+}
+
+.tab {
+  @apply flex h-9 shrink-0 cursor-pointer items-center justify-center border-b border-transparent px-2 pb-3 text-base leading-6 font-medium whitespace-nowrap text-muted transition-colors hover:text-ink;
+}
+
+.tab:focus-visible {
+  @apply focus-ring rounded-sm;
+}
+
+.tabActive {
+  @apply border-brand-solid text-brand hover:text-brand;
+}
+
+/* 1px probes at both ends of the scrollable content; an IntersectionObserver
+   watches them to toggle the edge shadows. */
+.sentinel {
+  @apply w-px shrink-0 self-stretch;
+}
+
+.sentinel:first-child {
+  @apply -mr-px;
+}
+
+.sentinel:last-child {
+  @apply -ml-px;
+}
+
+.shadow {
+  @apply pointer-events-none absolute top-0 bottom-0 w-[17px] opacity-0 transition-opacity duration-200;
+}
+
+.shadow[data-visible] {
+  @apply opacity-100;
+}
+
+.shadowStart {
+  @apply left-0;
+  background:
+    linear-gradient(to right, #fff 20%, rgba(255, 255, 255, 0)),
+    linear-gradient(to right, rgba(23, 23, 23, 0.12), rgba(23, 23, 23, 0) 75%);
+}
+
+.shadowEnd {
+  @apply right-0;
+  background:
+    linear-gradient(to left, #fff 20%, rgba(255, 255, 255, 0)),
+    linear-gradient(to left, rgba(23, 23, 23, 0.12), rgba(23, 23, 23, 0) 75%);
+}

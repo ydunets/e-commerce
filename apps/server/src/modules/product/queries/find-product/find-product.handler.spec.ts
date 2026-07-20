@@ -34,7 +34,15 @@ describe('findProductQuery handler', () => {
   });
 
   it('throws NotFoundException when the product does not exist', async () => {
-    const queryBus = { execute: async () => assert.fail('should not be called') };
+    // The summary query runs concurrently with the product fetch, so it
+    // resolves even for a missing product; the handler must still 404.
+    const queryBus = {
+      execute: async () => ({
+        total: 0,
+        average: 0,
+        distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+      }),
+    };
     const productRepository = { findOneById: async () => undefined };
 
     const { handler } = makeFindProductQuery({ queryBus, productRepository } as never);

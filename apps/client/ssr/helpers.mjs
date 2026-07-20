@@ -1,20 +1,28 @@
 import { Readable } from 'node:stream';
 
-/** Convert an Express request to a Web API Request. */
-export function toWebRequest(req) {
-  const origin = `http://${req.headers.host ?? 'localhost'}`;
-  const url = new URL(req.originalUrl ?? req.url, origin);
-
+/** Copy Node request headers into a Web API Headers object. */
+function toHeaders(nodeHeaders, { skip } = {}) {
   const headers = new Headers();
-  for (const [key, value] of Object.entries(req.headers)) {
+  for (const [key, value] of Object.entries(nodeHeaders)) {
+    if (skip?.has(key)) continue;
     if (Array.isArray(value)) {
       for (const item of value) headers.append(key, item);
     } else if (value != null) {
       headers.set(key, value);
     }
   }
+  return headers;
+}
 
-  return new Request(url, { method: req.method, headers });
+/** Convert an Express request to a Web API Request. */
+export function toWebRequest(req) {
+  const origin = `http://${req.headers.host ?? 'localhost'}`;
+  const url = new URL(req.originalUrl ?? req.url, origin);
+
+  return new Request(url, {
+    method: req.method,
+    headers: toHeaders(req.headers),
+  });
 }
 
 /** Pipe a Web API Response into an Express response. */
@@ -67,15 +75,7 @@ export function createApiProxy(apiUrl) {
         queryIndex === -1 ? rawUrl : rawUrl.slice(0, queryIndex);
       target.search = queryIndex === -1 ? '' : rawUrl.slice(queryIndex);
 
-      const headers = new Headers();
-      for (const [key, value] of Object.entries(req.headers)) {
-        if (HOP_BY_HOP_HEADERS.has(key)) continue;
-        if (Array.isArray(value)) {
-          for (const item of value) headers.append(key, item);
-        } else if (value != null) {
-          headers.set(key, value);
-        }
-      }
+      const headers = toHeaders(req.headers, { skip: HOP_BY_HOP_HEADERS });
 
       const hasBody = req.method !== 'GET' && req.method !== 'HEAD';
       const response = await fetch(target, {

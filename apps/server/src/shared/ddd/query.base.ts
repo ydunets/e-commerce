@@ -24,10 +24,10 @@ export function paginatedQueryBase<TProps extends PaginatedQueryParams>(
   const offset = page * limit;
 
   return {
+    ...props,
     limit,
     offset,
     orderBy,
     page,
-    ...props,
   };
 }

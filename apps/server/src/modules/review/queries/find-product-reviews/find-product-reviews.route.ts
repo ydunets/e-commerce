@@ -21,7 +21,12 @@ export default async function findProductReviews(fastify: FastifyRouteInstance) 
     },
     handler: async (req, res) => {
       const result = await fastify.queryBus.execute(
-        findProductReviewsQuery({ productId: req.params.productId, ...req.query }),
+        findProductReviewsQuery({
+          productId: req.params.productId,
+          limit: req.query.limit,
+          page: req.query.page,
+          rating: req.query.rating,
+        }),
       );
       const response = {
         ...result,

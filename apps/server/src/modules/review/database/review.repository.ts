@@ -46,6 +46,8 @@ export default function reviewRepository({ db }: Dependencies): ReviewRepository
         filters.rating != null && db`rating = ${filters.rating}`,
       ];
 
+      // LEFT JOIN + COALESCE keep the rows consistent with the count subquery
+      // even if a review has no matching review_authors row (no FK by design).
       const [result]: [{ rows: ReviewRow[] | null; count: number }] = await db`
         SELECT
           (SELECT COUNT(*)::int FROM product_reviews ${joinConditions(conditions)}) AS count,
@@ -54,13 +56,13 @@ export default function reviewRepository({ db }: Dependencies): ReviewRepository
               r.id,
               r.product_id,
               r.user_id,
-              a.name,
+              COALESCE(a.name, r.user_id) AS name,
               a.avatar_url,
               r.rating,
               r.content,
               r.created_at
             FROM product_reviews r
-            JOIN review_authors a ON a.user_id = r.user_id
+            LEFT JOIN review_authors a ON a.user_id = r.user_id
             ${joinConditions(conditions)}
             ORDER BY r.created_at DESC, r.id DESC
             LIMIT ${params.limit} OFFSET ${params.offset}

@@ -24,6 +24,9 @@ export function createRequestBus(label: string): RequestBus {
     if (typeof handler !== 'function') {
       throw new TypeError('handler must be a function');
     }
+    if (handlers.has(type)) {
+      throw new Error(`${label} type of ${type} is already registered`);
+    }
     handlers.set(type, handler as CommandHandler);
   }
 

@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import zlib from 'node:zlib';
 import compression from 'compression';
 import express from 'express';
 import { createApiProxy, sendResponse, toWebRequest } from './helpers.mjs';
@@ -20,7 +21,12 @@ const { render } = await import(
 
 const app = express();
 
-app.use(compression());
+app.use(
+  compression({
+    brotli: { flush: zlib.constants.BROTLI_OPERATION_FLUSH },
+    flush: zlib.constants.Z_SYNC_FLUSH,
+  }),
+);
 
 // Forward API calls to the Fastify server (apps/server).
 app.use('/api', createApiProxy(process.env.API_URL ?? 'http://localhost:4000'));

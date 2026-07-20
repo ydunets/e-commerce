@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source("./");
 
 /* Design tokens reconciled with the Figma design system
    (product-details-section-figma, node 1:1588). Each maps to a Figma

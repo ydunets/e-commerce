@@ -8,6 +8,7 @@ import path from 'node:path';
 // slow-but-buffered rendering. This proxy sits between the prod SSR server
 // and the API and delays only the specifications endpoint.
 const API_TARGET = process.env.API_URL ?? 'http://localhost:4000';
+const API_ORIGIN = new URL(API_TARGET).origin;
 const PROXY_PORT = 4600;
 const CLIENT_PORT = process.env.PORT ?? '4173';
 const SPECS_DELAY_MS = Number(process.env.E2E_SPECS_DELAY_MS ?? 800);
@@ -24,8 +25,14 @@ const proxy = http.createServer(async (req, res) => {
   if (req.url.startsWith('/api/v1/specifications')) {
     await sleep(SPECS_DELAY_MS);
   }
+  const target = URL.parse(req.url, API_TARGET);
+  if (target === null || target.origin !== API_ORIGIN) {
+    res.statusCode = 400;
+    res.end();
+    return;
+  }
   try {
-    const upstream = await fetch(new URL(req.url, API_TARGET), {
+    const upstream = await fetch(target, {
       method: req.method,
       headers: { accept: req.headers.accept ?? '*/*' },
     });

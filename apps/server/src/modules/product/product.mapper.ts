@@ -1,8 +1,12 @@
-import type { ProductEntity } from '#src/modules/product/domain/product.types.ts';
-import type { ProductResponseDto } from '#src/modules/product/dtos/product.response.dto.ts';
+import type { ProductEntity, ProductListItem } from '#src/modules/product/domain/product.types.ts';
+import type {
+  ProductListItemDto,
+  ProductResponseDto,
+} from '#src/modules/product/dtos/product.response.dto.ts';
 
 export interface ProductMapper {
   toResponse(entity: ProductEntity): ProductResponseDto;
+  toListItemResponse(item: ProductListItem): ProductListItemDto;
 }
 
 function toPriceRange(salePrices: number[]): ProductResponseDto['priceRange'] {
@@ -34,6 +38,19 @@ export default function productMapper(): ProductMapper {
         priceRange: toPriceRange(entity.variants.map((variant) => variant.salePrice)),
         rating: entity.reviews.average,
         reviews: entity.reviews.count,
+      };
+    },
+    toListItemResponse(item: ProductListItem): ProductListItemDto {
+      return {
+        product_id: item.id,
+        name: item.name,
+        colors: item.colors.map((variant) => ({
+          color: variant.color,
+          image_url: variant.imageUrl,
+          sale_price: variant.salePrice,
+          list_price: variant.listPrice,
+          out_of_stock: variant.outOfStock,
+        })),
       };
     },
   };

@@ -15,3 +15,11 @@
 .list {
   @apply text-lg font-normal text-tertiary line-through;
 }
+
+.sm .sale {
+  @apply text-lg;
+}
+
+.sm .list {
+  @apply text-sm;
+}

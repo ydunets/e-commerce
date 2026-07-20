@@ -1,9 +1,24 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 import { gotoHydrated, PRODUCT, ROUTES } from './helpers';
 
 const HERO_HEADING = { name: 'Discover the StyleNest collection' } as const;
 const SHOP_LINK = { name: `Shop the ${PRODUCT.name}` } as const;
 const MAIN_NAV = { name: 'Main' } as const;
+
+// The 8 newest seeded products by created_at DESC (see products seed).
+const LATEST_ARRIVALS = [
+  'Urban Drift Bucket Hat',
+  'Tangerine Mini Tote',
+  'Elemental Sneakers',
+  'Metro Hoodie',
+  'Sunbeam Mules',
+  'Azure Attitude Shades',
+  'Voyager Hoodie',
+  'LA Baseball Hat',
+] as const;
+
+const latestArrivals = (page: Page) =>
+  page.getByRole('region', { name: 'Latest Arrivals' });
 
 test('renders the server-side markup before any JS runs', async ({ page }) => {
   // Block scripts: what remains is exactly what the server sent.
@@ -12,6 +27,54 @@ test('renders the server-side markup before any JS runs', async ({ page }) => {
 
   await expect(page.getByRole('heading', HERO_HEADING)).toBeVisible();
   await expect(page.getByRole('link', SHOP_LINK)).toBeVisible();
+  // Latest Arrivals arrives server-rendered too, with the product data
+  // already in the HTML.
+  await expect(
+    page.getByRole('heading', { name: 'Latest Arrivals' }),
+  ).toBeVisible();
+  await expect(
+    latestArrivals(page).getByRole('link', { name: LATEST_ARRIVALS[0] }),
+  ).toBeVisible();
+});
+
+test('shows the 8 newest products in order in Latest Arrivals', async ({
+  page,
+}) => {
+  await gotoHydrated(page, ROUTES.home);
+
+  const cards = latestArrivals(page).getByRole('link');
+  await expect(cards).toHaveCount(LATEST_ARRIVALS.length);
+  for (const [index, name] of LATEST_ARRIVALS.entries()) {
+    await expect(cards.nth(index)).toHaveAccessibleName(name);
+  }
+});
+
+test('shows the default colour variant with its card price on a card', async ({
+  page,
+}) => {
+  await gotoHydrated(page, ROUTES.home);
+
+  // Seeded facts: voyager-hoodie's first inventory colour is green, on sale
+  // at $76 from a $95 list price.
+  const voyagerCard = latestArrivals(page).getByRole('link', {
+    name: PRODUCT.name,
+  });
+  await expect(voyagerCard).toContainText('Green');
+  await expect(voyagerCard).toContainText('$76');
+  await expect(voyagerCard).toContainText('$95');
+});
+
+test('opens the product details page from a card', async ({ page }) => {
+  await gotoHydrated(page, ROUTES.home);
+
+  await latestArrivals(page)
+    .getByRole('link', { name: PRODUCT.name })
+    .click();
+
+  await expect(page).toHaveURL(PRODUCT.path);
+  await expect(
+    page.getByRole('heading', { name: PRODUCT.name }),
+  ).toBeVisible();
 });
 
 test('shows the hero and the desktop navigation', async ({ page }) => {

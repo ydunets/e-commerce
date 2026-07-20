@@ -12,7 +12,7 @@ type Rows = Record<Table, unknown[]>;
 function fakeDb(rows: Partial<Rows>): Dependencies['db'] {
   return ((strings: TemplateStringsArray) => {
     const sql = strings.join('?');
-    const table = TABLES.find((name) => sql.includes(`FROM ${name} `));
+    const table = TABLES.find((name) => sql.includes(`FROM ${name}`));
     if (!table) throw new Error(`Unexpected query: ${sql}`);
     return Promise.resolve(rows[table] ?? []);
   }) as unknown as Dependencies['db'];
@@ -108,5 +108,143 @@ describe('productRepository().findOneById()', () => {
     const product = await findTestProduct();
     assert.deepEqual(product?.images[0], { color: 'brown', url: 'https://img/brown-1' });
     assert.deepEqual(product?.info, [{ title: 'Features', description: ['Warm', 'Light'] }]);
+  });
+});
+
+const listProductRow = (product_id: string, name: string, created_at: string) => ({
+  product_id,
+  name,
+  created_at,
+});
+
+// Products arrive shuffled with a created_at tie between alpha-tee and
+// beta-tee, so ordering must come from the repository, not the rows.
+// Images list cream before navy while inventory lists navy first: the list
+// colour order must follow inventory, unlike findOneById's image order.
+const listRows: Partial<Rows> = {
+  products: [
+    listProductRow('beta-tee', 'Beta Tee', '2024-03-01T00:00:00Z'),
+    listProductRow('delta-cap', 'Delta Cap', '2024-04-01T00:00:00Z'),
+    listProductRow('alpha-tee', 'Alpha Tee', '2024-03-01T00:00:00Z'),
+    listProductRow('gamma-cap', 'Gamma Cap', '2024-02-01T00:00:00Z'),
+  ],
+  product_inventory: [
+    inventoryRow({ sku: 'dc-navy-sm', product_id: 'delta-cap', color: 'navy', size: 'sm' }),
+    inventoryRow({ sku: 'dc-cream-sm', product_id: 'delta-cap', color: 'cream', size: 'sm' }),
+    inventoryRow({ sku: 'dc-navy-md', product_id: 'delta-cap', color: 'navy', size: 'md' }),
+    inventoryRow({ sku: 'dc-lime-sm', product_id: 'delta-cap', color: 'lime', size: 'sm' }),
+    inventoryRow({
+      sku: 'at-olive-sm',
+      product_id: 'alpha-tee',
+      color: 'olive',
+      size: 'sm',
+      list_price: '100.00',
+      sale_price: '80.00',
+    }),
+    inventoryRow({
+      sku: 'at-olive-md',
+      product_id: 'alpha-tee',
+      color: 'olive',
+      size: 'md',
+      list_price: '95.00',
+      discount_percentage: 20,
+      sale_price: '76.00',
+    }),
+    inventoryRow({
+      sku: 'at-olive-lg',
+      product_id: 'alpha-tee',
+      color: 'olive',
+      size: 'lg',
+      list_price: '90.00',
+      sale_price: '90.00',
+    }),
+    inventoryRow({
+      sku: 'bt-rust-sm',
+      product_id: 'beta-tee',
+      color: 'rust',
+      size: 'sm',
+      stock: 0,
+    }),
+    inventoryRow({
+      sku: 'bt-rust-md',
+      product_id: 'beta-tee',
+      color: 'rust',
+      size: 'md',
+      stock: 0,
+    }),
+    inventoryRow({
+      sku: 'bt-sand-sm',
+      product_id: 'beta-tee',
+      color: 'sand',
+      size: 'sm',
+      stock: 0,
+    }),
+    inventoryRow({
+      sku: 'bt-sand-md',
+      product_id: 'beta-tee',
+      color: 'sand',
+      size: 'md',
+      stock: 3,
+    }),
+  ],
+  product_images: [
+    { product_id: 'delta-cap', color: 'cream', image_url: 'https://img/cream-1' },
+    { product_id: 'delta-cap', color: 'navy', image_url: 'https://img/navy-1' },
+    { product_id: 'delta-cap', color: 'navy', image_url: 'https://img/navy-2' },
+  ],
+};
+
+const listProducts = (options: { limit?: number; offset?: number } = {}) =>
+  productRepository({ db: fakeDb(listRows) } as unknown as Dependencies).findMany(options);
+
+describe('productRepository().findMany()', () => {
+  it('orders products newest-first, ties broken by product id', async () => {
+    const products = await listProducts();
+    assert.deepEqual(
+      products.map((product) => product.id),
+      ['delta-cap', 'alpha-tee', 'beta-tee', 'gamma-cap'],
+    );
+  });
+
+  it('applies limit and offset to the ordered list', async () => {
+    const products = await listProducts({ limit: 2, offset: 1 });
+    assert.deepEqual(
+      products.map((product) => product.id),
+      ['alpha-tee', 'beta-tee'],
+    );
+  });
+
+  it("orders colours by first inventory appearance with that colour's first image", async () => {
+    const products = await listProducts();
+    const deltaCap = products.find((product) => product.id === 'delta-cap');
+    assert.deepEqual(
+      deltaCap?.colors.map(({ color, imageUrl }) => ({ color, imageUrl })),
+      [
+        { color: 'navy', imageUrl: 'https://img/navy-1' },
+        { color: 'cream', imageUrl: 'https://img/cream-1' },
+        { color: 'lime', imageUrl: null },
+      ],
+    );
+  });
+
+  it("picks the colour's lowest sale price with that size's list price as the card price", async () => {
+    const products = await listProducts();
+    const alphaTee = products.find((product) => product.id === 'alpha-tee');
+    assert.deepEqual(
+      alphaTee?.colors.map(({ color, salePrice, listPrice }) => ({ color, salePrice, listPrice })),
+      [{ color: 'olive', salePrice: 76, listPrice: 95 }],
+    );
+  });
+
+  it('marks a colour out of stock only when every size has zero stock', async () => {
+    const products = await listProducts();
+    const betaTee = products.find((product) => product.id === 'beta-tee');
+    assert.deepEqual(
+      betaTee?.colors.map(({ color, outOfStock }) => ({ color, outOfStock })),
+      [
+        { color: 'rust', outOfStock: true },
+        { color: 'sand', outOfStock: false },
+      ],
+    );
   });
 });

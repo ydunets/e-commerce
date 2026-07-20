@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import type { Product } from '@/entities/product';
+import { colorLabel, type Product } from '@/entities/product';
 import {
-  colorLabel,
   findVariant,
   imagesForColor,
   isColorSoldOut,

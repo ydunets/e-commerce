@@ -1,0 +1,30 @@
+@reference "../../../app.css";
+
+.root {
+  @apply flex flex-col gap-3;
+}
+
+.link {
+  @apply flex flex-col items-start gap-1 rounded-lg focus-visible:focus-ring;
+}
+
+.image,
+.imageFallback {
+  @apply mb-3 aspect-square w-full rounded-lg object-cover;
+}
+
+.imageFallback {
+  @apply bg-surface;
+}
+
+.color {
+  @apply text-sm text-tertiary;
+}
+
+.name {
+  @apply text-lg font-medium text-ink;
+}
+
+.price {
+  @apply mt-1;
+}

@@ -41,5 +41,21 @@ export const productResponseDtoSchema = Type.Object({
   reviews: Type.Integer(),
 });
 
+export const productListItemColorDtoSchema = Type.Object({
+  color: Type.String(),
+  image_url: Type.Union([Type.String(), Type.Null()]),
+  sale_price: Type.Number(),
+  list_price: Type.Number(),
+  out_of_stock: Type.Boolean(),
+});
+
+export const productListItemDtoSchema = Type.Object({
+  product_id: Type.String({ example: 'voyager-hoodie' }),
+  name: Type.String(),
+  colors: Type.Array(productListItemColorDtoSchema),
+});
+
 export type InventoryItemDto = Static<typeof inventoryItemDtoSchema>;
 export type ProductResponseDto = Static<typeof productResponseDtoSchema>;
+export type ProductListItemColorDto = Static<typeof productListItemColorDtoSchema>;
+export type ProductListItemDto = Static<typeof productListItemDtoSchema>;

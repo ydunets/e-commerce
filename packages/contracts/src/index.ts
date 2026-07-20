@@ -1,6 +1,10 @@
 export {
   type InventoryItemDto,
   inventoryItemDtoSchema,
+  type ProductListItemColorDto,
+  productListItemColorDtoSchema,
+  type ProductListItemDto,
+  productListItemDtoSchema,
   type ProductResponseDto,
   productResponseDtoSchema,
 } from './product.ts';

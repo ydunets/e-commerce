@@ -2,7 +2,7 @@ import { expect, type Page, test } from '@playwright/test';
 import { gotoHydrated, PRODUCT, ROUTES } from './helpers';
 
 const HERO_HEADING = { name: 'Discover the StyleNest collection' } as const;
-const SHOP_LINK = { name: `Shop the ${PRODUCT.name}` } as const;
+const SHOP_LINK = { name: 'Shop now' } as const;
 const MAIN_NAV = { name: 'Main' } as const;
 
 // The 8 newest seeded products by created_at DESC (see products seed).
@@ -42,7 +42,12 @@ test('shows the 8 newest products in order in Latest Arrivals', async ({
 }) => {
   await gotoHydrated(page, ROUTES.home);
 
-  const cards = latestArrivals(page).getByRole('link');
+  await expect(
+    latestArrivals(page).getByRole('link', { name: 'View all' }),
+  ).toBeVisible();
+
+  // Cards live in the section's <ul>, separate from the "View all" action.
+  const cards = latestArrivals(page).locator('ul').getByRole('link');
   await expect(cards).toHaveCount(LATEST_ARRIVALS.length);
   for (const [index, name] of LATEST_ARRIVALS.entries()) {
     await expect(cards.nth(index)).toHaveAccessibleName(name);
@@ -113,19 +118,22 @@ test('shows the hero and the desktop navigation', async ({ page }) => {
 
   const nav = page.getByRole('navigation', MAIN_NAV);
   await expect(nav.getByRole('link', { name: 'Home' })).toBeVisible();
-  await expect(nav.getByRole('link', { name: 'Products' })).toBeVisible();
   await expect(nav.getByRole('link', { name: 'About' })).toBeVisible();
+
+  const productsLink = nav.getByRole('link', { name: 'Products' });
+  await expect(productsLink).toBeVisible();
+  await productsLink.click();
+  await expect(page).toHaveURL(ROUTES.products);
 });
 
-test('navigates to the product page from the hero link', async ({ page }) => {
+test('navigates to the products catalog from the hero link', async ({
+  page,
+}) => {
   await gotoHydrated(page, ROUTES.home);
 
   await page.getByRole('link', SHOP_LINK).click();
 
-  await expect(page).toHaveURL(PRODUCT.path);
-  await expect(
-    page.getByRole('heading', { name: PRODUCT.name }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(ROUTES.products);
 });
 
 test('about page reports a live API connection', async ({ page }) => {

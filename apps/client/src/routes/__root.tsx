@@ -65,11 +65,7 @@ function RootComponent() {
           <Navbar
             links={[
               { label: 'Home', href: '/' },
-              {
-                label: 'Products',
-                href: '/products/$productId',
-                params: { productId: 'voyager-hoodie' },
-              },
+              { label: 'Products', href: '/products' },
               { label: 'About', href: '/about' },
             ]}
             brandHref="/"

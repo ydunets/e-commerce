@@ -28,16 +28,20 @@ function Home() {
           Timeless pieces, honest materials. Server-rendered with TanStack
           Router, styled with Tailwind.
         </p>
-        <Button
-          href="/products/$productId"
-          params={{ productId: 'voyager-hoodie' }}
-          size="lg"
-        >
-          Shop the Voyager Hoodie
+        <Button href="/products" size="lg">
+          Shop now
         </Button>
       </section>
       {products && products.length > 0 && (
-        <ProductGridSection title="Latest Arrivals" products={products} />
+        <ProductGridSection
+          title="Latest Arrivals"
+          products={products}
+          action={
+            <Button href="/products" variant="secondary">
+              View all
+            </Button>
+          }
+        />
       )}
     </main>
   );

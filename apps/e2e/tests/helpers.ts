@@ -8,6 +8,7 @@ export const PRODUCT = {
 export const ROUTES = {
   home: '/',
   about: '/about',
+  products: '/products',
 } as const;
 
 /**

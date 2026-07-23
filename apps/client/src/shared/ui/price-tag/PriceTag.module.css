@@ -15,3 +15,14 @@
 .list {
   @apply text-lg font-normal text-tertiary line-through;
 }
+
+/* Card price (Figma: sale 18px/normal/tertiary, list 12px/muted strikethrough)
+   differs from the detail-page price above, not just in size but in weight
+   and which token carries which role. */
+.sm .sale {
+  @apply text-lg font-normal text-tertiary;
+}
+
+.sm .list {
+  @apply text-xs text-muted;
+}

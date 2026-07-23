@@ -6,6 +6,7 @@
 # Dist
 node_modules
 dist/
+.tanstack/
 
 # Profile
 .rspack-profile-*/
@@ -33,3 +34,4 @@ playwright-report/
 # Reference examples (local design snippets, not part of the app)
 examples/
 .serena/
+react-internals-diagrams

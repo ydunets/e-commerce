@@ -25,6 +25,22 @@ export interface ProductReviewSummary {
   average: number;
 }
 
+export interface ProductListItemColor {
+  color: string;
+  /** Null for colours without a catalog image. */
+  imageUrl: string | null;
+  /** Card price: the lowest sale price among the colour's sizes. */
+  price: Price;
+  outOfStock: boolean;
+}
+
+export interface ProductListItem {
+  id: string;
+  name: string;
+  /** Colour variants in display order (first is the card's default). */
+  colors: ProductListItemColor[];
+}
+
 export interface Product {
   id: string;
   name: string;

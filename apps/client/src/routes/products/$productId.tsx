@@ -2,19 +2,13 @@ import { Await, createFileRoute } from '@tanstack/react-router';
 import { Suspense } from 'react';
 import { getProduct } from '@/entities/product';
 import { getSpecifications } from '@/entities/specification';
+import { API_BASE } from '@/shared/api';
 import {
   ProductDetailsSection,
   ProductError,
   ProductPending,
 } from '@/widgets/product-details';
 import { ProductSpecificationsSection } from '@/widgets/product-specifications';
-
-// During SSR the loader must hit the API directly; in the browser the
-// relative path goes through the express /api proxy.
-const API_BASE =
-  typeof window === 'undefined'
-    ? (process.env.API_URL ?? 'http://localhost:4000')
-    : '';
 
 export const Route = createFileRoute('/products/$productId')({
   loader: async ({ params }) => {

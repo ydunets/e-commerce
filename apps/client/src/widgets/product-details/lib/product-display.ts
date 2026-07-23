@@ -10,10 +10,6 @@ const SIZE_LABELS: Record<string, string> = {
   xxl: 'XXL',
 };
 
-export function colorLabel(name: string): string {
-  return name.charAt(0).toUpperCase() + name.slice(1);
-}
-
 export function sizeLabel(size: string): string {
   return SIZE_LABELS[size] ?? size.toUpperCase();
 }

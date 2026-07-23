@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchUsers } from '@/shared/api';
+import { fetchCatalog } from '@/shared/api';
 import { cx } from '@/shared/lib/cx';
 
 const STATUS_DOT = {
@@ -12,7 +12,7 @@ const describeError = (error: unknown) =>
   error instanceof Error ? error.message : 'Unknown error';
 
 export function ServerStatus() {
-  const request = useQuery({ queryKey: ['users'], queryFn: fetchUsers });
+  const request = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalog });
 
   return (
     <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-5 shadow-xs">
@@ -39,18 +39,13 @@ export function ServerStatus() {
       )}
 
       {request.status === 'success' && (
-        <div className="text-sm text-gray-600">
-          <p>
-            Connected — server reports{' '}
-            <span className="font-semibold text-gray-900">
-              {request.data.count}
-            </span>{' '}
-            user(s).
-          </p>
-          <pre className="mt-3 overflow-x-auto rounded-lg bg-gray-50 p-3 text-xs text-gray-700">
-            {JSON.stringify(request.data, null, 2)}
-          </pre>
-        </div>
+        <p className="text-sm text-gray-600">
+          Connected — server reports{' '}
+          <span className="font-semibold text-gray-900">
+            {request.data.length}
+          </span>{' '}
+          product(s).
+        </p>
       )}
     </div>
   );

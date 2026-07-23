@@ -1,8 +1,11 @@
 import { expect, test } from '@rstest/core';
-import type { Product, ProductVariant } from '@/entities/product';
-import { productFixture } from '@/entities/product/model/product.fixture.ts';
 import {
   colorLabel,
+  type Product,
+  type ProductVariant,
+} from '@/entities/product';
+import { productFixture } from '@/entities/product/model/product.fixture.ts';
+import {
   colorPreviewImages,
   findVariant,
   imagesForColor,

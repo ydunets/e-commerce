@@ -1,3 +1,21 @@
+# [1.5.0](https://github.com/ydunets/e-commerce/compare/v1.4.0...v1.5.0) (2026-07-23)
+
+
+### Bug Fixes
+
+* **client:** probe API liveness via the product list, not the removed users endpoint ([cfb5fff](https://github.com/ydunets/e-commerce/commit/cfb5fffa6c143ae8e47d702f61b997a76359a7be))
+* load Noto Sans in the Storybook preview ([a779755](https://github.com/ydunets/e-commerce/commit/a7797550acf03d4a5318aaa0a8aaeb5223e270d8))
+* resolve the accessibility violations surfaced by the a11y addon ([292a80e](https://github.com/ydunets/e-commerce/commit/292a80e64fed26ad3c632667396475f1a4f8bd31))
+
+
+### Features
+
+* bump Storybook to 10.5.2 and enable the a11y addon ([4d8e3b6](https://github.com/ydunets/e-commerce/commit/4d8e3b61ae73aeb2ec6f77ce1797028386875acf))
+* **product:** /products catalog page with View all and Shop now CTA ([60134c0](https://github.com/ydunets/e-commerce/commit/60134c095172e8daa59c0ec5e917ad7f1c5e0d1b)), closes [#22](https://github.com/ydunets/e-commerce/issues/22)
+* **product:** list endpoint with per-colour card data and Latest Arrivals grid ([f96b14d](https://github.com/ydunets/e-commerce/commit/f96b14d54853df1324bbf7ff6a2030367d9a138d)), closes [#20](https://github.com/ydunets/e-commerce/issues/20)
+* **product:** storybook stories and Figma design-fidelity pass for card and grid ([e2bc812](https://github.com/ydunets/e-commerce/commit/e2bc812974f67eed2cc85b58e83e582bfdb5b2f5)), closes [#23](https://github.com/ydunets/e-commerce/issues/23)
+* **product:** swatch switching and out-of-stock swatch states on cards ([74fade5](https://github.com/ydunets/e-commerce/commit/74fade573bf102bc2990d4923c010de836674e92)), closes [#22](https://github.com/ydunets/e-commerce/issues/22) [#21](https://github.com/ydunets/e-commerce/issues/21)
+
 # [1.4.0](https://github.com/ydunets/e-commerce/compare/v1.3.1...v1.4.0) (2026-07-20)
 
 

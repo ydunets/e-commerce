@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
+import { fn } from 'storybook/test';
 import { ColorSwatches } from './ColorSwatches';
 
 const meta = {
   title: 'Shared/ColorSwatches',
   component: ColorSwatches,
+  args: { onChange: fn() },
 } satisfies Meta<typeof ColorSwatches>;
 
 export default meta;
@@ -17,9 +19,18 @@ const OPTIONS = [
 ];
 
 export const Interactive: Story = {
-  args: { options: OPTIONS, value: 'green', onChange: () => {} },
+  args: { options: OPTIONS, value: 'green' },
   render: (args) => {
     const [value, setValue] = useState(args.value);
-    return <ColorSwatches {...args} value={value} onChange={setValue} />;
+    return (
+      <ColorSwatches
+        {...args}
+        value={value}
+        onChange={(next) => {
+          args.onChange(next);
+          setValue(next);
+        }}
+      />
+    );
   },
 };

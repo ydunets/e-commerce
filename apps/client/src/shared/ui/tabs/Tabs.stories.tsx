@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
-import { Tabs, type TTabsProps } from './Tabs';
+import { fn } from 'storybook/test';
+import { Tabs, type TTabsProps, tabButtonId, tabPanelId } from './Tabs';
 
 const meta = {
   title: 'Shared/Tabs',
   component: Tabs,
+  args: { onChange: fn() },
 } satisfies Meta<typeof Tabs>;
 
 export default meta;
@@ -19,14 +21,36 @@ const tabs = [
 
 const ControlledTabs = (args: TTabsProps) => {
   const [activeId, setActiveId] = useState(args.activeId);
-  return <Tabs {...args} activeId={activeId} onChange={setActiveId} />;
+  return (
+    <>
+      <Tabs
+        {...args}
+        activeId={activeId}
+        onChange={(next) => {
+          args.onChange(next);
+          setActiveId(next);
+        }}
+      />
+      {args.tabs.map((tab) => (
+        <div
+          key={tab.id}
+          id={tabPanelId(args.idPrefix, tab.id)}
+          role="tabpanel"
+          aria-labelledby={tabButtonId(args.idPrefix, tab.id)}
+          hidden={tab.id !== activeId}
+          className="p-4 text-muted"
+        >
+          {tab.label} content
+        </div>
+      ))}
+    </>
+  );
 };
 
 export const Default: Story = {
   args: {
     tabs,
     activeId: 'sustainability',
-    onChange: () => {},
     label: 'Product features',
     idPrefix: 'story',
   },

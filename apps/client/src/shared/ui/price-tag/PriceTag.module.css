@@ -13,5 +13,5 @@
 }
 
 .list {
-  @apply text-lg font-normal text-disabled line-through;
+  @apply text-lg font-normal text-tertiary line-through;
 }

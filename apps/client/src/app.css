@@ -37,7 +37,7 @@
   --color-success: #15803d; /* green-700 · Text/success */
   --color-success-soft: #f0fdf4; /* green-50 · Background/success-subtle */
   --color-success-line: #bbf7d0; /* green-200 · Border/success */
-  --color-danger: #dc2626; /* red-600 · error text */
+  --color-danger: #b91c1c; /* red-700 · error text (red-600 fails WCAG AA on the danger-subtle background) */
   --color-danger-soft: #fef2f2; /* red-50 · Background/danger-subtle */
   --color-danger-line: #fecaca; /* red-200 · Border/danger */
 

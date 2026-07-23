@@ -18,7 +18,7 @@
 }
 
 .color {
-  @apply text-sm text-tertiary;
+  @apply text-xs text-muted;
 }
 
 .name {

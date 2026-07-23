@@ -1,7 +1,10 @@
 @reference "../../../app.css";
 
+/* Self-contained responsive padding (Figma: mobile 12px/48px, tablet
+   16px/64px, desktop 96px/96px) so the section carries its own breathing
+   room wherever it's dropped, including in isolation in Storybook. */
 .root {
-  @apply flex flex-col gap-8;
+  @apply flex flex-col gap-8 px-3 py-12 md:px-4 md:py-16 lg:px-24 lg:py-24;
 }
 
 .header {
@@ -13,5 +16,5 @@
 }
 
 .grid {
-  @apply grid list-none grid-cols-1 gap-x-4 gap-y-8 p-0 md:grid-cols-2 lg:grid-cols-4;
+  @apply grid list-none grid-cols-1 gap-8 p-0 md:grid-cols-2 lg:grid-cols-4;
 }

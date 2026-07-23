@@ -19,8 +19,8 @@ function Home() {
   const { products } = Route.useLoaderData();
 
   return (
-    <main className="mx-auto flex max-w-[1280px] flex-col gap-16 px-4 py-16 md:px-8">
-      <section className="flex min-h-[40vh] flex-col items-start justify-center gap-6">
+    <main>
+      <section className="mx-auto flex min-h-[40vh] max-w-[1280px] flex-col items-start justify-center gap-6 px-4 py-16 md:px-8">
         <h1 className="text-4xl font-bold text-ink md:text-5xl">
           Discover the StyleNest collection
         </h1>
@@ -33,15 +33,17 @@ function Home() {
         </Button>
       </section>
       {products && products.length > 0 && (
-        <ProductGridSection
-          title="Latest Arrivals"
-          products={products}
-          action={
-            <Button href="/products" variant="secondary">
-              View all
-            </Button>
-          }
-        />
+        <div className="mx-auto max-w-[1280px]">
+          <ProductGridSection
+            title="Latest Arrivals"
+            products={products}
+            action={
+              <Button href="/products" variant="secondary">
+                View all
+              </Button>
+            }
+          />
+        </div>
       )}
     </main>
   );

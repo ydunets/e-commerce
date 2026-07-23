@@ -4,12 +4,21 @@
   @apply flex flex-wrap items-center gap-4;
 }
 
+/* Compact density for product cards (Figma: 4px padding + 16px dot = 24px). */
+.smRoot {
+  @apply gap-1;
+}
+
 .swatch {
   @apply relative h-10 w-10 cursor-pointer rounded-full transition-shadow;
   /* --swatch-fill / --swatch-ring are set inline from the swatch-colors catalog.
      `color` drives the selected ring below via currentColor. */
   background-color: var(--swatch-fill);
   color: var(--swatch-ring);
+}
+
+.sm {
+  @apply h-6 w-6;
 }
 
 .swatch:focus-visible {
@@ -23,8 +32,18 @@
     0 0 0 4px currentColor;
 }
 
+.sm.selected {
+  box-shadow:
+    0 0 0 1px #fff,
+    0 0 0 2px currentColor;
+}
+
 .check {
   @apply absolute inset-0 m-auto h-5 w-5 text-white;
+}
+
+.sm .check {
+  @apply h-3 w-3;
 }
 
 .disabled {

@@ -17,7 +17,7 @@ function ProductsPage() {
   const { products } = Route.useLoaderData();
 
   return (
-    <main className="mx-auto max-w-[1280px] px-4 py-16 md:px-8">
+    <main className="mx-auto max-w-[1280px]">
       <ProductGridSection title="Products" products={products} />
     </main>
   );

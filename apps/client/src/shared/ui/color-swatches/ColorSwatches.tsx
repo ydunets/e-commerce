@@ -11,11 +11,15 @@ export type TColorOption = {
   outOfStock?: boolean;
 };
 
+export type TColorSwatchesSize = 'sm' | 'md';
+
 export type TColorSwatchesProps = {
   options: TColorOption[];
   value: string;
   onChange: (value: string) => void;
   label?: string;
+  /** 'sm' is the compact density used on product cards (Figma: 16px dot). */
+  size?: TColorSwatchesSize;
 };
 
 const checkIcon = (
@@ -36,6 +40,7 @@ export const ColorSwatches = ({
   value,
   onChange,
   label = 'Available colors',
+  size = 'md',
 }: TColorSwatchesProps) => {
   const buttons = useRef(new Map<string, HTMLButtonElement>());
 
@@ -79,7 +84,7 @@ export const ColorSwatches = ({
 
   return (
     <div
-      className={styles.root}
+      className={cx(styles.root, size === 'sm' && styles.smRoot)}
       role="radiogroup"
       aria-label={label}
       onKeyDown={handleKeyDown}
@@ -111,6 +116,7 @@ export const ColorSwatches = ({
             }
             className={cx(
               styles.swatch,
+              size === 'sm' && styles.sm,
               selected && styles.selected,
               option.disabled && styles.disabled,
               option.outOfStock && styles.outOfStock,

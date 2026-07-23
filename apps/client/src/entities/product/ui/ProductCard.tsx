@@ -57,6 +57,7 @@ export const ProductCard = ({ product }: TProductCardProps) => {
           value={selected.color}
           onChange={setSelectedColor}
           label={`${product.name} colors`}
+          size="sm"
         />
       )}
     </article>

@@ -13,6 +13,7 @@ export {
   reviewResponseDtoSchema,
   type ReviewsPageResponseDto,
 } from './review.ts';
+export { type SubscribeResponseDto, subscribeResponseDtoSchema } from './newsletter.ts';
 export { compareSizes, SIZE_RANK } from './sizes.ts';
 export {
   SPECIFICATION_ICONS,

@@ -27,7 +27,11 @@ done
 echo "Server is ready (took ${elapsed}s)"
 
 # ── Generate REST types (OpenAPI) ───────────────────────────────────────────
+# openapi-typescript drives the classic TypeScript compiler API, which TypeScript
+# 7 removed. It lives at the workspace root against the @typescript/typescript6
+# compatibility build, so run it from there and pass an absolute output path.
+REST_TYPES_OUT="$PWD/client/rest.d.ts"
 echo "Generating REST client types…"
-pnpm openapi-typescript "$SERVER_URL/api-docs/json" -o ./client/rest.d.ts
+pnpm -w exec openapi-typescript "$SERVER_URL/api-docs/json" -o "$REST_TYPES_OUT"
 
 echo "Done — client types written to client/"

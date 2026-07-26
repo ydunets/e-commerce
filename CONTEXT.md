@@ -34,3 +34,11 @@ A top-level audience grouping of products: men, women, unisex.
 
 **Collection**:
 A themed grouping of products (e.g. "Urban Oasis"), independent of category.
+
+**Subscriber**:
+An email address that has opted in to marketing communications (the newsletter). Identified by email alone; carries no account or shipping address. Distinct from a User.
+_Avoid_: Newsletter user, member, contact, lead
+
+**User**:
+A registered customer, identified by email and holding a shipping address (country, postal code, street). Has an account lifecycle.
+_Avoid_: Account, member, subscriber

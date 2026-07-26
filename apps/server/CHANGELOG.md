@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/ydunets/e-commerce/compare/v1.5.0...v1.6.0) (2026-07-26)
+
+
+### Features
+
+* **newsletter:** POST /v1/newsletter/subscriptions end-to-end ([4234d33](https://github.com/ydunets/e-commerce/commit/4234d3349a4244bb5069e3f44a5cd47ee378610e)), closes [#26](https://github.com/ydunets/e-commerce/issues/26)
+
 # [1.5.0](https://github.com/ydunets/e-commerce/compare/v1.4.0...v1.5.0) (2026-07-23)
 
 

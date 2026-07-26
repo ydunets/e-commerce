@@ -35,3 +35,6 @@ playwright-report/
 examples/
 .serena/
 react-internals-diagrams
+
+# Graphify (generated knowledge graph, regenerate with /graphify)
+graphify-out/

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "check": "tsc --noEmit",
     "test": "playwright test",
     "test:desktop": "playwright test --project=desktop-chromium",
     "test:mobile": "playwright test --project=mobile-chromium",
@@ -10,7 +11,8 @@
     "report": "playwright show-report"
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.2",
-    "@types/node": "^24.13.2"
+    "@playwright/test": "^1.62.0",
+    "@types/node": "^24.13.2",
+    "typescript": "7.0.2"
   }
 }

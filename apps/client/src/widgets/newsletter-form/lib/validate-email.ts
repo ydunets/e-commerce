@@ -3,8 +3,10 @@ import { validate } from '@/shared/lib/validate';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Each `refine` aborts on failure so an empty value only ever reports the
-// required message, never the format one too.
+// The first refine's `abort` is load-bearing: it stops the format check from
+// also running on an empty value, which would otherwise report both issues.
+// The second carries `abort` too, so a future third check doesn't have to
+// reason about it.
 const emailSchema = z
   .string()
   .refine((value) => value.trim().length > 0, {

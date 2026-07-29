@@ -22,7 +22,9 @@ type TToastContextValue = {
 // exists.
 const ToastContext = createContext<TToastContextValue | null>(null);
 
-export const ToastProvider = ({ children }: PropsWithChildren) => {
+type TToastProviderProps = PropsWithChildren;
+
+export const ToastProvider = ({ children }: TToastProviderProps) => {
   const [toast, setToast] = useState<TToast | null>(null);
 
   useTimer(() => setToast(null), toast ? TOAST_DURATION_MS : null, toast);

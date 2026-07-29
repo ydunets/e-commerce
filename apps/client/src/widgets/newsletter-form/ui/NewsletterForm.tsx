@@ -10,10 +10,7 @@ import { ToastViewport } from './ToastViewport';
 const FAILURE_MESSAGE =
   'Failed to subscribe. Please ensure your email is correct or try again later.';
 const EMPTY = '';
-
-type TFieldState = { kind: 'idle' } | { kind: 'invalid'; message: string };
-
-const IDLE: TFieldState = { kind: 'idle' };
+const NO_ERROR: string | undefined = undefined;
 
 export const NewsletterForm = () => (
   <div className={styles.root}>
@@ -28,16 +25,16 @@ const NewsletterFormFields = () => {
   const { showToast } = useToast();
   const [email, setEmail] = useState(EMPTY);
 
-  const [fieldState, formAction] = useActionState(
+  const [errorMessage, formAction] = useActionState(
     async (
-      _previous: TFieldState,
+      _previous: string | undefined,
       formData: FormData,
-    ): Promise<TFieldState> => {
-      const value = String(formData.get('email') ?? '');
+    ): Promise<string | undefined> => {
+      const value = String(formData.get('email') ?? EMPTY);
 
       const validationError = validateEmail(value);
       if (validationError) {
-        return { kind: 'invalid', message: validationError };
+        return validationError;
       }
 
       try {
@@ -48,9 +45,9 @@ const NewsletterFormFields = () => {
         showToast('error', FAILURE_MESSAGE);
       }
 
-      return IDLE;
+      return NO_ERROR;
     },
-    IDLE,
+    NO_ERROR,
   );
 
   return (
@@ -64,9 +61,7 @@ const NewsletterFormFields = () => {
         placeholder="Enter your email"
         value={email}
         onChange={setEmail}
-        errorMessage={
-          fieldState.kind === 'invalid' ? fieldState.message : undefined
-        }
+        errorMessage={errorMessage}
       />
       <SubscribeButton />
     </form>

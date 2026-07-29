@@ -1,6 +1,6 @@
 import { cx } from '@/shared/lib/cx';
 import { useToast } from '../lib/toast-context';
-import styles from './NewsletterForm.module.css';
+import styles from './ToastViewport.module.css';
 
 export const ToastViewport = () => {
   const { toast } = useToast();

@@ -10,6 +10,7 @@ const SUCCESS_MESSAGE =
   'Subscription successful! Please check your email to confirm.';
 const FAILURE_MESSAGE =
   'Failed to subscribe. Please ensure your email is correct or try again later.';
+const INTERNAL_SERVER_ERROR = 'Internal Server Error';
 
 const SUBSCRIPTIONS_PATH = '/api/v1/newsletter/subscriptions';
 
@@ -94,8 +95,8 @@ export const Failure: Story = {
       jsonResponse(
         {
           statusCode: 500,
-          message: 'Internal Server Error',
-          error: 'Internal Server Error',
+          message: INTERNAL_SERVER_ERROR,
+          error: INTERNAL_SERVER_ERROR,
         },
         500,
       ),

@@ -13,6 +13,7 @@ const FAILURE_MESSAGE =
   'Failed to subscribe. Please ensure your email is correct or try again later.';
 const SUBSCRIBE_BUTTON = { name: 'Subscribe' } as const;
 const EMPTY = '';
+const INTERNAL_SERVER_ERROR = 'Internal Server Error';
 
 const originalFetch = global.fetch;
 
@@ -73,8 +74,8 @@ test('an API failure shows a failure toast', async () => {
     jsonResponse(
       {
         statusCode: 500,
-        message: 'Internal Server Error',
-        error: 'Internal Server Error',
+        message: INTERNAL_SERVER_ERROR,
+        error: INTERNAL_SERVER_ERROR,
       },
       500,
     ),

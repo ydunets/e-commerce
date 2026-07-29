@@ -1,0 +1,17 @@
+@reference "../../../app.css";
+
+.toast {
+  @apply fixed inset-x-0 top-6 z-50 flex justify-center px-4;
+}
+
+.toastMessage {
+  @apply rounded-full px-4 py-2 text-sm font-medium shadow-card;
+}
+
+.toastSuccess {
+  @apply bg-success-soft text-success;
+}
+
+.toastError {
+  @apply bg-danger-soft text-danger;
+}

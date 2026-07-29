@@ -1,3 +1,17 @@
+# [1.9.0](https://github.com/ydunets/e-commerce/compare/v1.8.0...v1.9.0) (2026-07-29)
+
+
+### Bug Fixes
+
+* **client:** apply code-review feedback on the hooks/zod/context refactor ([d18e4f2](https://github.com/ydunets/e-commerce/commit/d18e4f20f07f9e5d8e88497fe36b4d2a03b345cd))
+* **client:** keep the newsletter validation messages module-local ([ee27e3e](https://github.com/ydunets/e-commerce/commit/ee27e3ee0a573e702b5dc39054a82ca20e5bf77c))
+* **client:** stop the Subscribe button stretching to the error text's height ([e6002cd](https://github.com/ydunets/e-commerce/commit/e6002cdddfe679fa5efae7ec4888aae0721e1226))
+
+
+### Features
+
+* **client:** add NewsletterForm widget with validation and toast ([1e085bd](https://github.com/ydunets/e-commerce/commit/1e085bdc621c02bcc4add2deceb040ea09f31f03)), closes [#26](https://github.com/ydunets/e-commerce/issues/26)
+
 # [1.8.0](https://github.com/ydunets/e-commerce/compare/v1.7.0...v1.8.0) (2026-07-29)
 
 

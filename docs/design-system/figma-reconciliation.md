@@ -23,7 +23,7 @@ records how they map to Figma and what changed.
 | `--color-star` | `#facc15` | yellow-400 · Icon/warning |
 | `--color-warning` / `-soft` / `-line` | `#b45309` / `#fffbeb` / `#fde68a` | amber-700 / amber-50 / amber-200 · Text/warning, Background/warning-subtle, Border/warning-subtle |
 | `--color-success` / `-soft` / `-line` | `#15803d` / `#f0fdf4` / `#bbf7d0` | green-700 / green-50 / green-200 |
-| `--color-danger` / `-soft` / `-line` | `#dc2626` / `#fef2f2` / `#fecaca` | red-600 / red-50 / red-200 |
+| `--color-danger` / `-soft` / `-line` | `#b91c1c` / `#fef2f2` / `#fecaca` | red-600 / red-50 / red-200 · `danger` deliberately darkened to red-700, see below |
 
 ## What changed in this pass
 
@@ -34,6 +34,10 @@ records how they map to Figma and what changed.
   `warning` tokens.
 - **New semantic tokens added** with Figma provenance: `disabled`, `brand-solid`, `focus`,
   and the `warning` / `success` / `danger` subtle-scheme triples.
+- **`danger` text darkened past Figma.** Figma's Text/danger is red-600 `#dc2626`, which lands at
+  4.4:1 on the `danger-soft` `#fef2f2` background and so misses WCAG AA for body-size text.
+  `--color-danger` is red-700 `#b91c1c` instead, which reaches 5.9:1 there. Every error string in
+  the app (Badge, TextInput) uses it. This is the one token we knowingly keep off the Figma value.
 - **Badge** ([Badge.tsx](../../apps/client/src/shared/ui/badge/Badge.tsx)) rebuilt to the Figma
   spec: a pill (`rounded-full`) with a 1px subtle border, 14px normal text, `px-2.5 py-1`.
   Variants are status schemes (`neutral` / `warning` / `success` / `danger`); the discount
@@ -45,6 +49,12 @@ records how they map to Figma and what changed.
 - **Tooltip** ([Tooltip.tsx](../../apps/client/src/shared/ui/tooltip/Tooltip.tsx)): built to the
   Figma Tooltip spec (bg `#0a0a0a`, `rounded-lg`, `shadow-lg`, down arrow). Used by the
   Cart control (QuantityStepper) for the "Insufficient stock" hint.
+- **TextInput** ([TextInput.tsx](../../apps/client/src/shared/ui/text-input/TextInput.tsx)): new primitive
+  for the Figma Input field. 40px tall, `rounded-sm` (4px), `bg-field` fill with a 1px `line` border,
+  14px text, 14px horizontal padding, `tertiary` placeholder, shared `focus-ring` on focus, and the
+  Button disabled convention (`surface` fill, `disabled` text). Error states keep the neutral border
+  and add inline text in `danger` (red-700, not the Figma raw red-600). Verified in-browser: bg
+  `#fafafa`, border `#e5e5e5`, placeholder `#737373`, value `#171717`, error text `#b91c1c`.
 - **Focus ring** ([app.css](../../apps/client/src/app.css) `@utility focus-ring`): reimplemented
   as Figma's focus-band — a 1px solid `--color-focus` ring plus a 4px 12%-alpha halo
   (`box-shadow`, so it follows border-radius).
@@ -60,3 +70,9 @@ records how they map to Figma and what changed.
    per-state (hover/focus) button specs verified against Figma.
 3. **Cart control / Color swatches / Selector** internals (borders, disabled colors) still use
    the legacy gray scale in spots; align when the neutral migration lands.
+4. **Input field spec read from exports, not from Figma.** The style-guide Input field frame was not
+   opened for the TextInput pass (no Figma access in that session). The seven states were pinned by
+   sampling the `footer-multi-column` design exports
+   (`examples/footer-multi-column/footer-multi-column/designs`), which show a **neutral** border in
+   the error states, with the error text as the only red element. The disabled state has no export at
+   all and follows Button. Re-check both against the Figma frame when access returns.

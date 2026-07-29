@@ -1,33 +1,38 @@
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useState } from 'react';
 import { subscribeToNewsletter } from '@/shared/api';
-import { cx } from '@/shared/lib/cx';
 import { TextInput } from '@/shared/ui/text-input';
+import { ToastProvider, useToast } from '../lib/toast-context';
 import { validateEmail } from '../lib/validate-email';
 import styles from './NewsletterForm.module.css';
 import { SubscribeButton } from './SubscribeButton';
+import { ToastViewport } from './ToastViewport';
 
 const FAILURE_MESSAGE =
   'Failed to subscribe. Please ensure your email is correct or try again later.';
-const TOAST_DURATION_MS = 10000;
 const EMPTY = '';
 
-type TSubscribeState =
-  | { kind: 'idle' }
-  | { kind: 'invalid'; message: string }
-  | { kind: 'success'; message: string }
-  | { kind: 'failure'; message: string };
+type TFieldState = { kind: 'idle' } | { kind: 'invalid'; message: string };
 
-const INITIAL_STATE: TSubscribeState = { kind: 'idle' };
+const IDLE: TFieldState = { kind: 'idle' };
 
-export const NewsletterForm = () => {
+export const NewsletterForm = () => (
+  <div className={styles.root}>
+    <ToastProvider>
+      <NewsletterFormFields />
+      <ToastViewport />
+    </ToastProvider>
+  </div>
+);
+
+const NewsletterFormFields = () => {
+  const { showToast } = useToast();
   const [email, setEmail] = useState(EMPTY);
-  const [toastDismissed, setToastDismissed] = useState(false);
 
-  const [state, formAction] = useActionState(
+  const [fieldState, formAction] = useActionState(
     async (
-      _previous: TSubscribeState,
+      _previous: TFieldState,
       formData: FormData,
-    ): Promise<TSubscribeState> => {
+    ): Promise<TFieldState> => {
       const value = String(formData.get('email') ?? '');
 
       const validationError = validateEmail(value);
@@ -38,57 +43,32 @@ export const NewsletterForm = () => {
       try {
         const response = await subscribeToNewsletter(value);
         setEmail(EMPTY);
-        return { kind: 'success', message: response.message };
+        showToast('success', response.message);
       } catch {
-        return { kind: 'failure', message: FAILURE_MESSAGE };
+        showToast('error', FAILURE_MESSAGE);
       }
+
+      return IDLE;
     },
-    INITIAL_STATE,
+    IDLE,
   );
 
-  useEffect(() => {
-    setToastDismissed(false);
-    if (state.kind !== 'success' && state.kind !== 'failure') return;
-    const timer = setTimeout(() => setToastDismissed(true), TOAST_DURATION_MS);
-    return () => clearTimeout(timer);
-  }, [state]);
-
-  const toast =
-    !toastDismissed && (state.kind === 'success' || state.kind === 'failure')
-      ? state
-      : null;
-
   return (
-    <div className={styles.root}>
-      <form className={styles.form} action={formAction} noValidate>
-        <TextInput
-          className={styles.field}
-          label="Email address"
-          labelHidden
-          type="email"
-          name="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={setEmail}
-          errorMessage={state.kind === 'invalid' ? state.message : undefined}
-        />
-        <SubscribeButton />
-      </form>
-
-      {toast ? (
-        <div className={styles.toast} role="status" aria-live="polite">
-          <span
-            className={cx(
-              styles.toastMessage,
-              toast.kind === 'success'
-                ? styles.toastSuccess
-                : styles.toastError,
-            )}
-          >
-            {toast.message}
-          </span>
-        </div>
-      ) : null}
-    </div>
+    <form className={styles.form} action={formAction} noValidate>
+      <TextInput
+        className={styles.field}
+        label="Email address"
+        labelHidden
+        type="email"
+        name="email"
+        placeholder="Enter your email"
+        value={email}
+        onChange={setEmail}
+        errorMessage={
+          fieldState.kind === 'invalid' ? fieldState.message : undefined
+        }
+      />
+      <SubscribeButton />
+    </form>
   );
 };

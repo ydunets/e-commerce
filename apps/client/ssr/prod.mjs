@@ -4,7 +4,12 @@ import { pathToFileURL } from 'node:url';
 import zlib from 'node:zlib';
 import compression from 'compression';
 import express from 'express';
-import { createApiProxy, sendResponse, toWebRequest } from './helpers.mjs';
+import {
+  createApiProxy,
+  healthz,
+  sendResponse,
+  toWebRequest,
+} from './helpers.mjs';
 
 const port = process.env.PORT ?? 3000;
 const distDir = path.resolve(import.meta.dirname, '../dist');
@@ -27,6 +32,8 @@ app.use(
     flush: zlib.constants.Z_SYNC_FLUSH,
   }),
 );
+
+app.get('/healthz', healthz);
 
 // Forward API calls to the Fastify server (apps/server).
 app.use('/api', createApiProxy(process.env.API_URL ?? 'http://localhost:4000'));

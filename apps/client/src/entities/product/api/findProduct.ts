@@ -1,16 +1,8 @@
 import type { ProductResponseDto } from '@e-commerce/contracts';
-import { apiGet } from '@/shared/api';
+import { apiGet, isApiError } from '@/shared/api';
 import type { Product } from '../model/types';
 
-export async function getProduct(
-  productId: string,
-  baseUrl = '',
-): Promise<Product> {
-  const data = await apiGet<ProductResponseDto>(
-    `/v1/products/${productId}`,
-    baseUrl,
-  );
-
+function toProduct(data: ProductResponseDto): Product {
   return {
     id: data.product_id,
     name: data.name,
@@ -35,4 +27,24 @@ export async function getProduct(
     info: data.info,
     reviews: { count: data.reviews, average: data.rating },
   };
+}
+
+// The catalog answers 404 for an id it does not carry, which is an answer
+// rather than a failure. Every other status stays an error.
+export async function findProduct(
+  productId: string,
+  baseUrl = '',
+): Promise<Product | null> {
+  try {
+    const data = await apiGet<ProductResponseDto>(
+      `/v1/products/${productId}`,
+      baseUrl,
+    );
+    return toProduct(data);
+  } catch (error) {
+    if (isApiError(error) && error.statusCode === 404) {
+      return null;
+    }
+    throw error;
+  }
 }

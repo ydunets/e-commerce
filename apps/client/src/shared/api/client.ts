@@ -1,3 +1,5 @@
+import { toApiError } from './api-error';
+
 // During SSR route loaders must hit the API directly; in the browser the
 // relative path goes through the express /api proxy.
 export const API_BASE =
@@ -13,7 +15,7 @@ export async function apiGet<T>(path: string, baseUrl = ''): Promise<T> {
   });
 
   if (!res.ok) {
-    throw new Error(`Request failed: ${res.status} ${res.statusText}`);
+    throw await toApiError(res);
   }
 
   return res.json() as Promise<T>;

@@ -1,11 +1,10 @@
-import { Await, createFileRoute } from '@tanstack/react-router';
+import { Await, createFileRoute, notFound } from '@tanstack/react-router';
 import { Suspense } from 'react';
-import { getProduct } from '@/entities/product';
+import { findProduct } from '@/entities/product';
 import { getSpecifications } from '@/entities/specification';
 import { API_BASE } from '@/shared/api';
 import {
   ProductDetailsSection,
-  ProductError,
   ProductPending,
 } from '@/widgets/product-details';
 import { ProductSpecificationsSection } from '@/widgets/product-specifications';
@@ -13,7 +12,11 @@ import { ProductSpecificationsSection } from '@/widgets/product-specifications';
 export const Route = createFileRoute('/products/$productId')({
   loader: async ({ params }) => {
     const specifications = getSpecifications(API_BASE).catch(() => null);
-    const product = await getProduct(params.productId, API_BASE);
+    const product = await findProduct(params.productId, API_BASE);
+    if (!product) {
+      throw notFound();
+    }
+
     return { product, specifications };
   },
   head: ({ loaderData }) => ({
@@ -27,11 +30,6 @@ export const Route = createFileRoute('/products/$productId')({
   }),
   pendingComponent: ProductPending,
   wrapInSuspense: true,
-  errorComponent: ({ error }) => (
-    <ProductError
-      message={error instanceof Error ? error.message : 'Unknown error'}
-    />
-  ),
   component: ProductPage,
 });
 

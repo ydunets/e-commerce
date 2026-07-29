@@ -1,15 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchCatalog } from '@/shared/api';
 import { cx } from '@/shared/lib/cx';
+import { describeError } from '@/shared/lib/describeError';
 
 const STATUS_DOT = {
   pending: 'bg-amber-400 animate-pulse',
   error: 'bg-red-500',
   success: 'bg-green-500',
 } as const;
-
-const describeError = (error: unknown) =>
-  error instanceof Error ? error.message : 'Unknown error';
 
 export function ServerStatus() {
   const request = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalog });

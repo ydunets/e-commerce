@@ -1,4 +1,4 @@
-export { getProduct } from './api/getProduct';
+export { findProduct } from './api/findProduct';
 export { getProducts } from './api/getProducts';
 export { colorLabel } from './lib/colorLabel';
 export type {

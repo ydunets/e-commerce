@@ -5,7 +5,7 @@ import {
   Outlet,
   Scripts,
 } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { Navbar } from '@/shared/ui/navbar';
 import type { RouterContext } from '../router';
 import '../app.css';
@@ -38,10 +38,14 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     ],
     scripts: (loaderData?.js ?? []).map((src) => ({ src, defer: true })),
   }),
+  // The shell renders outside the router's catch boundary (see Match.tsx), so
+  // the document survives an error in any route, including this one. Anything
+  // an error screen needs (the query provider, chrome) belongs here.
+  shellComponent: RootDocument,
   component: RootComponent,
 });
 
-function RootComponent() {
+function RootDocument({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -71,10 +75,14 @@ function RootComponent() {
             brandHref="/"
             cartHref="/"
           />
-          <Outlet />
+          {children}
         </QueryClientProvider>
         <Scripts />
       </body>
     </html>
   );
+}
+
+function RootComponent() {
+  return <Outlet />;
 }

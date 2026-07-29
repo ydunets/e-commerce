@@ -18,7 +18,3 @@ export const ProductDetailsSection = ({
 export const ProductPending = () => (
   <div className={styles.status}>Loading product…</div>
 );
-
-export const ProductError = ({ message }: { message: string }) => (
-  <div className={styles.error}>Could not load the product: {message}</div>
-);

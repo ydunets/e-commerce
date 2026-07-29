@@ -1,3 +1,15 @@
+# [1.8.0](https://github.com/ydunets/e-commerce/compare/v1.7.0...v1.8.0) (2026-07-29)
+
+
+### Bug Fixes
+
+* **client:** apply review feedback to the TextInput spec and stories ([39ae05c](https://github.com/ydunets/e-commerce/commit/39ae05c700cc7031db64cd88d4052251b4782b0d)), closes [#27](https://github.com/ydunets/e-commerce/issues/27) [#27](https://github.com/ydunets/e-commerce/issues/27)
+
+
+### Features
+
+* **client:** add TextInput primitive with the seven Figma input states ([13be595](https://github.com/ydunets/e-commerce/commit/13be59583d1c0d61b64c6cd8115ecc7db9eadf1a)), closes [#fafafa](https://github.com/ydunets/e-commerce/issues/fafafa) [#e5e5e5](https://github.com/ydunets/e-commerce/issues/e5e5e5) [#737373](https://github.com/ydunets/e-commerce/issues/737373) [#b91c1c](https://github.com/ydunets/e-commerce/issues/b91c1c) [#27](https://github.com/ydunets/e-commerce/issues/27)
+
 # [1.7.0](https://github.com/ydunets/e-commerce/compare/v1.6.0...v1.7.0) (2026-07-29)
 
 

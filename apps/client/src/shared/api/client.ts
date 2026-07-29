@@ -7,11 +7,14 @@ export const API_BASE =
     ? (process.env.API_URL ?? 'http://localhost:4000')
     : '';
 
-// Relative `/api/...` paths hit the SSR express server, which proxies them to
-// the Fastify API. During SSR pass an absolute `baseUrl` (API_URL) instead.
-export async function apiGet<T>(path: string, baseUrl = ''): Promise<T> {
+async function request<T>(
+  path: string,
+  baseUrl: string,
+  init: RequestInit = {},
+): Promise<T> {
   const res = await fetch(`${baseUrl}/api${path}`, {
-    headers: { Accept: 'application/json' },
+    ...init,
+    headers: { Accept: 'application/json', ...init.headers },
   });
 
   if (!res.ok) {
@@ -19,4 +22,22 @@ export async function apiGet<T>(path: string, baseUrl = ''): Promise<T> {
   }
 
   return res.json() as Promise<T>;
+}
+
+// Relative `/api/...` paths hit the SSR express server, which proxies them to
+// the Fastify API. During SSR pass an absolute `baseUrl` (API_URL) instead.
+export function apiGet<T>(path: string, baseUrl = ''): Promise<T> {
+  return request<T>(path, baseUrl);
+}
+
+export function apiPost<T>(
+  path: string,
+  body: unknown,
+  baseUrl = '',
+): Promise<T> {
+  return request<T>(path, baseUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
 }

@@ -1,3 +1,13 @@
+# [1.7.0](https://github.com/ydunets/e-commerce/compare/v1.6.0...v1.7.0) (2026-07-29)
+
+
+### Features
+
+* **client:** add a health route and a gateway envelope to the SSR proxy ([05339d9](https://github.com/ydunets/e-commerce/commit/05339d9cfeab87b2317d8e28f8732c02b804d262))
+* **client:** parse failed responses into a typed ApiError ([1df741a](https://github.com/ydunets/e-commerce/commit/1df741a6cc42200fd0648660faafce4e24dd0927))
+* **client:** route every failure through one error boundary ([b7f6de1](https://github.com/ydunets/e-commerce/commit/b7f6de1d7116e6d0f7c0320a072e92113c801f28))
+* **contracts:** share the API error envelope schema ([f1e0559](https://github.com/ydunets/e-commerce/commit/f1e05593be28a9ddd5209a83e853767873d22b5f))
+
 # [1.6.0](https://github.com/ydunets/e-commerce/compare/v1.5.0...v1.6.0) (2026-07-26)
 
 

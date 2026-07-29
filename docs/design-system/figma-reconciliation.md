@@ -23,7 +23,7 @@ records how they map to Figma and what changed.
 | `--color-star` | `#facc15` | yellow-400 · Icon/warning |
 | `--color-warning` / `-soft` / `-line` | `#b45309` / `#fffbeb` / `#fde68a` | amber-700 / amber-50 / amber-200 · Text/warning, Background/warning-subtle, Border/warning-subtle |
 | `--color-success` / `-soft` / `-line` | `#15803d` / `#f0fdf4` / `#bbf7d0` | green-700 / green-50 / green-200 |
-| `--color-danger` / `-soft` / `-line` | `#dc2626` / `#fef2f2` / `#fecaca` | red-600 / red-50 / red-200 |
+| `--color-danger` / `-soft` / `-line` | `#b91c1c` / `#fef2f2` / `#fecaca` | red-600 / red-50 / red-200 · `danger` deliberately darkened to red-700, see below |
 
 ## What changed in this pass
 
@@ -34,6 +34,10 @@ records how they map to Figma and what changed.
   `warning` tokens.
 - **New semantic tokens added** with Figma provenance: `disabled`, `brand-solid`, `focus`,
   and the `warning` / `success` / `danger` subtle-scheme triples.
+- **`danger` text darkened past Figma.** Figma's Text/danger is red-600 `#dc2626`, which lands at
+  4.4:1 on the `danger-soft` `#fef2f2` background and so misses WCAG AA for body-size text.
+  `--color-danger` is red-700 `#b91c1c` instead, which reaches 5.9:1 there. Every error string in
+  the app (Badge, TextInput) uses it. This is the one token we knowingly keep off the Figma value.
 - **Badge** ([Badge.tsx](../../apps/client/src/shared/ui/badge/Badge.tsx)) rebuilt to the Figma
   spec: a pill (`rounded-full`) with a 1px subtle border, 14px normal text, `px-2.5 py-1`.
   Variants are status schemes (`neutral` / `warning` / `success` / `danger`); the discount

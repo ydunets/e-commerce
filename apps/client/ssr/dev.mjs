@@ -4,6 +4,7 @@ import express from 'express';
 import {
   createApiProxy,
   extractAssets,
+  healthz,
   sendResponse,
   toWebRequest,
 } from './helpers.mjs';
@@ -27,6 +28,8 @@ const rsbuild = await createRsbuild({
 
 const devServer = await rsbuild.createDevServer();
 const app = express();
+
+app.get('/healthz', healthz);
 
 // Forward API calls to the Fastify server (apps/server).
 app.use('/api', createApiProxy(process.env.API_URL ?? 'http://localhost:4000'));

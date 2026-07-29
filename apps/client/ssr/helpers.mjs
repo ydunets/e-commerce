@@ -54,11 +54,23 @@ const HOP_BY_HOP_HEADERS = new Set([
   'accept-encoding',
 ]);
 
+// Fastify keeps its health route outside the /api prefix, and the Docker
+// health check, the type-generation script and the Azure runbook all probe it
+// there. Rewriting here gives the browser a same-origin path to the API's own
+// health check without moving the route or duplicating the DB ping.
+const PATH_REWRITES = new Map([['/api/health', '/health']]);
+
+/** Answer the browser's app-tier health probe. */
+export function healthz(_req, res) {
+  res.setHeader('content-type', 'application/json');
+  res.end(JSON.stringify({ status: 'ok' }));
+}
+
 /** Forward /api/* requests to the Fastify server. */
 export function createApiProxy(apiUrl) {
   const baseUrl = new URL(apiUrl);
 
-  return async (req, res, next) => {
+  return async (req, res) => {
     try {
       // Only a path is accepted: absolute and protocol-relative URLs could
       // redirect the proxy to another host.
@@ -70,9 +82,9 @@ export function createApiProxy(apiUrl) {
       }
 
       const queryIndex = rawUrl.indexOf('?');
+      const pathname = queryIndex === -1 ? rawUrl : rawUrl.slice(0, queryIndex);
       const target = new URL(baseUrl);
-      target.pathname =
-        queryIndex === -1 ? rawUrl : rawUrl.slice(0, queryIndex);
+      target.pathname = PATH_REWRITES.get(pathname) ?? pathname;
       target.search = queryIndex === -1 ? '' : rawUrl.slice(queryIndex);
 
       const headers = toHeaders(req.headers, { skip: HOP_BY_HOP_HEADERS });
@@ -87,8 +99,18 @@ export function createApiProxy(apiUrl) {
       });
 
       sendResponse(res, response);
-    } catch (err) {
-      next(err);
+    } catch {
+      // An unreachable upstream is a gateway failure, not an error inside this
+      // server, and the client parses this envelope into an ApiError.
+      res.statusCode = 502;
+      res.setHeader('content-type', 'application/json');
+      res.end(
+        JSON.stringify({
+          statusCode: 502,
+          message: 'The store service is unreachable.',
+          error: 'Bad Gateway',
+        }),
+      );
     }
   };
 }

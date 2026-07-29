@@ -4,10 +4,12 @@ import { cx } from '@/shared/lib/cx';
 
 export type TButtonVariant = 'primary' | 'secondary' | 'tertiary';
 export type TButtonSize = 'md' | 'lg' | 'xl';
+export type TButtonType = 'button' | 'submit';
 
 export type TButtonProps = PropsWithChildren<{
   variant?: TButtonVariant;
   size?: TButtonSize;
+  type?: TButtonType;
   disabled?: boolean;
   className?: string;
   onClick?: () => void;
@@ -55,6 +57,7 @@ const sizeClasses: Record<TButtonSize, string> = {
 export const Button = ({
   variant = 'primary',
   size = 'md',
+  type = 'button',
   disabled = false,
   className,
   onClick,
@@ -79,7 +82,7 @@ export const Button = ({
 
   return (
     <button
-      type="button"
+      type={type}
       className={classes}
       disabled={disabled}
       onClick={onClick}

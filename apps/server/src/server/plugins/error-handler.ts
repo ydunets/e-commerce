@@ -7,17 +7,10 @@ import {
 import { getRequestId } from '#src/shared/app/app-request-context.ts';
 import { ExceptionBase } from '#src/shared/exceptions/index.ts';
 
-const fastifyErrorCodesMap: Record<
-  string,
-  | ((error: FastifyError) => {
-      statusCode: number;
-      message: string;
-      error: string;
-      correlationId?: string;
-      subErrors?: { path: string; message: string }[];
-    })
-  | undefined
-> = {
+// The correlation id is stamped on by the handler, after the mapper has run.
+type FastifyErrorMapper = (error: FastifyError) => Omit<ApiErrorResponse, 'correlationId'>;
+
+const fastifyErrorCodesMap: Record<string, FastifyErrorMapper | undefined> = {
   FST_ERR_VALIDATION: (error: FastifyError) => ({
     subErrors: (error.validation ?? []).map((validationError) => ({
       path: validationError.instancePath,
@@ -38,11 +31,13 @@ async function errorHandlerPlugin(fastify: FastifyInstance) {
   fastify.setErrorHandler((error: FastifyError | Error, _, res) => {
     // Handle fastify errors
     if ('code' in error) {
-      const fastifyError = fastifyErrorCodesMap[error.code];
-      if (fastifyError) {
-        const response = fastifyError(error as FastifyError);
-        response.correlationId = getRequestId();
-        return res.status(response.statusCode).send(response);
+      const mapError = fastifyErrorCodesMap[error.code];
+      if (mapError) {
+        const mapped = mapError(error as FastifyError);
+        return res.status(mapped.statusCode).send({
+          ...mapped,
+          correlationId: getRequestId(),
+        } satisfies ApiErrorResponse);
       }
     }
 

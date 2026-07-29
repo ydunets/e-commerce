@@ -1,4 +1,10 @@
 export {
+  type ApiErrorResponse,
+  apiErrorResponseSchema,
+  type ApiErrorSubError,
+  apiErrorSubErrorSchema,
+} from './api-error.ts';
+export {
   type InventoryItemDto,
   inventoryItemDtoSchema,
   type ProductListItemColorDto,

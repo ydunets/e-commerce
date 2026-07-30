@@ -3,7 +3,8 @@ import { useId, useRef, useState } from 'react';
 import { DESKTOP_MEDIA_QUERY } from '@/shared/lib/breakpoints';
 import { cx } from '@/shared/lib/cx';
 import { useMediaQuery } from '@/shared/lib/useMediaQuery';
-import { CloseIcon, MenuIcon, ShoppingBagIcon, StyleNestLogo } from './icons';
+import { StyleNestLogo } from '@/shared/ui/logo';
+import { CloseIcon, MenuIcon, ShoppingBagIcon } from './icons';
 import styles from './Navbar.module.css';
 
 export type TNavbarLink = {

@@ -1,3 +1,4 @@
+import { STATUS_CODES } from 'node:http';
 import type { FastifyError, FastifyInstance } from 'fastify';
 import fp from 'fastify-plugin';
 import {
@@ -39,6 +40,20 @@ async function errorHandlerPlugin(fastify: FastifyInstance) {
           correlationId: getRequestId(),
         } satisfies ApiErrorResponse);
       }
+
+      // Preserve the statusCode fastify already stamped on codes we have not mapped above.
+      const statusCode = (error as FastifyError).statusCode ?? 500;
+      if (statusCode >= 500) {
+        fastify.log.error(error);
+      } else {
+        fastify.log.warn(error);
+      }
+      return res.status(statusCode).send({
+        statusCode,
+        message: error.message,
+        error: STATUS_CODES[statusCode] ?? 'Internal Server Error',
+        correlationId: getRequestId(),
+      } satisfies ApiErrorResponse);
     }
 
     if (error instanceof ExceptionBase) {

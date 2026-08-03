@@ -12,6 +12,14 @@ export const ROUTES = {
 } as const;
 
 /**
+ * The real API enforces email uniqueness, so repeated runs against the same
+ * database need a fresh address each time.
+ */
+export function uniqueEmail(): string {
+  return `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
+}
+
+/**
  * Navigate and wait until React has hydrated. The root layout sets
  * `data-hydrated` on <html> from a post-hydration effect; interacting
  * before that point silently drops events on server-rendered markup.

@@ -42,7 +42,7 @@ const SOCIAL_LINKS = [
 ];
 
 export const Footer = ({ newsletterSlot }: TFooterProps) => {
-  const year = new Date().getFullYear();
+  const year = new Date().getUTCFullYear();
 
   return (
     <footer className={styles.root}>

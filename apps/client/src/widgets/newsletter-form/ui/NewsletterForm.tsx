@@ -39,7 +39,7 @@ const NewsletterFormFields = () => {
 
       try {
         const response = await subscribeToNewsletter(value);
-        setEmail(EMPTY);
+        setEmail((current) => (current === value ? EMPTY : current));
         showToast('success', response.message);
       } catch {
         showToast('error', FAILURE_MESSAGE);

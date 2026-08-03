@@ -1,3 +1,18 @@
+# [1.10.0](https://github.com/ydunets/e-commerce/compare/v1.9.0...v1.10.0) (2026-08-03)
+
+
+### Bug Fixes
+
+* **client:** keep late input when clearing a subscribed email ([f577cb8](https://github.com/ydunets/e-commerce/commit/f577cb88c29c9c0e6097c04ec35173d9c62a6887))
+* **client:** use the UTC year in the footer copyright ([f97f701](https://github.com/ydunets/e-commerce/commit/f97f70180f7cc54c86f4f5cbd7e8fc9c474b2697))
+* **server:** answer unmapped fastify errors with their status ([f65154c](https://github.com/ydunets/e-commerce/commit/f65154c120c7416d730019f281986bd59054ac0b))
+* **server:** make inventory row order deterministic ([949fb5b](https://github.com/ydunets/e-commerce/commit/949fb5ba3c571f4147a056cf1896c77d8eeb782b))
+
+
+### Features
+
+* **client:** add responsive Footer shell composed into the root layout ([4c8f73a](https://github.com/ydunets/e-commerce/commit/4c8f73acc2a20241944163238ac34bb21d068145)), closes [#29](https://github.com/ydunets/e-commerce/issues/29)
+
 # [1.9.0](https://github.com/ydunets/e-commerce/compare/v1.8.0...v1.9.0) (2026-07-29)
 
 

@@ -119,7 +119,7 @@ export default function productRepository({ db }: Dependencies): ProductReposito
 
       const ids = page.map((row) => row.product_id);
       const [inventory, images] = (await Promise.all([
-        db`SELECT product_id, color, list_price, sale_price, stock FROM product_inventory WHERE product_id = ANY(${ids})`,
+        db`SELECT product_id, color, list_price, sale_price, stock FROM product_inventory WHERE product_id = ANY(${ids}) ORDER BY id`,
         db`SELECT product_id, color, image_url FROM product_images WHERE product_id = ANY(${ids}) ORDER BY id`,
       ])) as unknown as [ListInventoryRow[], ListImageRow[]];
 

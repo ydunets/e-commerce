@@ -1,0 +1,107 @@
+@reference "../../../app.css";
+
+/*
+ * StyleNest e-commerce footer (Figma `footer-multi-column-figma`, node 1004:7337).
+ * The Figma file defines three discrete breakpoint variants (Mobile 375 /
+ * Tablet 768 / Desktop 1440) rather than a fluid range, so — matching the
+ * Navbar's own documented assumption — `md` (768) and `lg` (1024) stand in
+ * for the Tablet and Desktop variants respectively.
+ */
+
+.root {
+  @apply flex w-full flex-col gap-12 py-12 md:gap-16 md:py-16 lg:py-24;
+}
+
+.container {
+  @apply mx-auto w-full max-w-[1280px] px-4 lg:px-8;
+}
+
+/* Newsletter section: heading+subtext stack above the form slot until `lg`,
+   where the design puts them side by side with the slot pinned to 400px. */
+.newsletterRow {
+  @apply flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between lg:gap-16;
+}
+
+.newsletterCopy {
+  @apply flex flex-col gap-2;
+}
+
+.newsletterHeading {
+  @apply text-xl font-semibold leading-7 text-ink;
+}
+
+.newsletterSubtext {
+  @apply text-base leading-6 text-muted;
+}
+
+.newsletterSlot {
+  @apply w-full lg:w-[400px] lg:shrink-0;
+}
+
+.mainSection {
+  @apply flex flex-col gap-12 md:gap-16;
+}
+
+/* Logo+catchphrase stacks above the link columns until `lg`; from `lg` the
+   link columns move to a single row and are pushed to the right edge. */
+.mainRow {
+  @apply flex flex-col gap-8 lg:flex-row lg:items-start;
+}
+
+.brand {
+  @apply flex flex-col gap-6 md:max-w-[320px] md:gap-8 lg:max-w-[352px];
+}
+
+.logo {
+  @apply h-8 w-auto;
+}
+
+.catchphrase {
+  @apply text-base leading-6 text-muted;
+}
+
+.linkColumns {
+  @apply flex flex-col gap-8 md:flex-row md:gap-8 lg:ml-auto;
+}
+
+.linkColumn {
+  @apply flex flex-col gap-4 md:min-w-[160px];
+}
+
+.linkHeading {
+  @apply text-sm uppercase tracking-wide text-tertiary;
+}
+
+.linkList {
+  @apply flex list-none flex-col gap-3;
+}
+
+.link {
+  @apply rounded-sm text-base font-medium text-muted transition-colors hover:text-ink;
+}
+
+.bottomRow {
+  @apply flex flex-col items-start gap-8 border-t border-line pt-8 md:flex-row md:items-center md:justify-between;
+}
+
+.copyright {
+  @apply text-base text-tertiary;
+}
+
+.socialList {
+  @apply flex items-center gap-6;
+}
+
+.socialLink {
+  @apply inline-flex items-center justify-center rounded-sm text-tertiary transition-colors hover:text-ink;
+}
+
+.socialIcon {
+  @apply h-6 w-6;
+}
+
+/* Keyboard focus affordance, matching Navbar's convention. */
+.link:focus-visible,
+.socialLink:focus-visible {
+  @apply focus-ring;
+}

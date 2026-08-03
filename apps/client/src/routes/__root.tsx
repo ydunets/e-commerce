@@ -6,7 +6,9 @@ import {
   Scripts,
 } from '@tanstack/react-router';
 import { type ReactNode, useEffect, useState } from 'react';
+import { Footer } from '@/shared/ui/footer';
 import { Navbar } from '@/shared/ui/navbar';
+import { NewsletterForm } from '@/widgets/newsletter-form';
 import type { RouterContext } from '../router';
 import '../app.css';
 
@@ -76,6 +78,7 @@ function RootDocument({ children }: { children: ReactNode }) {
             cartHref="/"
           />
           {children}
+          <Footer newsletterSlot={<NewsletterForm />} />
         </QueryClientProvider>
         <Scripts />
       </body>

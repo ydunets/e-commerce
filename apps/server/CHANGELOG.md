@@ -1,3 +1,16 @@
+# [1.12.0](https://github.com/ydunets/e-commerce/compare/v1.11.0...v1.12.0) (2026-08-04)
+
+
+### Bug Fixes
+
+* **server:** apply review feedback to cart module ([511c593](https://github.com/ydunets/e-commerce/commit/511c5932ab3ee881ac019b91dad1bd65c8117ec6))
+
+
+### Features
+
+* **contracts:** add cart request and response schemas ([f71d9c5](https://github.com/ydunets/e-commerce/commit/f71d9c5857cb7b9fa6f16d8f356fe7eb0c4ef65a))
+* **server:** add cart CRUD module with implicit creation ([81d6003](https://github.com/ydunets/e-commerce/commit/81d6003f05d015f73ad0b870a5b2d2174ba5eae5)), closes [#38](https://github.com/ydunets/e-commerce/issues/38)
+
 # [1.11.0](https://github.com/ydunets/e-commerce/compare/v1.10.0...v1.11.0) (2026-08-04)
 
 

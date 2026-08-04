@@ -101,12 +101,13 @@ individual briefs; their functionality must stay intact after integration:
   seeded before the dataset update; rolling seeds back and re-applying
   refreshes them.
 - All starter JSON entities receive tables (amended 2026-08-04): `collections`
-  and `categories` are created and seeded from `collections.json` and
-  `categories.json`, with FKs from `products.collection` and
-  `products.category`; the regenerated seed emits collections and categories
-  before products so the FKs hold (dbmate runs all migrations before any
-  seeds). The starter's `users.json` maps to the existing `review_authors`
-  table; no new table is needed there. This ticket adds no API surface for
+  and `categories` are created with FKs from `products.collection` and
+  `products.category`. Their reference rows are embedded in the migration
+  itself rather than a seed (decided during #37): dbmate runs all migrations
+  before any seeds, so seed-provided rows would leave the FKs invalid on any
+  already-seeded database, including the deployed one. The starter's
+  `users.json` maps to the existing `review_authors` table; no new table is
+  needed there. This ticket adds no API surface for
   collections or categories: the section header remains the static copy "In
   this collection", and the name/image columns wait for a future feature.
 - Spec published as GitHub issue #36 (`ready-for-agent`).

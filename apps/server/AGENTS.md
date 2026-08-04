@@ -157,6 +157,7 @@ DI uses [Awilix](https://github.com/jeffijoe/awilix) with `@fastify/awilix`.
 - Mappers are hand-written per module too: for read-only modules (no commands), a mapper only needs `toResponse(entity): ResponseDto`; add `toDomain`/`toPersistence` only if the module actually writes to the database
 - The `users` table and its seed are an unused placeholder for a future auth context; no application code references them
 - `product_reviews.user_id` has no FK to `review_authors` on purpose (dbmate applies all migrations before any seeds, and the products seed inserts reviews before the authors seed runs); the reviews repository LEFT JOINs with a `COALESCE` display-name fallback, and `CHK_reviews_rating` / `CHK_features_icon` guard row invariants instead
+- Small, stable reference data (e.g. `collections`, `categories`) takes the opposite trade: the rows are embedded in the table's own migration, which makes FKs from seeded tables safe under the same migrations-before-seeds ordering, on fresh and already-seeded databases alike. Prefer this for closed sets of a few rows; prefer the no-FK pattern above when the parent data itself lives in a seed
 
 SQL parameterization rules:
 - Always use tagged templates: `` db`SELECT * FROM ${db(tableName)} WHERE id = ${id}` ``

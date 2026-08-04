@@ -1,3 +1,16 @@
+# [1.11.0](https://github.com/ydunets/e-commerce/compare/v1.10.0...v1.11.0) (2026-08-04)
+
+
+### Bug Fixes
+
+* **server:** apply review feedback to catalog tables ([1926f4a](https://github.com/ydunets/e-commerce/commit/1926f4aebe8dabe608c2b4583d6e4919952f60dc)), closes [#37](https://github.com/ydunets/e-commerce/issues/37)
+* **server:** point seed generator at starter data ([6f34e29](https://github.com/ydunets/e-commerce/commit/6f34e29ea4431838357a107e01f3b016440aef26)), closes [#37](https://github.com/ydunets/e-commerce/issues/37)
+
+
+### Features
+
+* **server:** add collections and categories tables ([e2933a6](https://github.com/ydunets/e-commerce/commit/e2933a6eed8c8ba8551052c496858bf55b12538b)), closes [#37](https://github.com/ydunets/e-commerce/issues/37)
+
 # [1.10.0](https://github.com/ydunets/e-commerce/compare/v1.9.0...v1.10.0) (2026-08-03)
 
 

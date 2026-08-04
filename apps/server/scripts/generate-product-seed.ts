@@ -48,11 +48,13 @@ interface ReviewRecord {
   created_at: string;
 }
 
-// Resolved relative to this script (repo-root/assets/...), so it's machine-independent.
+// Resolved relative to this script (repo-root/examples/...), so it's machine-independent.
 // Override with SEED_DATA_DIR=/path/to/data when the source lives elsewhere.
 const DATA_DIR =
   process.env.SEED_DATA_DIR ??
-  fileURLToPath(new URL('../../assets/product-details-section/data', import.meta.url));
+  fileURLToPath(
+    new URL('../../../examples/product-details/product-details-page/data', import.meta.url),
+  );
 
 const OUTPUT_PATH = fileURLToPath(
   new URL('../db/seeds/20240601000000_products.seed.sql', import.meta.url),

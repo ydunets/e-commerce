@@ -92,12 +92,14 @@ individual briefs; their functionality must stay intact after integration:
 - Product listings live only on `/products`. The home route drops the Latest
   Arrivals grid and its product fetch, keeping the hero section with the
   "Shop now" link to `/products`.
-- The products seed is regenerated from the storefront starter dataset at
-  `examples/product-details/product-details-page/data` (19 products: urban 7,
-  fresh 8, cozy 4) via the existing generator script, whose default input
-  directory is repointed there (the old `assets/product-details-section/data`
-  no longer exists). Fixtures pinned to the old 11-product catalog are
-  re-checked.
+- The products seed already carries the storefront starter dataset (19
+  products: urban 7, fresh 8, cozy 4); regenerating from
+  `examples/product-details/product-details-page/data` reproduces it byte for
+  byte (verified 2026-08-04 during #37). The generator's default input is
+  repointed there because the old `assets/product-details-section/data` no
+  longer exists. The stale 11-product state existed only in local databases
+  seeded before the dataset update; rolling seeds back and re-applying
+  refreshes them.
 - All starter JSON entities receive tables (amended 2026-08-04): `collections`
   and `categories` are created and seeded from `collections.json` and
   `categories.json`, with FKs from `products.collection` and

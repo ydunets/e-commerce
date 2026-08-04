@@ -9,6 +9,13 @@ export interface ProductVariant {
   sold: number;
 }
 
+// Slim projection consumed by the cart module (via the query bus) to enforce
+// the stock cap without loading a whole product.
+export interface InventoryStockLevel {
+  sku: string;
+  stock: number;
+}
+
 export interface ProductImage {
   color: string;
   url: string;

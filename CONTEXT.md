@@ -19,6 +19,10 @@ _Avoid_: SKU (as a concept name; SKU is the identifier)
 The 8 newest products by `created_at` descending (ties broken by `product_id`). A view of the catalog, not a curated set.
 _Avoid_: New arrivals, featured products
 
+**In this collection**:
+The latest created products of the current product's collection, excluding the current product itself. A view of the catalog, like [Latest Arrivals].
+_Avoid_: Related products, recommendations
+
 **Out of stock (color)**:
 A color variant whose sizes all have zero stock. Out-of-stock colors remain viewable and selectable in the UI.
 
@@ -28,6 +32,18 @@ _Avoid_: From-price, starting price
 
 **Swatch**:
 The clickable color dot on a product card. Selecting a swatch switches the card's displayed color variant (image, color label, price). States: normal, hover, focus, selected, out-of-stock, selected out-of-stock.
+
+**Cart**:
+The anonymous set of cart lines a shopper has accumulated, identified by a `cart_id` the server issues. No user account is attached.
+_Avoid_: Bag, basket (the navbar icon may be a bag visually; the domain term is cart)
+
+**Cart line**:
+One inventory item (SKU) in a cart together with its quantity. Adding an already-present SKU raises the line's quantity instead of creating a second line.
+_Avoid_: Cart item (ambiguous with inventory item)
+
+**Cart count**:
+The number the navbar badge shows: the sum of all line quantities in the cart (total units), not the number of distinct lines.
+_Avoid_: Item count, cart size
 
 **Category**:
 A top-level audience grouping of products: men, women, unisex.

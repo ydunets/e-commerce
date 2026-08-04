@@ -1,6 +1,5 @@
 import type { ProductRepository } from '#src/modules/product/database/product.repository.port.ts';
 import type { ProductMapper } from '#src/modules/product/product.mapper.ts';
-import { actionCreatorFactory } from '#src/shared/cqrs/action-creator.ts';
 
 declare global {
   export interface Dependencies {
@@ -9,4 +8,5 @@ declare global {
   }
 }
 
-export const productActionCreator = actionCreatorFactory('product');
+export { productActionCreator } from '#src/modules/product/product.action-creator.ts';
+export { getInventoryStockQuery } from '#src/modules/product/queries/get-inventory-stock/get-inventory-stock.handler.ts';

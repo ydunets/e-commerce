@@ -5,6 +5,18 @@ export {
   apiErrorSubErrorSchema,
 } from './api-error.ts';
 export {
+  type AddCartItemBodyDto,
+  addCartItemBodySchema,
+  type CartLineDto,
+  cartLineDtoSchema,
+  cartLineParamsSchema,
+  cartParamsSchema,
+  type CartResponseDto,
+  cartResponseDtoSchema,
+  type UpdateCartItemBodyDto,
+  updateCartItemBodySchema,
+} from './cart.ts';
+export {
   type InventoryItemDto,
   inventoryItemDtoSchema,
   type ProductListItemColorDto,

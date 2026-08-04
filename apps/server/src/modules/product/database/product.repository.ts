@@ -8,6 +8,7 @@ import {
   orderedColors,
 } from '#src/modules/product/domain/product.ordering.ts';
 import type {
+  InventoryStockLevel,
   ProductColorVariant,
   ProductEntity,
   ProductListItem,
@@ -137,6 +138,12 @@ export default function productRepository({ db }: Dependencies): ProductReposito
           (color) => firstImages.get(`${row.product_id}:${color}`) ?? null,
         ),
       }));
+    },
+
+    async findStockBySku(sku: string): Promise<InventoryStockLevel | undefined> {
+      const [row]: [{ sku: string; stock: number }?] =
+        await db`SELECT sku, stock FROM product_inventory WHERE sku = ${sku} LIMIT 1`;
+      return row ? { sku: row.sku, stock: Number(row.stock) } : undefined;
     },
 
     async findOneById(id: string): Promise<Omit<ProductEntity, 'reviews'> | undefined> {

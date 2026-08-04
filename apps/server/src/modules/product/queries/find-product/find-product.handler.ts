@@ -1,5 +1,5 @@
 import type { ProductEntity } from '#src/modules/product/domain/product.types.ts';
-import { productActionCreator } from '#src/modules/product/index.ts';
+import { productActionCreator } from '#src/modules/product/product.action-creator.ts';
 import { getReviewSummaryQuery } from '#src/modules/review/index.ts';
 import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
 import { NotFoundException } from '#src/shared/exceptions/index.ts';

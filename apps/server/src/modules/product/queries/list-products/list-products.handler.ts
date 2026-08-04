@@ -1,6 +1,6 @@
 import type { FindManyProductsOptions } from '#src/modules/product/database/product.repository.port.ts';
 import type { ProductListItem } from '#src/modules/product/domain/product.types.ts';
-import { productActionCreator } from '#src/modules/product/index.ts';
+import { productActionCreator } from '#src/modules/product/product.action-creator.ts';
 import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
 
 export type ListProductsResult = ProductListItem[];

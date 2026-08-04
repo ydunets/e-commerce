@@ -1,9 +1,10 @@
 import { createCart } from '#src/modules/cart/domain/cart.factory.ts';
+import { assertWithinStock } from '#src/modules/cart/domain/cart.stock.ts';
 import type { CartEntity } from '#src/modules/cart/domain/cart.types.ts';
 import { cartActionCreator } from '#src/modules/cart/index.ts';
 import { getInventoryStockQuery } from '#src/modules/product/index.ts';
 import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
-import { ConflictException, NotFoundException } from '#src/shared/exceptions/index.ts';
+import { NotFoundException } from '#src/shared/exceptions/index.ts';
 
 export type AddItemResult = CartEntity;
 
@@ -32,11 +33,7 @@ export default function makeAddItem({ commandBus, queryBus, cartRepository }: De
       const quantity = (existingLine?.quantity ?? 0) + payload.quantity;
       // ponytail: read-then-write stock check; lock the inventory row if
       // concurrent adds to one cart ever matter.
-      if (quantity > stockLevel.stock) {
-        throw new ConflictException(
-          `Requested quantity ${quantity} of ${payload.sku} exceeds the available stock of ${stockLevel.stock}`,
-        );
-      }
+      assertWithinStock(payload.sku, quantity, stockLevel.stock);
 
       // The implicit mint happens only after all checks pass, so a rejected
       // first add never leaves an orphan empty cart behind (ADR 0002).

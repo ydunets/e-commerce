@@ -1,9 +1,7 @@
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import {
-  cartLineParamsSchema,
-  cartResponseDtoSchema,
-} from '#src/modules/cart/dtos/cart.response.dto.ts';
+import { cartResponseDtoSchema } from '#src/modules/cart/dtos/cart.response.dto.ts';
 import { removeItemCommand } from './remove-item.handler.ts';
+import { cartLineParamsSchema } from './remove-item.schema.ts';
 
 export default async function removeItem(fastify: FastifyRouteInstance) {
   fastify.withTypeProvider<TypeBoxTypeProvider>().route({

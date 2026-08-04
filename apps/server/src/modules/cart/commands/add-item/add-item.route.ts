@@ -1,9 +1,7 @@
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import {
-  addCartItemBodySchema,
-  cartResponseDtoSchema,
-} from '#src/modules/cart/dtos/cart.response.dto.ts';
+import { cartResponseDtoSchema } from '#src/modules/cart/dtos/cart.response.dto.ts';
 import { addItemCommand } from './add-item.handler.ts';
+import { addCartItemBodySchema } from './add-item.schema.ts';
 
 export default async function addItem(fastify: FastifyRouteInstance) {
   fastify.withTypeProvider<TypeBoxTypeProvider>().route({

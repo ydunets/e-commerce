@@ -1,8 +1,9 @@
+import { assertWithinStock } from '#src/modules/cart/domain/cart.stock.ts';
 import type { CartEntity } from '#src/modules/cart/domain/cart.types.ts';
 import { cartActionCreator } from '#src/modules/cart/index.ts';
 import { getInventoryStockQuery } from '#src/modules/product/index.ts';
 import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
-import { ConflictException, NotFoundException } from '#src/shared/exceptions/index.ts';
+import { NotFoundException } from '#src/shared/exceptions/index.ts';
 
 export type UpdateItemResult = CartEntity;
 
@@ -26,11 +27,7 @@ export default function makeUpdateItem({ commandBus, queryBus, cartRepository }:
       if (!stockLevel) {
         throw new NotFoundException(`Inventory item ${payload.sku} not found`);
       }
-      if (payload.quantity > stockLevel.stock) {
-        throw new ConflictException(
-          `Requested quantity ${payload.quantity} of ${payload.sku} exceeds the available stock of ${stockLevel.stock}`,
-        );
-      }
+      assertWithinStock(payload.sku, payload.quantity, stockLevel.stock);
 
       await cartRepository.upsertLine(payload.cartId, payload.sku, payload.quantity);
       return {

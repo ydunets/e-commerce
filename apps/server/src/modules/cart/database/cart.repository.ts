@@ -29,8 +29,8 @@ export default function cartRepository({ db }: Dependencies): CartRepository {
         id: first.cart_id,
         createdAt: new Date(first.created_at),
         lines: rows
-          .filter((row) => row.sku !== null)
-          .map((row) => ({ sku: row.sku as string, quantity: Number(row.quantity) })),
+          .filter((row): row is CartRow & { sku: string } => row.sku !== null)
+          .map((row) => ({ sku: row.sku, quantity: Number(row.quantity) })),
       };
     },
 

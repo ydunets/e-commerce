@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAddToCart } from '@/entities/cart';
 import type { Product } from '@/entities/product';
 import { Accordion } from '@/shared/ui/accordion';
 import { Button } from '@/shared/ui/button';
@@ -38,6 +39,12 @@ export const ProductDetails = ({ product }: TProductDetailsProps) => {
   } = useProductSelection(product);
 
   const [reviewsOpen, setReviewsOpen] = useState(false);
+
+  const addToCart = useAddToCart();
+  const handleAddToCart = () => {
+    if (!currentVariant) return;
+    addToCart.mutate({ sku: currentVariant.sku, quantity: displayedQuantity });
+  };
 
   return (
     <section className={styles.root} aria-label={product.name}>
@@ -111,9 +118,20 @@ export const ProductDetails = ({ product }: TProductDetailsProps) => {
               )}
             </div>
 
-            <Button size="xl" className="w-full" disabled={isOutOfStock}>
+            <Button
+              size="xl"
+              className="w-full"
+              disabled={isOutOfStock || addToCart.isPending}
+              onClick={handleAddToCart}
+            >
               Add to Cart
             </Button>
+
+            {addToCart.isError && (
+              <p className={styles.cartError} role="alert">
+                Couldn't add to cart. Please try again.
+              </p>
+            )}
           </div>
 
           <div className={styles.accordions}>

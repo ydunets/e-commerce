@@ -48,7 +48,11 @@
 }
 
 .iconButton {
-  @apply inline-flex cursor-pointer items-center justify-center rounded-sm border-0 bg-transparent p-1 text-muted transition-colors hover:text-ink;
+  @apply relative inline-flex cursor-pointer items-center justify-center rounded-sm border-0 bg-transparent p-1 text-muted transition-colors hover:text-ink;
+}
+
+.cartBadge {
+  @apply absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 font-medium text-[10px] text-white leading-none;
 }
 
 .menuButton {

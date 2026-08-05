@@ -79,9 +79,6 @@ function RootDocument({ children }: { children: ReactNode }) {
   );
 }
 
-// The badge count comes from the shared cart query, so it stays in sync with
-// every add without a reload; it renders only after hydration because the cart
-// id lives in localStorage (ADR 0002).
 function SiteNavbar() {
   const { data: cart } = useCart();
 

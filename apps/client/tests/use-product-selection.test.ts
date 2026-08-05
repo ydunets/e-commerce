@@ -73,7 +73,7 @@ test('a fully sold-out product zeroes the displayed quantity and max', () => {
   expect(result.current.isOutOfStock).toBe(true);
   expect(result.current.displayedQuantity).toBe(EMPTY);
   expect(result.current.maxStock).toBe(EMPTY);
-  expect(result.current.colorOptions.every((option) => option.disabled)).toBe(
+  expect(result.current.colorOptions.every((option) => option.outOfStock)).toBe(
     true,
   );
 });

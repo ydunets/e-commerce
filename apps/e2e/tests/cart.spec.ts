@@ -31,9 +31,11 @@ test('adding to cart updates the navbar badge without a reload', async ({
 
   await page.getByRole('button', ADD_TO_CART).click();
   await expect(cartLink(page)).toHaveAccessibleName('Shopping bag, 1 item');
+  await expect(cartLink(page)).toHaveText('1');
 
   await page.getByRole('button', ADD_TO_CART).click();
   await expect(cartLink(page)).toHaveAccessibleName('Shopping bag, 2 items');
+  await expect(cartLink(page)).toHaveText('2');
 });
 
 test('the badge survives reload and navigation, persisting only the cart id', async ({
@@ -74,6 +76,23 @@ test('a stale cart id self-heals without a user-visible error', async ({
   const freshId = await storedCartId(page);
   expect(freshId).toMatch(UUID_PATTERN);
   expect(freshId).not.toBe(STALE_CART_ID);
+});
+
+// Seeded data: classic-canvas-tee's beige colour has zero stock in every size.
+const SOLD_OUT_PRODUCT_PATH = '/products/classic-canvas-tee';
+const SOLD_OUT_COLOR = { name: 'Beige (out of stock)' } as const;
+
+test('a sold-out colour keeps Add to Cart disabled with the notice', async ({
+  page,
+}) => {
+  await gotoHydrated(page, SOLD_OUT_PRODUCT_PATH);
+
+  await page.getByRole('radio', SOLD_OUT_COLOR).click();
+
+  await expect(
+    page.getByText('Sorry, this item is out of stock'),
+  ).toBeVisible();
+  await expect(page.getByRole('button', ADD_TO_CART)).toBeDisabled();
 });
 
 test('the stepper increment disables at the stock cap', async ({ page }) => {

@@ -1,3 +1,15 @@
+# [1.13.0](https://github.com/ydunets/e-commerce/compare/v1.12.0...v1.13.0) (2026-08-06)
+
+
+### Bug Fixes
+
+* **client:** apply review feedback to add-to-cart flow ([edb6b10](https://github.com/ydunets/e-commerce/commit/edb6b1040de59c2da362a3a2efe56efd9fa48305))
+
+
+### Features
+
+* **client:** add storefront add-to-cart with navbar badge ([328fe04](https://github.com/ydunets/e-commerce/commit/328fe0420ae6da014db3907dccb63e610a7cdd24)), closes [#39](https://github.com/ydunets/e-commerce/issues/39)
+
 # [1.12.0](https://github.com/ydunets/e-commerce/compare/v1.11.0...v1.12.0) (2026-08-04)
 
 

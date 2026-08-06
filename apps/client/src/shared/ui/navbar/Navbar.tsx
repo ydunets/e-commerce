@@ -19,6 +19,12 @@ export type TNavbarProps = {
   brandLabel?: string;
   cartHref?: LinkProps['to'];
   cartLabel?: string;
+  cartCount?: number;
+};
+
+const cartAccessibleLabel = (label: string, count: number) => {
+  if (count === 0) return label;
+  return count === 1 ? `${label}, 1 item` : `${label}, ${count} items`;
 };
 
 const DEFAULT_LINKS: TNavbarLink[] = [{ label: 'Home', href: '/' }];
@@ -29,6 +35,7 @@ export const Navbar = ({
   brandLabel = 'StyleNest home',
   cartHref = '/',
   cartLabel = 'Shopping bag',
+  cartCount = 0,
 }: TNavbarProps) => {
   const drawerId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -78,9 +85,14 @@ export const Navbar = ({
           <Link
             to={cartHref}
             className={styles.iconButton}
-            aria-label={cartLabel}
+            aria-label={cartAccessibleLabel(cartLabel, cartCount)}
           >
             <ShoppingBagIcon className={styles.icon} />
+            {cartCount > 0 && (
+              <span className={styles.cartBadge} aria-hidden="true">
+                {cartCount}
+              </span>
+            )}
           </Link>
 
           <button

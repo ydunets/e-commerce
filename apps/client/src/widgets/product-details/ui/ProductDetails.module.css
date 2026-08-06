@@ -56,6 +56,10 @@
   @apply text-lg font-semibold text-ink;
 }
 
+.cartError {
+  @apply text-sm text-danger;
+}
+
 /* 32px between accordion sections. */
 .accordions {
   @apply flex flex-col gap-8;

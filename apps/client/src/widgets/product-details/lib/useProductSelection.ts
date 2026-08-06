@@ -33,7 +33,7 @@ export function useProductSelection(product: Product) {
   const colorOptions = colors.map((color) => ({
     value: color,
     label: colorLabel(color),
-    disabled: isColorSoldOut(product, color),
+    outOfStock: isColorSoldOut(product, color),
   }));
 
   const sizeOptions = sizesForColor(product, selectedColor).map((size) => ({

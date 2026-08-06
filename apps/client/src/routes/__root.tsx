@@ -6,6 +6,7 @@ import {
   Scripts,
 } from '@tanstack/react-router';
 import { type ReactNode, useEffect, useState } from 'react';
+import { useCart } from '@/entities/cart';
 import { Footer } from '@/shared/ui/footer';
 import { Navbar } from '@/shared/ui/navbar';
 import { NewsletterForm } from '@/widgets/newsletter-form';
@@ -68,21 +69,30 @@ function RootDocument({ children }: { children: ReactNode }) {
       </head>
       <body>
         <QueryClientProvider client={queryClient}>
-          <Navbar
-            links={[
-              { label: 'Home', href: '/' },
-              { label: 'Products', href: '/products' },
-              { label: 'About', href: '/about' },
-            ]}
-            brandHref="/"
-            cartHref="/"
-          />
+          <SiteNavbar />
           {children}
           <Footer newsletterSlot={<NewsletterForm />} />
         </QueryClientProvider>
         <Scripts />
       </body>
     </html>
+  );
+}
+
+function SiteNavbar() {
+  const { data: cart } = useCart();
+
+  return (
+    <Navbar
+      links={[
+        { label: 'Home', href: '/' },
+        { label: 'Products', href: '/products' },
+        { label: 'About', href: '/about' },
+      ]}
+      brandHref="/"
+      cartHref="/"
+      cartCount={cart?.totalUnits ?? 0}
+    />
   );
 }
 

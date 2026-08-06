@@ -5,6 +5,8 @@ import type { ProductListItem } from '../model/types';
 export interface GetProductsOptions {
   limit?: number;
   offset?: number;
+  collection?: string;
+  exclude?: string;
 }
 
 // The list contract carries no discount percentage; derive it from the price
@@ -15,11 +17,13 @@ function toDiscountPercentage(sale: number, list: number): number | null {
 
 export async function getProducts(
   baseUrl = '',
-  { limit, offset }: GetProductsOptions = {},
+  { limit, offset, collection, exclude }: GetProductsOptions = {},
 ): Promise<ProductListItem[]> {
   const params = new URLSearchParams();
   if (limit !== undefined) params.set('limit', String(limit));
   if (offset !== undefined) params.set('offset', String(offset));
+  if (collection !== undefined) params.set('collection', collection);
+  if (exclude !== undefined) params.set('exclude', exclude);
   const query = params.size > 0 ? `?${params}` : '';
 
   const data = await apiGet<ProductListItemDto[]>(

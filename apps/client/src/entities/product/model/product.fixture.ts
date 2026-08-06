@@ -6,6 +6,7 @@ export const productFixture: Product = {
   name: 'Voyager Hoodie',
   description:
     'The Voyager Hoodie is for the explorer at heart. Its durable fabric and roomy pockets are perfect for those who are always searching for the next adventure.',
+  collection: 'urban',
   colors: ['green', 'brown'],
   variants: [
     {

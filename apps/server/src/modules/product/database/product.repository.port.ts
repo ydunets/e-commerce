@@ -7,6 +7,8 @@ import type {
 export interface FindManyProductsOptions {
   limit?: number;
   offset?: number;
+  collection?: string;
+  exclude?: string;
 }
 
 export interface ProductRepository {

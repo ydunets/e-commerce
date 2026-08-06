@@ -10,6 +10,17 @@ const ADD_TO_CART = { name: 'Add to Cart' } as const;
 const INITIAL_QUANTITY = '1';
 const INCREMENTED_QUANTITY = '2';
 
+const COLLECTION_SECTION = { name: 'In this collection' } as const;
+// The urban collection newest-first, minus Voyager Hoodie itself, capped at
+// the design's four cards (see the products seed).
+const COLLECTION_SIBLINGS = [
+  'Urban Drift Bucket Hat',
+  'Metro Hoodie',
+  'Azure Attitude Shades',
+  'City Quilted Jacket',
+] as const;
+const SIBLING_PATH = '/products/urban-drift-bucket-hat';
+
 test.beforeEach(async ({ page }) => {
   await gotoHydrated(page, PRODUCT.path);
 });
@@ -47,6 +58,31 @@ test('selecting a colour updates the swatch and the gallery', async ({
 
   await expect(green).toBeChecked();
   await expect(thumbnails.first()).toBeVisible();
+});
+
+test('"In this collection" lists the collection siblings, never the current product', async ({
+  page,
+}) => {
+  const section = page.getByRole('region', COLLECTION_SECTION);
+  const cards = section.locator('ul').getByRole('link');
+
+  await expect(cards).toHaveCount(COLLECTION_SIBLINGS.length);
+  for (const [index, name] of COLLECTION_SIBLINGS.entries()) {
+    await expect(cards.nth(index)).toHaveAccessibleName(name);
+  }
+  await expect(section.getByRole('link', { name: PRODUCT.name })).toHaveCount(0);
+});
+
+test('a collection card navigates to its product page', async ({ page }) => {
+  await page
+    .getByRole('region', COLLECTION_SECTION)
+    .getByRole('link', { name: COLLECTION_SIBLINGS[0] })
+    .click();
+
+  await expect(page).toHaveURL(SIBLING_PATH);
+  await expect(
+    page.getByRole('heading', { name: COLLECTION_SIBLINGS[0] }),
+  ).toBeVisible();
 });
 
 test('quantity stepper increments and respects the minimum', async ({

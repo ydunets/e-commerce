@@ -19,6 +19,7 @@ const entity: ProductEntity = {
   id: 'test-cap',
   name: 'Test Cap',
   description: 'A cap.',
+  collection: 'urban',
   colors: ['green'],
   sizes: ['sm', 'md'],
   variants: [

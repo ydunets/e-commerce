@@ -31,6 +31,7 @@ export const productResponseDtoSchema = Type.Object({
   product_id: Type.String({ example: 'voyager-hoodie' }),
   name: Type.String(),
   description: Type.String(),
+  collection: Type.String({ example: 'urban' }),
   colors: Type.Array(Type.String()),
   sizes: Type.Array(Type.String()),
   images: Type.Array(imageSchema),

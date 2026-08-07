@@ -11,6 +11,11 @@ execSync('docker compose up -d --wait postgres', {
   stdio: 'inherit',
 });
 
+// The compose service has no volume, so a recreated container starts empty;
+// dbmate makes both steps idempotent on an already-provisioned database.
+execSync('pnpm db:migrate', { cwd: serverDir, stdio: 'inherit' });
+execSync('pnpm db:seed', { cwd: serverDir, stdio: 'inherit' });
+
 const api = spawn('pnpm', ['start'], { cwd: serverDir, stdio: 'inherit' });
 
 api.on('exit', (code) => process.exit(code ?? 0));

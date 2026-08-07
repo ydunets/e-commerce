@@ -51,6 +51,7 @@ export interface ProductEntity {
   id: string;
   name: string;
   description: string;
+  collection: string;
   colors: string[]; // display order; first colour is the default selection
   sizes: string[];
   variants: ProductVariant[];

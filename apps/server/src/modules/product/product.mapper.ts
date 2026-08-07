@@ -21,6 +21,7 @@ export default function productMapper(): ProductMapper {
         product_id: entity.id,
         name: entity.name,
         description: entity.description,
+        collection: entity.collection,
         colors: entity.colors,
         sizes: entity.sizes,
         images: entity.images.map((image) => ({ color: image.color, image_url: image.url })),

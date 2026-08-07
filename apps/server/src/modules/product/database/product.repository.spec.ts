@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import type { FindManyProductsOptions } from './product.repository.port.ts';
 import productRepository from './product.repository.ts';
 
 const TABLES = ['products', 'product_inventory', 'product_images', 'product_info'] as const;
@@ -18,7 +19,12 @@ function fakeDb(rows: Partial<Rows>): Dependencies['db'] {
   }) as unknown as Dependencies['db'];
 }
 
-const productRow = { product_id: 'test-cap', name: 'Test Cap', description: 'A cap.' };
+const productRow = {
+  product_id: 'test-cap',
+  name: 'Test Cap',
+  description: 'A cap.',
+  collection: 'urban',
+};
 
 const inventoryRow = (overrides: Record<string, unknown>) => ({
   sku: 'sku',
@@ -111,10 +117,16 @@ describe('productRepository().findOneById()', () => {
   });
 });
 
-const listProductRow = (product_id: string, name: string, created_at: string) => ({
+const listProductRow = (
+  product_id: string,
+  name: string,
+  created_at: string,
+  collection = 'urban',
+) => ({
   product_id,
   name,
   created_at,
+  collection,
 });
 
 // Products arrive shuffled with a created_at tie between alpha-tee and
@@ -126,7 +138,7 @@ const listRows: Partial<Rows> = {
     listProductRow('beta-tee', 'Beta Tee', '2024-03-01T00:00:00Z'),
     listProductRow('delta-cap', 'Delta Cap', '2024-04-01T00:00:00Z'),
     listProductRow('alpha-tee', 'Alpha Tee', '2024-03-01T00:00:00Z'),
-    listProductRow('gamma-cap', 'Gamma Cap', '2024-02-01T00:00:00Z'),
+    listProductRow('gamma-cap', 'Gamma Cap', '2024-02-01T00:00:00Z', 'fresh'),
   ],
   product_inventory: [
     inventoryRow({ sku: 'dc-navy-sm', product_id: 'delta-cap', color: 'navy', size: 'sm' }),
@@ -194,7 +206,7 @@ const listRows: Partial<Rows> = {
   ],
 };
 
-const listProducts = (options: { limit?: number; offset?: number } = {}) =>
+const listProducts = (options: FindManyProductsOptions = {}) =>
   productRepository({ db: fakeDb(listRows) } as unknown as Dependencies).findMany(options);
 
 describe('productRepository().findMany()', () => {
@@ -208,6 +220,24 @@ describe('productRepository().findMany()', () => {
 
   it('applies limit and offset to the ordered list', async () => {
     const products = await listProducts({ limit: 2, offset: 1 });
+    assert.deepEqual(
+      products.map((product) => product.id),
+      ['alpha-tee', 'beta-tee'],
+    );
+  });
+
+  it('restricts the list to one collection', async () => {
+    const products = await listProducts({ collection: 'urban' });
+    assert.deepEqual(
+      products.map((product) => product.id),
+      ['delta-cap', 'alpha-tee', 'beta-tee'],
+    );
+  });
+
+  // The excluded product must go before the slice: dropping it afterwards
+  // would return one card here instead of the two the limit asks for.
+  it('drops the excluded product before limit applies', async () => {
+    const products = await listProducts({ collection: 'urban', exclude: 'delta-cap', limit: 2 });
     assert.deepEqual(
       products.map((product) => product.id),
       ['alpha-tee', 'beta-tee'],

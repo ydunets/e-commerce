@@ -7,6 +7,7 @@ function toProduct(data: ProductResponseDto): Product {
     id: data.product_id,
     name: data.name,
     description: data.description,
+    collection: data.collection,
     colors: data.colors,
     variants: data.inventory.map((item) => ({
       sku: item.sku,

@@ -18,7 +18,12 @@ export default async function listProducts(fastify: FastifyRouteInstance) {
     },
     handler: async (req, res) => {
       const products = await fastify.queryBus.execute(
-        listProductsQuery({ limit: req.query.limit, offset: req.query.offset }),
+        listProductsQuery({
+          limit: req.query.limit,
+          offset: req.query.offset,
+          collection: req.query.collection,
+          exclude: req.query.exclude,
+        }),
       );
       const { productMapper } = fastify.diContainer.cradle;
       return res

@@ -45,6 +45,8 @@ export interface Product {
   id: string;
   name: string;
   description: string;
+  /** Collection identifier, used to request the product's siblings. */
+  collection: string;
   /** Colours in display order (first is the default selection). */
   colors: string[];
   variants: ProductVariant[];

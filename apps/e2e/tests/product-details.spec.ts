@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { gotoHydrated, PRODUCT } from './helpers';
+import { expect, type Page, test } from '@playwright/test';
+import { gotoHydrated, PRODUCT, ROUTES } from './helpers';
 
 const COLOR_GREEN = { name: 'Green' } as const;
 const COLOR_BROWN = { name: 'Brown' } as const;
@@ -9,6 +9,35 @@ const ADD_TO_CART = { name: 'Add to Cart' } as const;
 
 const INITIAL_QUANTITY = '1';
 const INCREMENTED_QUANTITY = '2';
+
+const COLLECTION_SECTION = { name: 'In this collection' } as const;
+// The urban collection newest-first, minus Voyager Hoodie itself, capped at
+// the design's four cards (see the products seed).
+const COLLECTION_SIBLINGS = [
+  'Urban Drift Bucket Hat',
+  'Metro Hoodie',
+  'Azure Attitude Shades',
+  'City Quilted Jacket',
+] as const;
+const SIBLING_PATH = '/products/urban-drift-bucket-hat';
+// Seeded facts: metro-hoodie (the section's second card) sells at $81 from a
+// $90 list price; PriceTag marks the struck price with "Original price".
+const DISCOUNTED_SIBLING = COLLECTION_SIBLINGS[1];
+const SIBLING_SALE_PRICE = '$81';
+const SIBLING_ORIGINAL_PRICE = 'Original price $90';
+// tangerine-mini-tote's fresh collection surfaces classic-canvas-tee, whose
+// beige colour is the seed's only fully out-of-stock colour.
+const FRESH_PRODUCT_PATH = '/products/tangerine-mini-tote';
+const OUT_OF_STOCK_SIBLING = { name: 'Classic Canvas Tee' } as const;
+const OUT_OF_STOCK_SWATCH = { name: 'Beige (out of stock)' } as const;
+const SPECIFICATIONS_SECTION = { name: 'Product specifications' } as const;
+
+function collectionCard(page: Page, name: string) {
+  return page
+    .getByRole('region', COLLECTION_SECTION)
+    .locator('article')
+    .filter({ has: page.getByRole('link', { name }) });
+}
 
 test.beforeEach(async ({ page }) => {
   await gotoHydrated(page, PRODUCT.path);
@@ -47,6 +76,71 @@ test('selecting a colour updates the swatch and the gallery', async ({
 
   await expect(green).toBeChecked();
   await expect(thumbnails.first()).toBeVisible();
+});
+
+test('"In this collection" lists the collection siblings, never the current product', async ({
+  page,
+}) => {
+  const section = page.getByRole('region', COLLECTION_SECTION);
+  const cards = section.locator('ul').getByRole('link');
+
+  await expect(cards).toHaveCount(COLLECTION_SIBLINGS.length);
+  for (const [index, name] of COLLECTION_SIBLINGS.entries()) {
+    await expect(cards.nth(index)).toHaveAccessibleName(name);
+  }
+  await expect(section.getByRole('link', { name: PRODUCT.name })).toHaveCount(0);
+});
+
+test('a collection card shows the sale price with the original struck through', async ({
+  page,
+}) => {
+  const card = collectionCard(page, DISCOUNTED_SIBLING);
+
+  await expect(card).toContainText(SIBLING_SALE_PRICE);
+  await expect(card.getByText(SIBLING_ORIGINAL_PRICE)).toBeVisible();
+});
+
+test('a collection card crosses out a fully out-of-stock colour', async ({
+  page,
+}) => {
+  await gotoHydrated(page, FRESH_PRODUCT_PATH);
+
+  const card = collectionCard(page, OUT_OF_STOCK_SIBLING.name);
+
+  await expect(card.getByRole('radio', OUT_OF_STOCK_SWATCH)).toBeVisible();
+});
+
+test('the page stands without the section when the collection request fails', async ({
+  page,
+}) => {
+  await page.route(
+    (url) =>
+      url.pathname.endsWith('/v1/products') &&
+      url.searchParams.has('collection'),
+    (route) => route.abort(),
+  );
+  await gotoHydrated(page, ROUTES.home);
+  await page.getByRole('link', { name: PRODUCT.name }).click();
+
+  await expect(
+    page.getByRole('heading', { name: PRODUCT.name }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('region', SPECIFICATIONS_SECTION),
+  ).toBeVisible();
+  await expect(page.getByRole('region', COLLECTION_SECTION)).toHaveCount(0);
+});
+
+test('a collection card navigates to its product page', async ({ page }) => {
+  await page
+    .getByRole('region', COLLECTION_SECTION)
+    .getByRole('link', { name: COLLECTION_SIBLINGS[0] })
+    .click();
+
+  await expect(page).toHaveURL(SIBLING_PATH);
+  await expect(
+    page.getByRole('heading', { name: COLLECTION_SIBLINGS[0] }),
+  ).toBeVisible();
 });
 
 test('quantity stepper increments and respects the minimum', async ({

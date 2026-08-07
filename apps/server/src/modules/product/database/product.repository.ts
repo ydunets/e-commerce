@@ -19,16 +19,19 @@ interface ProductRow {
   product_id: string;
   name: string;
   description: string;
+  collection: string;
 }
 
 interface ProductListRow {
   product_id: string;
   name: string;
+  collection: string;
   created_at: string | Date;
 }
 
-// Ordering and slicing happen here rather than in SQL so the newest-first
-// contract is pinned by the fake-db spec; the catalog is small enough to list.
+// Filtering, ordering and slicing happen here rather than in SQL so the
+// newest-first contract is pinned by the fake-db spec; the catalog is small
+// enough to list.
 function byNewestFirst(first: ProductListRow, second: ProductListRow): number {
   return (
     new Date(second.created_at).getTime() - new Date(first.created_at).getTime() ||
@@ -110,10 +113,15 @@ export default function productRepository({ db }: Dependencies): ProductReposito
   return {
     async findMany(options: FindManyProductsOptions): Promise<ProductListItem[]> {
       const rows =
-        (await db`SELECT product_id, name, created_at FROM products`) as unknown as ProductListRow[];
+        (await db`SELECT product_id, name, collection, created_at FROM products`) as unknown as ProductListRow[];
 
       const offset = options.offset ?? 0;
       const page = rows
+        .filter(
+          (row) =>
+            (options.collection === undefined || row.collection === options.collection) &&
+            row.product_id !== options.exclude,
+        )
         .toSorted(byNewestFirst)
         .slice(offset, options.limit === undefined ? undefined : offset + options.limit);
       if (page.length === 0) return [];
@@ -148,7 +156,7 @@ export default function productRepository({ db }: Dependencies): ProductReposito
 
     async findOneById(id: string): Promise<Omit<ProductEntity, 'reviews'> | undefined> {
       const [product]: [ProductRow?] =
-        await db`SELECT product_id, name, description FROM products WHERE product_id = ${id} LIMIT 1`;
+        await db`SELECT product_id, name, description, collection FROM products WHERE product_id = ${id} LIMIT 1`;
       if (!product) return undefined;
 
       const [inventory, images, info] = (await Promise.all([
@@ -164,6 +172,7 @@ export default function productRepository({ db }: Dependencies): ProductReposito
         id: product.product_id,
         name: product.name,
         description: product.description,
+        collection: product.collection,
         colors,
         sizes: distinctSizes(variants),
         variants,

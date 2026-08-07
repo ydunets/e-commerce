@@ -16,4 +16,16 @@ export const listProductsQuerystringSchema = Type.Object({
       minimum: 0,
     }),
   ),
+  collection: Type.Optional(
+    Type.String({
+      example: 'urban',
+      description: 'Restrict the list to a single collection',
+    }),
+  ),
+  exclude: Type.Optional(
+    Type.String({
+      example: 'voyager-hoodie',
+      description: 'Product id to drop from the list before limit and offset apply',
+    }),
+  ),
 });

@@ -1,3 +1,15 @@
+# [1.14.0](https://github.com/ydunets/e-commerce/compare/v1.13.0...v1.14.0) (2026-08-07)
+
+
+### Bug Fixes
+
+* **e2e:** provision DB schema in API bootstrap ([ac4fa6d](https://github.com/ydunets/e-commerce/commit/ac4fa6dec74585506c38b694b823ad1532a60c17))
+
+
+### Features
+
+* **catalog:** add In this collection section ([e322ff4](https://github.com/ydunets/e-commerce/commit/e322ff4b90f785426238f57085192371c8b29c62))
+
 # [1.13.0](https://github.com/ydunets/e-commerce/compare/v1.12.0...v1.13.0) (2026-08-06)
 
 

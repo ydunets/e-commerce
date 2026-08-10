@@ -1,5 +1,10 @@
-import { expect, test } from '@playwright/test';
-import { gotoHydrated, PRODUCT } from './helpers';
+import { expect, test } from './fixtures';
+import { PRODUCT } from './helpers';
+
+// Hydration is the subject here, so no console error is expected noise: the
+// default allowance for resource failures would mask exactly what this spec
+// exists to catch.
+test.use({ allowedConsoleErrors: [] });
 
 const SPECS_MARKER = 'aria-label="Product specifications"';
 const SPECS_DELAY_MS = Number(process.env.E2E_SPECS_DELAY_MS ?? 800);
@@ -72,27 +77,15 @@ test('streams the product shell before the specifications section', async ({
 });
 
 test('swaps the streamed section in and hydrates cleanly', async ({
+  gotoHydrated,
   page,
 }) => {
-  const consoleErrors: string[] = [];
-  const pageErrors: string[] = [];
-  page.on('console', (msg) => {
-    if (msg.type() === 'error') {
-      consoleErrors.push(msg.text());
-    }
-  });
-  // React 18+ hydration mismatches are thrown errors that recover by
-  // re-rendering the boundary, so the page can look fine while hydration
-  // actually failed. Only the error channels reveal it.
-  page.on('pageerror', (error) => {
-    pageErrors.push(error.message);
-  });
-
-  await gotoHydrated(page, PRODUCT.path);
+  await gotoHydrated(PRODUCT.path);
 
   await expect(
     page.getByRole('region', { name: 'Product specifications' }),
   ).toBeVisible();
-  expect(pageErrors).toEqual([]);
-  expect(consoleErrors).toEqual([]);
+  // The errorGuard fixture owns the error channels: React recovers from a
+  // hydration mismatch by re-rendering the boundary, so the page can look fine
+  // while hydration actually failed.
 });

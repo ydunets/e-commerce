@@ -1,5 +1,6 @@
-import { expect, type Page, test } from '@playwright/test';
-import { gotoHydrated, ROUTES } from './helpers';
+import type { Page } from '@playwright/test';
+import { expect, test } from './fixtures';
+import { ROUTES } from './helpers';
 
 const NEWSLETTER_HEADING = 'Join our newsletter';
 const COPYRIGHT_PATTERN = new RegExp(
@@ -23,19 +24,27 @@ test('server-renders the footer with the newsletter form before any JS runs', as
   ).toBeVisible();
 });
 
-test('shows the copyright year and every social link', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.home);
+test('shows the copyright year and every social link', async ({
+  gotoHydrated,
+  page,
+}) => {
+  await gotoHydrated(ROUTES.home);
 
-  await expect(footer(page).getByText(COPYRIGHT_PATTERN)).toBeVisible();
+  // Independent facts about one static region: reporting them together beats
+  // stopping at whichever link happens to be missing first.
+  await expect.soft(footer(page).getByText(COPYRIGHT_PATTERN)).toBeVisible();
   for (const label of SOCIAL_LABELS) {
-    await expect(
-      footer(page).getByRole('link', { name: label, exact: true }),
-    ).toBeVisible();
+    await expect
+      .soft(footer(page).getByRole('link', { name: label, exact: true }))
+      .toBeVisible();
   }
 });
 
-test('a shop link navigates to the products catalog', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.home);
+test('a shop link navigates to the products catalog', async ({
+  gotoHydrated,
+  page,
+}) => {
+  await gotoHydrated(ROUTES.home);
 
   await footer(page).getByRole('link', { name: 'Latest arrivals' }).click();
 

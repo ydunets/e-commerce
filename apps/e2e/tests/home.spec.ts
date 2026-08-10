@@ -1,5 +1,6 @@
-import { expect, type Page, test } from '@playwright/test';
-import { gotoHydrated, PRODUCT, ROUTES } from './helpers';
+import type { Page } from '@playwright/test';
+import { expect, test } from './fixtures';
+import { PRODUCT, ROUTES } from './helpers';
 
 const HERO_HEADING = { name: 'Discover the StyleNest collection' } as const;
 const SHOP_LINK = { name: 'Shop now' } as const;
@@ -38,9 +39,10 @@ test('renders the server-side markup before any JS runs', async ({ page }) => {
 });
 
 test('shows the 8 newest products in order in Latest Arrivals', async ({
+  gotoHydrated,
   page,
 }) => {
-  await gotoHydrated(page, ROUTES.home);
+  await gotoHydrated(ROUTES.home);
 
   await expect(
     latestArrivals(page).getByRole('link', { name: 'View all' }),
@@ -55,9 +57,10 @@ test('shows the 8 newest products in order in Latest Arrivals', async ({
 });
 
 test('shows the default colour variant with its card price on a card', async ({
+  gotoHydrated,
   page,
 }) => {
-  await gotoHydrated(page, ROUTES.home);
+  await gotoHydrated(ROUTES.home);
 
   // Seeded facts: voyager-hoodie's first inventory colour is green, on sale
   // at $76 from a $95 list price.
@@ -74,9 +77,10 @@ test('shows the default colour variant with its card price on a card', async ({
 // product, outside the home grid. The /products spec (#22) covers it; the
 // ColorSwatches stories exercise the state interactively meanwhile.
 test('clicking a swatch swaps the card to that colour variant', async ({
+  gotoHydrated,
   page,
 }) => {
-  await gotoHydrated(page, ROUTES.home);
+  await gotoHydrated(ROUTES.home);
 
   // Seeded facts: urban-drift-bucket-hat comes in black (default) and white,
   // with a different catalog image per colour.
@@ -98,8 +102,11 @@ test('clicking a swatch swaps the card to that colour variant', async ({
   await expect(page).toHaveURL(ROUTES.home);
 });
 
-test('opens the product details page from a card', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.home);
+test('opens the product details page from a card', async ({
+  gotoHydrated,
+  page,
+}) => {
+  await gotoHydrated(ROUTES.home);
 
   await latestArrivals(page)
     .getByRole('link', { name: PRODUCT.name })
@@ -111,8 +118,11 @@ test('opens the product details page from a card', async ({ page }) => {
   ).toBeVisible();
 });
 
-test('shows the hero and the desktop navigation', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.home);
+test('shows the hero and the desktop navigation', async ({
+  gotoHydrated,
+  page,
+}) => {
+  await gotoHydrated(ROUTES.home);
 
   await expect(page.getByRole('heading', HERO_HEADING)).toBeVisible();
 
@@ -127,17 +137,21 @@ test('shows the hero and the desktop navigation', async ({ page }) => {
 });
 
 test('navigates to the products catalog from the hero link', async ({
+  gotoHydrated,
   page,
 }) => {
-  await gotoHydrated(page, ROUTES.home);
+  await gotoHydrated(ROUTES.home);
 
   await page.getByRole('link', SHOP_LINK).click();
 
   await expect(page).toHaveURL(ROUTES.products);
 });
 
-test('about page reports a live API connection', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.about);
+test('about page reports a live API connection', async ({
+  gotoHydrated,
+  page,
+}) => {
+  await gotoHydrated(ROUTES.about);
 
   await expect(page.getByRole('heading', { name: 'About' })).toBeVisible();
   // ServerStatus fetches client-side through the /api proxy.

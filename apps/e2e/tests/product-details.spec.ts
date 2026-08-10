@@ -1,5 +1,6 @@
-import { expect, type Page, test } from '@playwright/test';
-import { gotoHydrated, PRODUCT, ROUTES } from './helpers';
+import type { Page } from '@playwright/test';
+import { expect, test } from './fixtures';
+import { PRODUCT, ROUTES } from './helpers';
 
 const COLOR_GREEN = { name: 'Green' } as const;
 const COLOR_BROWN = { name: 'Brown' } as const;
@@ -39,50 +40,70 @@ function collectionCard(page: Page, name: string) {
     .filter({ has: page.getByRole('link', { name }) });
 }
 
-test.beforeEach(async ({ page }) => {
-  await gotoHydrated(page, PRODUCT.path);
+test.beforeEach(async ({ gotoHydrated }) => {
+  await gotoHydrated(PRODUCT.path);
 });
 
-test('server-renders the product with price and rating', async ({ page }) => {
-  await expect(
-    page.getByRole('heading', { name: PRODUCT.name }),
-  ).toBeVisible();
-  await expect(page.getByText('20% OFF')).toBeVisible();
-  await expect(page.getByRole('button', { name: /reviews/ })).toBeVisible();
-  await expect(page.getByRole('button', ADD_TO_CART)).toBeEnabled();
-});
+test(
+  'server-renders the product with price and rating',
+  { tag: '@smoke' },
+  async ({ page }) => {
+    await expect(
+      page.getByRole('heading', { name: PRODUCT.name }),
+    ).toBeVisible();
+    await expect(page.getByText('20% OFF')).toBeVisible();
+    await expect(page.getByRole('button', { name: /reviews/ })).toBeVisible();
+    await expect(page.getByRole('button', ADD_TO_CART)).toBeEnabled();
+  },
+);
 
-test('selecting a colour updates the swatch and the gallery', async ({
-  page,
-}) => {
-  const green = page.getByRole('radio', COLOR_GREEN);
-  const brown = page.getByRole('radio', COLOR_BROWN);
-  const mainImage = page.getByRole('img', { name: PRODUCT.name });
-  // Seeded data: green has several images (thumbnails shown), brown has one
-  // (the gallery collapses to just the main image).
-  const thumbnails = page.getByRole('button', { name: /View image/ });
+test(
+  'selecting a colour updates the swatch and the gallery',
+  { tag: '@critical' },
+  async ({ page }) => {
+    const green = page.getByRole('radio', COLOR_GREEN);
+    const brown = page.getByRole('radio', COLOR_BROWN);
+    const mainImage = page.getByRole('img', { name: PRODUCT.name });
+    // Seeded data: green has several images (thumbnails shown), brown has one
+    // (the gallery collapses to just the main image).
+    const thumbnails = page.getByRole('button', { name: /View image/ });
 
-  await expect(green).toBeChecked();
-  await expect(thumbnails.first()).toBeVisible();
+    await test.step('the default colour offers its thumbnails', async () => {
+      await expect(green).toBeChecked();
+      await expect(thumbnails.first()).toBeVisible();
+    });
 
-  await brown.click();
+    await test.step('a single-image colour collapses the gallery', async () => {
+      await brown.click();
 
-  await expect(brown).toBeChecked();
-  await expect(green).not.toBeChecked();
-  await expect(mainImage).toBeVisible();
-  await expect(thumbnails).toHaveCount(0);
+      await expect(brown).toBeChecked();
+      await expect(green).not.toBeChecked();
+      await expect(mainImage).toBeVisible();
+      await expect(thumbnails).toHaveCount(0);
+    });
 
-  await green.click();
+    await test.step('switching back restores the thumbnails', async () => {
+      await green.click();
 
-  await expect(green).toBeChecked();
-  await expect(thumbnails.first()).toBeVisible();
-});
+      await expect(green).toBeChecked();
+      await expect(thumbnails.first()).toBeVisible();
+    });
+  },
+);
 
 test('"In this collection" lists the collection siblings, never the current product', async ({
   page,
-}) => {
+}, testInfo) => {
   const section = page.getByRole('region', COLLECTION_SECTION);
   const cards = section.locator('ul').getByRole('link');
+
+  const rendered = await cards.evaluateAll((links) =>
+    links.map((link) => link.getAttribute('aria-label') ?? link.textContent),
+  );
+  await testInfo.attach('collection-cards.json', {
+    body: JSON.stringify(rendered, null, 2),
+    contentType: 'application/json',
+  });
 
   await expect(cards).toHaveCount(COLLECTION_SIBLINGS.length);
   for (const [index, name] of COLLECTION_SIBLINGS.entries()) {
@@ -101,9 +122,10 @@ test('a collection card shows the sale price with the original struck through', 
 });
 
 test('a collection card crosses out a fully out-of-stock colour', async ({
+  gotoHydrated,
   page,
 }) => {
-  await gotoHydrated(page, FRESH_PRODUCT_PATH);
+  await gotoHydrated(FRESH_PRODUCT_PATH);
 
   const card = collectionCard(page, OUT_OF_STOCK_SIBLING.name);
 
@@ -111,6 +133,7 @@ test('a collection card crosses out a fully out-of-stock colour', async ({
 });
 
 test('the page stands without the section when the collection request fails', async ({
+  gotoHydrated,
   page,
 }) => {
   await page.route(
@@ -119,7 +142,7 @@ test('the page stands without the section when the collection request fails', as
       url.searchParams.has('collection'),
     (route) => route.abort(),
   );
-  await gotoHydrated(page, ROUTES.home);
+  await gotoHydrated(ROUTES.home);
   await page.getByRole('link', { name: PRODUCT.name }).click();
 
   await expect(

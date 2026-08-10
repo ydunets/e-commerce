@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { gotoHydrated, PRODUCT, ROUTES } from './helpers';
+import { expect, test } from './fixtures';
+import { PRODUCT, ROUTES } from './helpers';
 
 // All 19 seeded products, newest-first by created_at (see products seed).
 const ALL_PRODUCTS = [
@@ -44,16 +44,17 @@ test('renders every seeded product newest-first before any JS runs', async ({
   }
 });
 
-test('has a StyleNest document title', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.products);
+test('has a StyleNest document title', async ({ gotoHydrated, page }) => {
+  await gotoHydrated(ROUTES.products);
 
   await expect(page).toHaveTitle(/StyleNest/);
 });
 
 test('"View all" navigates from the home Latest Arrivals section', async ({
+  gotoHydrated,
   page,
 }) => {
-  await gotoHydrated(page, ROUTES.home);
+  await gotoHydrated(ROUTES.home);
 
   await page
     .getByRole('region', { name: 'Latest Arrivals' })
@@ -64,8 +65,8 @@ test('"View all" navigates from the home Latest Arrivals section', async ({
   await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
 });
 
-test('the hero "Shop now" CTA navigates to the catalog', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.home);
+test('the hero "Shop now" CTA navigates to the catalog', async ({ gotoHydrated, page }) => {
+  await gotoHydrated(ROUTES.home);
 
   await page.getByRole('link', { name: 'Shop now' }).click();
 
@@ -73,8 +74,8 @@ test('the hero "Shop now" CTA navigates to the catalog', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
 });
 
-test('a card click reaches the product details page', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.products);
+test('a card click reaches the product details page', async ({ gotoHydrated, page }) => {
+  await gotoHydrated(ROUTES.products);
 
   await page.getByRole('link', { name: PRODUCT.name }).click();
 

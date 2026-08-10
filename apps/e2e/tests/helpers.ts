@@ -1,8 +1,9 @@
-import { expect, type Page } from '@playwright/test';
-
 export const PRODUCT = {
   name: 'Voyager Hoodie',
   path: '/products/voyager-hoodie',
+  /** Seeded inventory rows for the default green colour (see the products seed). */
+  sku: 'vh-green-md',
+  secondSku: 'vh-brown-xs',
 } as const;
 
 export const ROUTES = {
@@ -11,20 +12,14 @@ export const ROUTES = {
   products: '/products',
 } as const;
 
+/** Versioned API routes; `/health` and `/api-docs/json` sit outside this prefix. */
+export const API_PREFIX = '/api/v1';
+
 /**
- * The real API enforces email uniqueness, so repeated runs against the same
- * database need a fresh address each time.
+ * Subscribing the same address twice answers 200, so uniqueness is not what
+ * this guards. A fresh address keeps each run's rows distinguishable in the
+ * database that every run shares.
  */
 export function uniqueEmail(): string {
   return `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
-}
-
-/**
- * Navigate and wait until React has hydrated. The root layout sets
- * `data-hydrated` on <html> from a post-hydration effect; interacting
- * before that point silently drops events on server-rendered markup.
- */
-export async function gotoHydrated(page: Page, path: string): Promise<void> {
-  await page.goto(path);
-  await expect(page.locator('html[data-hydrated="true"]')).toBeAttached();
 }

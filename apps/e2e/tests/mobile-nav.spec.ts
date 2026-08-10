@@ -1,12 +1,12 @@
-import { expect, test } from '@playwright/test';
-import { gotoHydrated, ROUTES } from './helpers';
+import { expect, test } from './fixtures';
+import { ROUTES } from './helpers';
 
 const OPEN_MENU = { name: 'Open menu' } as const;
 const CLOSE_MENU = { name: 'Close menu' } as const;
 const DRAWER = { name: 'Site menu' } as const;
 
-test.beforeEach(async ({ page }) => {
-  await gotoHydrated(page, ROUTES.home);
+test.beforeEach(async ({ gotoHydrated }) => {
+  await gotoHydrated(ROUTES.home);
 });
 
 test('opens and closes the drawer', async ({ page }) => {

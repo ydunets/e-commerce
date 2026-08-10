@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { gotoHydrated, ROUTES, uniqueEmail } from './helpers';
+import { expect, test } from './fixtures';
+import { ROUTES, uniqueEmail } from './helpers';
 
 const SUBSCRIBE_ENDPOINT = '**/api/v1/newsletter/subscriptions';
 const EMAIL_FIELD = { name: 'Email address' } as const;
@@ -9,21 +9,26 @@ const SUCCESS_MESSAGE =
 const FAILURE_MESSAGE =
   'Failed to subscribe. Please ensure your email is correct or try again later.';
 
-test('subscribing with a new email shows the success toast and clears the field', async ({
+test(
+  'subscribing with a new email shows the success toast and clears the field',
+  { tag: '@smoke' },
+  async ({ gotoHydrated, page }) => {
+    await gotoHydrated(ROUTES.home);
+
+    const field = page.getByRole('textbox', EMAIL_FIELD);
+    await field.fill(uniqueEmail());
+    await page.getByRole('button', SUBSCRIBE_BUTTON).click();
+
+    await expect(page.getByRole('status')).toHaveText(SUCCESS_MESSAGE);
+    await expect(field).toHaveValue('');
+  },
+);
+
+test('an API failure shows the failure toast', async ({
+  gotoHydrated,
   page,
 }) => {
-  await gotoHydrated(page, ROUTES.home);
-
-  const field = page.getByRole('textbox', EMAIL_FIELD);
-  await field.fill(uniqueEmail());
-  await page.getByRole('button', SUBSCRIBE_BUTTON).click();
-
-  await expect(page.getByRole('status')).toHaveText(SUCCESS_MESSAGE);
-  await expect(field).toHaveValue('');
-});
-
-test('an API failure shows the failure toast', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.home);
+  await gotoHydrated(ROUTES.home);
   await page.route(SUBSCRIBE_ENDPOINT, (route) =>
     route.fulfill({
       status: 500,
@@ -43,9 +48,10 @@ test('an API failure shows the failure toast', async ({ page }) => {
 });
 
 test('the Subscribe button is disabled while the request is in flight', async ({
+  gotoHydrated,
   page,
 }) => {
-  await gotoHydrated(page, ROUTES.home);
+  await gotoHydrated(ROUTES.home);
   // Holds the response open until the pending state has been observed.
   let releaseResponse = () => {};
   await page.route(SUBSCRIBE_ENDPOINT, async (route) => {
@@ -69,8 +75,8 @@ test('the Subscribe button is disabled while the request is in flight', async ({
   await expect(button).toBeEnabled();
 });
 
-test('the form submits from the keyboard', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.home);
+test('the form submits from the keyboard', async ({ gotoHydrated, page }) => {
+  await gotoHydrated(ROUTES.home);
   await page.route(SUBSCRIBE_ENDPOINT, (route) =>
     route.fulfill({
       status: 201,

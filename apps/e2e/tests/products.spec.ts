@@ -1,5 +1,9 @@
-import { expect, test } from './fixtures';
+import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
 import { PRODUCT, ROUTES } from './helpers';
+
+// The first test blocks every script to inspect the server-rendered markup,
+// and Chromium logs a resource failure for each blocked request.
+test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
 // All 19 seeded products, newest-first by created_at (see products seed).
 const ALL_PRODUCTS = [
@@ -65,7 +69,10 @@ test('"View all" navigates from the home Latest Arrivals section', async ({
   await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
 });
 
-test('the hero "Shop now" CTA navigates to the catalog', async ({ gotoHydrated, page }) => {
+test('the hero "Shop now" CTA navigates to the catalog', async ({
+  gotoHydrated,
+  page,
+}) => {
   await gotoHydrated(ROUTES.home);
 
   await page.getByRole('link', { name: 'Shop now' }).click();
@@ -74,7 +81,10 @@ test('the hero "Shop now" CTA navigates to the catalog', async ({ gotoHydrated, 
   await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
 });
 
-test('a card click reaches the product details page', async ({ gotoHydrated, page }) => {
+test('a card click reaches the product details page', async ({
+  gotoHydrated,
+  page,
+}) => {
   await gotoHydrated(ROUTES.products);
 
   await page.getByRole('link', { name: PRODUCT.name }).click();

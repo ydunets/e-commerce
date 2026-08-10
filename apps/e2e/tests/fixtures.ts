@@ -22,10 +22,10 @@ const CART_LABEL = 'Shopping bag';
 
 /**
  * Chromium logs a resource failure for every aborted or error-fulfilled
- * request, so the specs that provoke one on purpose would otherwise trip the
- * guard on noise that says nothing about the behaviour under test.
+ * request. A spec that provokes one on purpose declares this allowance for
+ * itself; it is deliberately not the default, so a new spec starts strict.
  */
-export const CONSOLE_NOISE = ['Failed to load resource'];
+export const BLOCKED_REQUEST_NOISE = ['Failed to load resource'];
 
 /** Overridable from `use` in the config, a project, or a single spec. */
 export type TestOptions = {
@@ -62,7 +62,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     { scope: 'worker' },
   ],
 
-  allowedConsoleErrors: [CONSOLE_NOISE, { option: true }],
+  allowedConsoleErrors: [[], { option: true }],
 
   errorGuard: [
     async ({ context, allowedConsoleErrors }, use) => {

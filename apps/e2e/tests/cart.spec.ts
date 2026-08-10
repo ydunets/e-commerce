@@ -1,6 +1,6 @@
 import type { APIRequestContext, Page } from '@playwright/test';
-import { expect, test } from './fixtures';
-import { API_PREFIX, PRODUCT } from './helpers';
+import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
+import { API_PREFIX, type CartResponse, PRODUCT } from './helpers';
 
 const ADD_TO_CART = { name: 'Add to Cart' } as const;
 const INCREASE = { name: 'Increase quantity' } as const;
@@ -14,12 +14,6 @@ const UUID_PATTERN =
 // Seeded data: autumnal-knitwear defaults to blue / XS with 15 in stock.
 const LOW_STOCK_PRODUCT_PATH = '/products/autumnal-knitwear';
 const LOW_STOCK = 15;
-
-type CartResponse = {
-  id: string;
-  lines: { sku: string; quantity: number }[];
-  totalUnits: number;
-};
 
 const cartLink = (page: Page) =>
   page.getByRole('link', { name: /shopping bag/i });
@@ -97,24 +91,31 @@ test('the badge survives reload and navigation, persisting only the cart id', as
   expect(await storedCartId(page)).toMatch(UUID_PATTERN);
 });
 
-test('a stale cart id self-heals without a user-visible error', async ({
-  gotoHydrated,
-  page,
-}) => {
-  await page.addInitScript(
-    ([key, id]) => localStorage.setItem(key, id),
-    [CART_ID_STORAGE_KEY, STALE_CART_ID],
-  );
+// Scoped to this one test rather than the file: reading a cart that no longer
+// exists is a 404 by design, and Chromium reports it as a resource failure,
+// while every other cart test must stay strict about console errors.
+test.describe('self-healing', () => {
+  test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
-  await gotoHydrated(PRODUCT.path);
-  await page.getByRole('button', ADD_TO_CART).click();
+  test('a stale cart id self-heals without a user-visible error', async ({
+    gotoHydrated,
+    page,
+  }) => {
+    await page.addInitScript(
+      ([key, id]) => localStorage.setItem(key, id),
+      [CART_ID_STORAGE_KEY, STALE_CART_ID],
+    );
 
-  await expect(cartLink(page)).toHaveCartCount(1);
-  await expect(page.getByRole('alert')).toHaveCount(0);
+    await gotoHydrated(PRODUCT.path);
+    await page.getByRole('button', ADD_TO_CART).click();
 
-  const freshId = await storedCartId(page);
-  expect(freshId).toMatch(UUID_PATTERN);
-  expect(freshId).not.toBe(STALE_CART_ID);
+    await expect(cartLink(page)).toHaveCartCount(1);
+    await expect(page.getByRole('alert')).toHaveCount(0);
+
+    const freshId = await storedCartId(page);
+    expect(freshId).toMatch(UUID_PATTERN);
+    expect(freshId).not.toBe(STALE_CART_ID);
+  });
 });
 
 // Seeded data: classic-canvas-tee's beige colour has zero stock in every size.

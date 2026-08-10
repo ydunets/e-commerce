@@ -1,12 +1,12 @@
 import type { Page } from '@playwright/test';
-import { CONSOLE_NOISE, expect, test } from './fixtures';
+import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
 import { PRODUCT, ROUTES } from './helpers';
 
 // Every test here forces the API to fail, so the router's ApiError and React's
 // boundary log are the expected consequence rather than a defect.
 test.use({
   allowedConsoleErrors: [
-    ...CONSOLE_NOISE,
+    ...BLOCKED_REQUEST_NOISE,
     'ApiError:',
     'The above error occurred in',
   ],

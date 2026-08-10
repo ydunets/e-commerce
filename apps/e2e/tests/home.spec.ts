@@ -1,6 +1,10 @@
 import type { Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
 import { PRODUCT, ROUTES } from './helpers';
+
+// The first test blocks every script to inspect the server-rendered markup,
+// and Chromium logs a resource failure for each blocked request.
+test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
 const HERO_HEADING = { name: 'Discover the StyleNest collection' } as const;
 const SHOP_LINK = { name: 'Shop now' } as const;

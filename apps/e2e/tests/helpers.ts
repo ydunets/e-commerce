@@ -15,6 +15,13 @@ export const ROUTES = {
 /** Versioned API routes; `/health` and `/api-docs/json` sit outside this prefix. */
 export const API_PREFIX = '/api/v1';
 
+/** The cart as every cart route answers it. */
+export type CartResponse = {
+  id: string;
+  lines: { sku: string; quantity: number }[];
+  totalUnits: number;
+};
+
 /**
  * Subscribing the same address twice answers 200, so uniqueness is not what
  * this guards. A fresh address keeps each run's rows distinguishable in the

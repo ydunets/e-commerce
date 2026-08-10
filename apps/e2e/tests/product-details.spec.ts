@@ -1,6 +1,10 @@
 import type { Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
 import { PRODUCT, ROUTES } from './helpers';
+
+// One test aborts the collection request to prove the page stands without the
+// section, and Chromium logs that abort as a resource failure.
+test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
 const COLOR_GREEN = { name: 'Green' } as const;
 const COLOR_BROWN = { name: 'Brown' } as const;
@@ -60,7 +64,7 @@ test(
 test(
   'selecting a colour updates the swatch and the gallery',
   { tag: '@critical' },
-  async ({ page }) => {
+  async ({ page }, testInfo) => {
     const green = page.getByRole('radio', COLOR_GREEN);
     const brown = page.getByRole('radio', COLOR_BROWN);
     const mainImage = page.getByRole('img', { name: PRODUCT.name });
@@ -75,6 +79,20 @@ test(
 
     await test.step('a single-image colour collapses the gallery', async () => {
       await brown.click();
+
+      // Gathered before the assertions, so a failure here reports the gallery
+      // that produced it.
+      await testInfo.attach('gallery-after-switch.json', {
+        body: JSON.stringify(
+          {
+            mainImage: await mainImage.getAttribute('src'),
+            thumbnails: await thumbnails.count(),
+          },
+          null,
+          2,
+        ),
+        contentType: 'application/json',
+      });
 
       await expect(brown).toBeChecked();
       await expect(green).not.toBeChecked();

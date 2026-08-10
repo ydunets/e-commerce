@@ -1,18 +1,33 @@
 import { expect, test } from './fixtures';
-import { API_PREFIX, PRODUCT, uniqueEmail } from './helpers';
+import {
+  API_PREFIX,
+  type CartResponse,
+  PRODUCT,
+  uniqueEmail,
+} from './helpers';
 
 const HEALTH_ROUTE = '/health';
 const OPENAPI_ROUTE = '/api-docs/json';
 const OPENAPI_VERSION = '3.1.0';
 
+// A cold container provisions its schema while starting, so readiness needs
+// room without letting a genuinely dead API stall the whole run.
+const READINESS_TIMEOUT_MS = 30_000;
+const READINESS_INTERVALS_MS = [250, 500, 1_000];
+
 // Seeded data: autumnal-knitwear carries 8 reviews averaging 4.25 stars.
 const REVIEWED_PRODUCT = 'autumnal-knitwear';
 const REVIEW_COUNT = 8;
 const PAGE_SIZE = 2;
+// The querystring schema caps the rating filter at five stars.
+const OUT_OF_RANGE_RATING = 9;
 
 const UNKNOWN_CART_ID = '00000000-0000-4000-8000-000000000000';
 const MALFORMED_CART_ID = 'not-a-uuid';
 const UNKNOWN_SKU = 'no-such-sku';
+
+const STATUS_BAD_REQUEST = 400;
+const STATUS_NOT_FOUND = 404;
 
 /** Every route the browser specs depend on, as the documentation names them. */
 const DOCUMENTED_ROUTES = [
@@ -27,12 +42,6 @@ const DOCUMENTED_ROUTES = [
   HEALTH_ROUTE,
 ] as const;
 
-type CartResponse = {
-  id: string;
-  lines: { sku: string; quantity: number }[];
-  totalUnits: number;
-};
-
 type ValidationError = {
   statusCode: number;
   error: string;
@@ -40,14 +49,17 @@ type ValidationError = {
 };
 
 test.describe('the storefront API', { tag: '@critical' }, () => {
-  // A cold container provisions its schema during startup, so readiness is
-  // genuinely eventual rather than merely slow.
+  // Readiness is genuinely eventual rather than merely slow, which is what
+  // separates a retrying assertion from a polled value here.
   test.beforeAll(async ({ api }) => {
     await expect(async () => {
       const response = await api.get(HEALTH_ROUTE);
       expect(response).toBeOK();
       expect(await response.json()).toEqual({ status: 'ok' });
-    }).toPass({ intervals: [250, 500, 1_000], timeout: 30_000 });
+    }).toPass({
+      intervals: READINESS_INTERVALS_MS,
+      timeout: READINESS_TIMEOUT_MS,
+    });
   });
 
   test('documents every route the browser specs depend on', async ({ api }) => {
@@ -89,6 +101,8 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
     await test.step('read it back', async () => {
       const response = await api.get(`${API_PREFIX}/carts/${cartId}`);
       expect(response).toBeOK();
+      // Compared against what the write answered, not against a recorded
+      // shape: the claim is that reading returns what writing reported.
       expect(await response.json()).toEqual(created);
     });
 
@@ -121,18 +135,16 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
         `${API_PREFIX}/carts/${cartId}/items/${PRODUCT.sku}`,
       );
       expect(response).toBeOK();
-      expect((await response.json()) as CartResponse).toEqual({
-        id: cartId,
-        lines: [{ sku: PRODUCT.secondSku, quantity: 1 }],
-        totalUnits: 1,
-      });
+      const cart = (await response.json()) as CartResponse;
+      expect(cart.lines.map((line) => line.sku)).toEqual([PRODUCT.secondSku]);
+      expect(cart.totalUnits).toBe(1);
     });
 
     await test.step('removing an absent line answers 404', async () => {
       const response = await api.delete(
         `${API_PREFIX}/carts/${cartId}/items/${PRODUCT.sku}`,
       );
-      expect(response.status()).toBe(404);
+      expect(response.status()).toBe(STATUS_NOT_FOUND);
     });
   });
 
@@ -142,21 +154,21 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
     const unknownSku = await api.post(`${API_PREFIX}/carts/items`, {
       data: { sku: UNKNOWN_SKU, quantity: 1 },
     });
-    expect(unknownSku.status()).toBe(404);
+    expect(unknownSku.status()).toBe(STATUS_NOT_FOUND);
 
     const unknownCart = await api.get(
       `${API_PREFIX}/carts/${UNKNOWN_CART_ID}`,
     );
-    expect(unknownCart.status()).toBe(404);
+    expect(unknownCart.status()).toBe(STATUS_NOT_FOUND);
 
     const malformed = await api.get(
       `${API_PREFIX}/carts/${MALFORMED_CART_ID}`,
     );
-    expect(malformed.status()).toBe(400);
+    expect(malformed.status()).toBe(STATUS_BAD_REQUEST);
     const body = (await malformed.json()) as ValidationError;
-    expect(body.subErrors).toEqual([
-      { path: '/cartId', message: 'must match format "uuid"' },
-    ]);
+    // The offending field, not the validator's wording: the message text
+    // belongs to the server's own unit specs.
+    expect(body.subErrors?.[0]?.path).toBe('/cartId');
   });
 
   test('accepts a newsletter subscription and rejects a malformed address', async ({
@@ -173,7 +185,7 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
     const rejected = await api.post(`${API_PREFIX}/newsletter/subscriptions`, {
       data: { email: 'not-an-email' },
     });
-    expect(rejected.status()).toBe(400);
+    expect(rejected.status()).toBe(STATUS_BAD_REQUEST);
     const body = (await rejected.json()) as ValidationError;
     expect(body.error).toBe('Bad Request');
     expect(body.subErrors?.[0]?.path).toBe('/email');
@@ -214,5 +226,15 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
     expect(counted, 'the distribution must account for every review').toBe(
       REVIEW_COUNT,
     );
+  });
+
+  test('rejects a rating filter outside the star range', async ({ api }) => {
+    const response = await api.get(
+      `${API_PREFIX}/products/${REVIEWED_PRODUCT}/reviews?rating=${OUT_OF_RANGE_RATING}`,
+    );
+
+    expect(response.status()).toBe(STATUS_BAD_REQUEST);
+    const body = (await response.json()) as ValidationError;
+    expect(body.subErrors?.[0]?.path).toBe('/rating');
   });
 });

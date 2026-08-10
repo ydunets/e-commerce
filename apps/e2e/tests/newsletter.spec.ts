@@ -1,5 +1,9 @@
-import { expect, test } from './fixtures';
+import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
 import { ROUTES, uniqueEmail } from './helpers';
+
+// The failure test answers the subscription with a 500, which Chromium reports
+// as a resource failure on top of the toast the form renders.
+test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
 const SUBSCRIBE_ENDPOINT = '**/api/v1/newsletter/subscriptions';
 const EMAIL_FIELD = { name: 'Email address' } as const;

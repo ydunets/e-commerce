@@ -148,7 +148,7 @@ export const expect = baseExpect.extend({
       expected: accessibleName,
       actual: matcherResult?.actual,
       message: () =>
-        `${this.utils.matcherHint(assertionName, undefined, undefined, {
+        `${this.utils.matcherHint(assertionName, 'locator', String(expected), {
           isNot: this.isNot,
         })}\n\n` +
         `Locator: ${link}\n` +

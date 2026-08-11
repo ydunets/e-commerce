@@ -3,6 +3,7 @@ import {
   API_PREFIX,
   type CartResponse,
   PRODUCT,
+  readJson,
   uniqueEmail,
 } from './helpers';
 
@@ -48,6 +49,26 @@ type ValidationError = {
   subErrors?: { path: string; message: string }[];
 };
 
+type OpenApiDocument = {
+  openapi: string;
+  paths: Record<string, unknown>;
+};
+
+type PaginatedReviews = {
+  count: number;
+  limit: number;
+  page: number;
+  data: unknown[];
+};
+
+type RatingSummary = {
+  total: number;
+  average: number;
+  distribution: Record<string, number>;
+};
+
+type SubscribeResponse = { message: string };
+
 test.describe('Storefront API', { tag: '@critical' }, () => {
   // Readiness is genuinely eventual rather than merely slow, which is what
   // separates a retrying assertion from a polled value here.
@@ -68,10 +89,7 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
     const response = await api.get(OPENAPI_ROUTE);
 
     expect(response).toBeOK();
-    const document = (await response.json()) as {
-      openapi: string;
-      paths: Record<string, unknown>;
-    };
+    const document = await readJson<OpenApiDocument>(response);
     expect(document.openapi).toBe(OPENAPI_VERSION);
     expect(Object.keys(document.paths)).toEqual(
       expect.arrayContaining([...DOCUMENTED_ROUTES]),
@@ -88,7 +106,7 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
         data: { sku: PRODUCT.sku, quantity: 2 },
       });
       expect(response).toBeOK();
-      const cart = (await response.json()) as CartResponse;
+      const cart = await readJson<CartResponse>(response);
       cartId = cart.id;
       expect(cart.lines).toEqual([{ sku: PRODUCT.sku, quantity: 2 }]);
       expect(cart.totalUnits).toBe(2);
@@ -112,9 +130,8 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
         { data: { quantity: 3 } },
       );
       expect(response).toBeOK();
-      expect((await response.json()) as CartResponse).toMatchObject({
-        totalUnits: 3,
-      });
+      const raised = await readJson<CartResponse>(response);
+      expect(raised).toMatchObject({ totalUnits: 3 });
     });
 
     await test.step('append a second line', async () => {
@@ -122,7 +139,7 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
         data: { cartId, sku: PRODUCT.secondSku, quantity: 1 },
       });
       expect(response).toBeOK();
-      const cart = (await response.json()) as CartResponse;
+      const cart = await readJson<CartResponse>(response);
       expect(cart.lines.map((line) => line.sku)).toEqual([
         PRODUCT.sku,
         PRODUCT.secondSku,
@@ -135,7 +152,7 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
         `${API_PREFIX}/carts/${cartId}/items/${PRODUCT.sku}`,
       );
       expect(response).toBeOK();
-      const cart = (await response.json()) as CartResponse;
+      const cart = await readJson<CartResponse>(response);
       expect(cart.lines.map((line) => line.sku)).toEqual([PRODUCT.secondSku]);
       expect(cart.totalUnits).toBe(1);
     });
@@ -177,7 +194,7 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
       );
 
       expect(response.status()).toBe(STATUS_BAD_REQUEST);
-      const body = (await response.json()) as ValidationError;
+      const body = await readJson<ValidationError>(response);
       // The offending field, not the validator's wording: the message text
       // belongs to the server's own unit specs.
       expect(body.subErrors?.[0]?.path).toBe('/cartId');
@@ -192,7 +209,7 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
     });
 
     expect(response).toBeOK();
-    expect((await response.json()) as { message: string }).toHaveProperty(
+    expect(await readJson<SubscribeResponse>(response)).toHaveProperty(
       'message',
     );
   });
@@ -203,7 +220,7 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
     });
 
     expect(response.status()).toBe(STATUS_BAD_REQUEST);
-    const body = (await response.json()) as ValidationError;
+    const body = await readJson<ValidationError>(response);
     expect(body.error).toBe('Bad Request');
     expect(body.subErrors?.[0]?.path).toBe('/email');
   });
@@ -216,12 +233,7 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
     );
 
     expect(response).toBeOK();
-    const paginated = (await response.json()) as {
-      count: number;
-      limit: number;
-      page: number;
-      data: unknown[];
-    };
+    const paginated = await readJson<PaginatedReviews>(response);
     expect(paginated).toMatchObject({
       count: REVIEW_COUNT,
       limit: PAGE_SIZE,
@@ -238,11 +250,7 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
     );
 
     expect(response).toBeOK();
-    const ratings = (await response.json()) as {
-      total: number;
-      average: number;
-      distribution: Record<string, number>;
-    };
+    const ratings = await readJson<RatingSummary>(response);
     expect(ratings.total).toBe(REVIEW_COUNT);
     const counted = Object.values(ratings.distribution).reduce(
       (sum, value) => sum + value,
@@ -267,7 +275,7 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
       );
 
       expect(response.status()).toBe(STATUS_BAD_REQUEST);
-      const body = (await response.json()) as ValidationError;
+      const body = await readJson<ValidationError>(response);
       expect(body.subErrors?.[0]?.path).toBe('/rating');
     },
   );

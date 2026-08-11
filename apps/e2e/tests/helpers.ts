@@ -1,3 +1,5 @@
+import type { APIResponse } from '@playwright/test';
+
 export const PRODUCT = {
   name: 'Voyager Hoodie',
   path: '/products/voyager-hoodie',
@@ -21,6 +23,15 @@ export type CartResponse = {
   lines: { sku: string; quantity: number }[];
   totalUnits: number;
 };
+
+/**
+ * Reads a response body at the type the caller expects. `APIResponse.json()`
+ * answers `any`, so this keeps that one unavoidable cast in a single place
+ * instead of at every call site.
+ */
+export async function readJson<T>(response: APIResponse): Promise<T> {
+  return (await response.json()) as T;
+}
 
 /**
  * Subscribing the same address twice answers 200, so uniqueness is not what

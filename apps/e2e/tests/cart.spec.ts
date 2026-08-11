@@ -1,6 +1,11 @@
 import type { APIRequestContext, Page } from '@playwright/test';
 import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
-import { API_PREFIX, type CartResponse, PRODUCT } from './helpers';
+import {
+  API_PREFIX,
+  type CartResponse,
+  PRODUCT,
+  readJson,
+} from './helpers';
 
 const ADD_TO_CART = { name: 'Add to Cart' } as const;
 const INCREASE = { name: 'Increase quantity' } as const;
@@ -27,7 +32,7 @@ async function serverCart(
   cartId: string,
 ): Promise<CartResponse | null> {
   const response = await api.get(`${API_PREFIX}/carts/${cartId}`);
-  return response.ok() ? ((await response.json()) as CartResponse) : null;
+  return response.ok() ? await readJson<CartResponse>(response) : null;
 }
 
 test.describe('Shopping Cart', () => {

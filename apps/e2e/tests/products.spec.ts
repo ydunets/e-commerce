@@ -25,16 +25,13 @@ const ALL_PRODUCTS = [
 ] as const;
 
 test.describe('Product Catalog', () => {
-  // Scoped to the one test that blocks scripts on purpose: Chromium logs a
-  // resource failure per blocked request, and every other test here must stay
-  // strict about console errors.
+  // Only this test provokes resource-failure noise; the rest stay strict.
   test.describe('with scripts blocked', () => {
     test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
     test('should render every product newest-first on the server when scripts are blocked', async ({
       page,
     }) => {
-      // Block scripts: what remains is exactly what the server sent.
       await page.route('**/*.js', (route) => route.abort());
       await page.goto(ROUTES.products);
 

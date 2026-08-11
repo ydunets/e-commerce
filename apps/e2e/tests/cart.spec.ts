@@ -58,8 +58,7 @@ test.describe('Shopping Cart', () => {
       const cartId = await storedCartId(page);
       expect(cartId).toMatch(UUID_PATTERN);
 
-      // Attached before the assertion, so a failure carries the state that
-      // produced it rather than nothing at all.
+      // Attached before the assertion so a failure carries its evidence.
       await testInfo.attach('server-cart.json', {
         body: JSON.stringify(await serverCart(api, cartId!), null, 2),
         contentType: 'application/json',
@@ -105,9 +104,7 @@ test.describe('Shopping Cart', () => {
     });
   });
 
-  // Scoped to this one test rather than the file: reading a cart that no longer
-  // exists is a 404 by design, and Chromium reports it as a resource failure,
-  // while every other cart test must stay strict about console errors.
+  // Reading a vanished cart 404s by design; only this test tolerates it.
   test.describe('with a stale cart id', () => {
     test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 

@@ -70,8 +70,6 @@ type RatingSummary = {
 type SubscribeResponse = { message: string };
 
 test.describe('Storefront API', { tag: '@critical' }, () => {
-  // Readiness is genuinely eventual rather than merely slow, which is what
-  // separates a retrying assertion from a polled value here.
   test.beforeAll(async ({ api }) => {
     await expect(async () => {
       const response = await api.get(HEALTH_ROUTE);

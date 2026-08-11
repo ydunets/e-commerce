@@ -22,23 +22,18 @@ const latestArrivals = (page: Page) =>
   page.getByRole('region', { name: 'Latest Arrivals' });
 
 test.describe('Storefront Home', () => {
-  // Scoped to the one test that blocks scripts on purpose: Chromium logs a
-  // resource failure per blocked request, and every other test here must stay
-  // strict about console errors.
+  // Only this test provokes resource-failure noise; the rest stay strict.
   test.describe('with scripts blocked', () => {
     test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
     test('should render the hero and Latest Arrivals on the server when scripts are blocked', async ({
       page,
     }) => {
-      // Block scripts: what remains is exactly what the server sent.
       await page.route('**/*.js', (route) => route.abort());
       await page.goto(ROUTES.home);
 
       await expect(page.getByRole('heading', HERO_HEADING)).toBeVisible();
       await expect(page.getByRole('link', SHOP_LINK)).toBeVisible();
-      // Latest Arrivals arrives server-rendered too, with the product data
-      // already in the HTML.
       await expect(
         page.getByRole('heading', { name: 'Latest Arrivals' }),
       ).toBeVisible();

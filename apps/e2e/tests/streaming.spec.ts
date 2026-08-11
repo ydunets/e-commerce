@@ -90,8 +90,7 @@ test.describe(
     await expect(
       page.getByRole('region', { name: 'Product specifications' }),
     ).toBeVisible();
-    // The errorGuard fixture owns the error channels: React recovers from a
-    // hydration mismatch by re-rendering the boundary, so the page can look fine
-    // while hydration actually failed.
+    // No further assertions: the errorGuard fixture catches the hydration
+    // mismatch React would silently recover from.
   });
 });

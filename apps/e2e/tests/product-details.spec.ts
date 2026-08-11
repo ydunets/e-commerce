@@ -81,8 +81,7 @@ test.describe('Product Details', () => {
       await test.step('a single-image colour collapses the gallery', async () => {
         await brown.click();
 
-        // Gathered before the assertions, so a failure here reports the gallery
-        // that produced it.
+        // Gathered before the assertions so a failure carries its evidence.
         await testInfo.attach('gallery-after-switch.json', {
           body: JSON.stringify(
             {

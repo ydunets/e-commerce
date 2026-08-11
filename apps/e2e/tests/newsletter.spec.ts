@@ -25,9 +25,7 @@ test.describe('Newsletter Subscription', () => {
     },
   );
 
-  // Scoped to the one test that answers the subscription with a 500, which
-  // Chromium reports as a resource failure on top of the toast the form
-  // renders. The other tests fulfil success responses and stay strict.
+  // Only the 500 answer provokes resource-failure noise; the rest stay strict.
   test.describe('when the API fails', () => {
     test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
@@ -66,7 +64,6 @@ test.describe('Newsletter Subscription', () => {
     },
     async ({ gotoHydrated, page }) => {
       await gotoHydrated(ROUTES.home);
-      // Holds the response open until the pending state has been observed.
       let releaseResponse = () => {};
       await page.route(SUBSCRIBE_ENDPOINT, async (route) => {
         await new Promise<void>((resolve) => {

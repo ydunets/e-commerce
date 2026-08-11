@@ -28,7 +28,7 @@ const ALL_PRODUCTS = [
   'Urban Bomber Jacket',
 ] as const;
 
-test('renders every seeded product newest-first before any JS runs', async ({
+test('should render every product newest-first on the server when scripts are blocked', async ({
   page,
 }) => {
   // Block scripts: what remains is exactly what the server sent.
@@ -48,13 +48,16 @@ test('renders every seeded product newest-first before any JS runs', async ({
   }
 });
 
-test('has a StyleNest document title', async ({ gotoHydrated, page }) => {
+test('should carry the StyleNest document title', async ({
+  gotoHydrated,
+  page,
+}) => {
   await gotoHydrated(ROUTES.products);
 
   await expect(page).toHaveTitle(/StyleNest/);
 });
 
-test('"View all" navigates from the home Latest Arrivals section', async ({
+test('should reach the catalog when "View all" is followed from Latest Arrivals', async ({
   gotoHydrated,
   page,
 }) => {
@@ -69,7 +72,7 @@ test('"View all" navigates from the home Latest Arrivals section', async ({
   await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
 });
 
-test('the hero "Shop now" CTA navigates to the catalog', async ({
+test('should reach the catalog when the hero "Shop now" call to action is followed', async ({
   gotoHydrated,
   page,
 }) => {
@@ -81,7 +84,7 @@ test('the hero "Shop now" CTA navigates to the catalog', async ({
   await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
 });
 
-test('a card click reaches the product details page', async ({
+test('should open the product details page when a catalog card is clicked', async ({
   gotoHydrated,
   page,
 }) => {

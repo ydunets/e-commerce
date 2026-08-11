@@ -25,7 +25,9 @@ const LATEST_ARRIVALS = [
 const latestArrivals = (page: Page) =>
   page.getByRole('region', { name: 'Latest Arrivals' });
 
-test('renders the server-side markup before any JS runs', async ({ page }) => {
+test('should render the hero and Latest Arrivals on the server when scripts are blocked', async ({
+  page,
+}) => {
   // Block scripts: what remains is exactly what the server sent.
   await page.route('**/*.js', (route) => route.abort());
   await page.goto(ROUTES.home);
@@ -42,7 +44,7 @@ test('renders the server-side markup before any JS runs', async ({ page }) => {
   ).toBeVisible();
 });
 
-test('shows the 8 newest products in order in Latest Arrivals', async ({
+test('should list the eight newest products in order in Latest Arrivals', async ({
   gotoHydrated,
   page,
 }) => {
@@ -60,7 +62,7 @@ test('shows the 8 newest products in order in Latest Arrivals', async ({
   }
 });
 
-test('shows the default colour variant with its card price on a card', async ({
+test('should show the default colour variant with its sale and list price on a card', async ({
   gotoHydrated,
   page,
 }) => {
@@ -80,7 +82,7 @@ test('shows the default colour variant with its card price on a card', async ({
 // out-of-stock seeded colour (classic-canvas-tee beige) is the 9th-newest
 // product, outside the home grid. The /products spec (#22) covers it; the
 // ColorSwatches stories exercise the state interactively meanwhile.
-test('clicking a swatch swaps the card to that colour variant', async ({
+test('should swap the card to another colour variant when its swatch is clicked, without navigating', async ({
   gotoHydrated,
   page,
 }) => {
@@ -106,7 +108,7 @@ test('clicking a swatch swaps the card to that colour variant', async ({
   await expect(page).toHaveURL(ROUTES.home);
 });
 
-test('opens the product details page from a card', async ({
+test('should open the product details page when a card is clicked', async ({
   gotoHydrated,
   page,
 }) => {
@@ -122,7 +124,7 @@ test('opens the product details page from a card', async ({
   ).toBeVisible();
 });
 
-test('shows the hero and the desktop navigation', async ({
+test('should offer the desktop navigation and reach the catalog from it', async ({
   gotoHydrated,
   page,
 }) => {
@@ -140,7 +142,7 @@ test('shows the hero and the desktop navigation', async ({
   await expect(page).toHaveURL(ROUTES.products);
 });
 
-test('navigates to the products catalog from the hero link', async ({
+test('should navigate to the products catalog when the hero link is followed', async ({
   gotoHydrated,
   page,
 }) => {
@@ -151,7 +153,7 @@ test('navigates to the products catalog from the hero link', async ({
   await expect(page).toHaveURL(ROUTES.products);
 });
 
-test('about page reports a live API connection', async ({
+test('should report a live API connection on the about page', async ({
   gotoHydrated,
   page,
 }) => {

@@ -49,7 +49,7 @@ test.beforeEach(async ({ gotoHydrated }) => {
 });
 
 test(
-  'server-renders the product with price and rating',
+  'should render the product with its price and rating from the server',
   { tag: '@smoke' },
   async ({ page }) => {
     await expect(
@@ -62,7 +62,7 @@ test(
 );
 
 test(
-  'selecting a colour updates the swatch and the gallery',
+  'should update the swatch and the gallery when another colour is selected',
   { tag: '@critical' },
   async ({ page }, testInfo) => {
     const green = page.getByRole('radio', COLOR_GREEN);
@@ -109,7 +109,7 @@ test(
   },
 );
 
-test('"In this collection" lists the collection siblings, never the current product', async ({
+test('should list the collection siblings and never the current product in "In this collection"', async ({
   page,
 }, testInfo) => {
   const section = page.getByRole('region', COLLECTION_SECTION);
@@ -130,7 +130,7 @@ test('"In this collection" lists the collection siblings, never the current prod
   await expect(section.getByRole('link', { name: PRODUCT.name })).toHaveCount(0);
 });
 
-test('a collection card shows the sale price with the original struck through', async ({
+test('should show the sale price with the original struck through on a discounted collection card', async ({
   page,
 }) => {
   const card = collectionCard(page, DISCOUNTED_SIBLING);
@@ -139,7 +139,7 @@ test('a collection card shows the sale price with the original struck through', 
   await expect(card.getByText(SIBLING_ORIGINAL_PRICE)).toBeVisible();
 });
 
-test('a collection card crosses out a fully out-of-stock colour', async ({
+test('should cross out a colour on a collection card when that colour is fully out of stock', async ({
   gotoHydrated,
   page,
 }) => {
@@ -150,7 +150,7 @@ test('a collection card crosses out a fully out-of-stock colour', async ({
   await expect(card.getByRole('radio', OUT_OF_STOCK_SWATCH)).toBeVisible();
 });
 
-test('the page stands without the section when the collection request fails', async ({
+test('should render the page without the collection section when the collection request fails', async ({
   gotoHydrated,
   page,
 }) => {
@@ -172,7 +172,9 @@ test('the page stands without the section when the collection request fails', as
   await expect(page.getByRole('region', COLLECTION_SECTION)).toHaveCount(0);
 });
 
-test('a collection card navigates to its product page', async ({ page }) => {
+test('should navigate to the sibling product page when a collection card is clicked', async ({
+  page,
+}) => {
   await page
     .getByRole('region', COLLECTION_SECTION)
     .getByRole('link', { name: COLLECTION_SIBLINGS[0] })
@@ -184,7 +186,7 @@ test('a collection card navigates to its product page', async ({ page }) => {
   ).toBeVisible();
 });
 
-test('quantity stepper increments and respects the minimum', async ({
+test('should increment the quantity and keep the decrement disabled at the minimum', async ({
   page,
 }) => {
   const increase = page.getByRole('button', INCREASE);

@@ -14,7 +14,7 @@ const SOCIAL_LABELS = ['YouTube', 'Instagram', 'Facebook', 'GitHub', 'X'] as con
 
 const footer = (page: Page) => page.getByRole('contentinfo');
 
-test('server-renders the footer with the newsletter form before any JS runs', async ({
+test('should render the footer and its newsletter form on the server when scripts are blocked', async ({
   page,
 }) => {
   // Block scripts: what remains is exactly what the server sent.
@@ -28,7 +28,7 @@ test('server-renders the footer with the newsletter form before any JS runs', as
   ).toBeVisible();
 });
 
-test('shows the copyright year and every social link', async ({
+test('should show the current copyright year and every social link', async ({
   gotoHydrated,
   page,
 }) => {
@@ -44,7 +44,7 @@ test('shows the copyright year and every social link', async ({
   }
 });
 
-test('a shop link navigates to the products catalog', async ({
+test('should navigate to the products catalog when a footer shop link is followed', async ({
   gotoHydrated,
   page,
 }) => {

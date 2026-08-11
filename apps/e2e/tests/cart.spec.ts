@@ -31,7 +31,7 @@ async function serverCart(
 }
 
 test(
-  'adding to cart updates the navbar badge without a reload',
+  'should update the navbar badge without a reload when an item is added to the cart',
   { tag: ['@smoke', '@critical'] },
   async ({ api, gotoHydrated, page }, testInfo) => {
     await test.step('open the product with an empty bag', async () => {
@@ -69,7 +69,7 @@ test(
   },
 );
 
-test('the badge survives reload and navigation, persisting only the cart id', async ({
+test('should keep the badge count across reload and navigation while persisting only the cart id', async ({
   gotoHydrated,
   page,
 }) => {
@@ -94,10 +94,10 @@ test('the badge survives reload and navigation, persisting only the cart id', as
 // Scoped to this one test rather than the file: reading a cart that no longer
 // exists is a 404 by design, and Chromium reports it as a resource failure,
 // while every other cart test must stay strict about console errors.
-test.describe('self-healing', () => {
+test.describe('with a stale cart id', () => {
   test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
-  test('a stale cart id self-heals without a user-visible error', async ({
+  test('should recover silently when the stored cart no longer exists', async ({
     gotoHydrated,
     page,
   }) => {
@@ -123,7 +123,7 @@ const SOLD_OUT_PRODUCT_PATH = '/products/classic-canvas-tee';
 const SOLD_OUT_COLOR = { name: 'Beige (out of stock)' } as const;
 
 test(
-  'a sold-out colour keeps Add to Cart disabled with the notice',
+  'should disable Add to Cart and show the notice when the selected colour is sold out',
   { tag: '@critical' },
   async ({ gotoHydrated, page }) => {
     await gotoHydrated(SOLD_OUT_PRODUCT_PATH);
@@ -138,7 +138,7 @@ test(
 );
 
 test(
-  'the stepper increment disables at the stock cap',
+  'should disable the increment when the quantity reaches the stock cap',
   {
     tag: '@slow',
     annotation: {

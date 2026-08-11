@@ -25,7 +25,7 @@ async function readInFlushes(
   return flushes;
 }
 
-test('streams the product shell before the specifications section', async ({
+test('should flush the product shell before the specifications section arrives', async ({
   baseURL,
 }) => {
   const startedAt = Date.now();
@@ -71,7 +71,7 @@ test('streams the product shell before the specifications section', async ({
   expect(streamedTail).toContain('<script');
 });
 
-test('swaps the streamed section in and hydrates cleanly', async ({
+test('should swap the streamed section in and hydrate without errors', async ({
   gotoHydrated,
   page,
 }) => {

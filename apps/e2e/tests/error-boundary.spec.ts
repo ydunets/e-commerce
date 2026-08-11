@@ -38,7 +38,7 @@ async function failProductRequest(
   );
 }
 
-test('a missing product answers 404 and renders the not-found page', async ({
+test('should answer 404 and render the not-found page when the product does not exist', async ({
   page,
 }) => {
   const response = await page.goto(MISSING_PRODUCT);
@@ -48,14 +48,16 @@ test('a missing product answers 404 and renders the not-found page', async ({
   await expect(page.getByRole('link', { name: 'Back to the store' })).toBeVisible();
 });
 
-test('an unknown route renders the same not-found page', async ({ page }) => {
+test('should render the not-found page when the route is unknown', async ({
+  page,
+}) => {
   const response = await page.goto('/no-such-page');
 
   expect(response?.status()).toBe(404);
   await expect(page.getByRole('heading', NOT_FOUND_HEADING)).toBeVisible();
 });
 
-test('a 503 from the API renders the service-unavailable screen', async ({
+test('should render the service-unavailable screen when the API answers 503', async ({
   gotoHydrated,
   page,
 }) => {
@@ -75,7 +77,7 @@ test('a 503 from the API renders the service-unavailable screen', async ({
   ).toBeVisible();
 });
 
-test('a 400 from the API renders the bad-request screen with its field errors', async ({
+test('should render the bad-request screen with its field errors when the API answers 400', async ({
   gotoHydrated,
   page,
 }) => {
@@ -95,7 +97,7 @@ test('a 400 from the API renders the bad-request screen with its field errors', 
   await expect(page.getByText('Reference: e2e400')).toBeVisible();
 });
 
-test('a 500 from the API renders the server-error screen with a retry action', async ({
+test('should render the server-error screen with a retry action when the API answers 500', async ({
   gotoHydrated,
   page,
 }) => {
@@ -110,7 +112,7 @@ test('a 500 from the API renders the server-error screen with a retry action', a
   await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible();
 });
 
-test('a dead API health probe reports the store service outage', async ({
+test('should report the store service outage when the API health probe fails', async ({
   gotoHydrated,
   page,
 }) => {
@@ -129,7 +131,7 @@ test('a dead API health probe reports the store service outage', async ({
   ).toBeVisible();
 });
 
-test('an unreachable app server replaces the status screen', async ({
+test('should report an unreachable app server when its health probe cannot be reached', async ({
   gotoHydrated,
   page,
 }) => {

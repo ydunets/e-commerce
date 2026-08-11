@@ -62,7 +62,9 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
     });
   });
 
-  test('documents every route the browser specs depend on', async ({ api }) => {
+  test('should document every route the browser specs depend on', async ({
+    api,
+  }) => {
     const response = await api.get(OPENAPI_ROUTE);
 
     expect(response).toBeOK();
@@ -76,7 +78,7 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
     );
   });
 
-  test('carries a cart through its whole lifecycle', async ({
+  test('should keep the cart consistent when lines are added, raised and removed', async ({
     api,
   }, testInfo) => {
     let cartId = '';
@@ -148,7 +150,7 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
     });
   });
 
-  test('rejects an unknown sku, an unknown cart, and a malformed cart id', async ({
+  test('should reject the request when the sku is unknown, the cart is unknown or the cart id is malformed', async ({
     api,
   }) => {
     const unknownSku = await api.post(`${API_PREFIX}/carts/items`, {
@@ -171,7 +173,7 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
     expect(body.subErrors?.[0]?.path).toBe('/cartId');
   });
 
-  test('accepts a newsletter subscription and rejects a malformed address', async ({
+  test('should accept a subscription when the address is valid and reject it when it is malformed', async ({
     api,
   }) => {
     const accepted = await api.post(`${API_PREFIX}/newsletter/subscriptions`, {
@@ -191,7 +193,9 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
     expect(body.subErrors?.[0]?.path).toBe('/email');
   });
 
-  test('paginates reviews and summarises their ratings', async ({ api }) => {
+  test('should return one page of reviews and a summary that accounts for every review', async ({
+    api,
+  }) => {
     const page = await api.get(
       `${API_PREFIX}/products/${REVIEWED_PRODUCT}/reviews?page=1&limit=${PAGE_SIZE}`,
     );
@@ -228,7 +232,9 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
     );
   });
 
-  test('rejects a rating filter outside the star range', async ({ api }) => {
+  test('should reject the request when the rating filter falls outside the star range', async ({
+    api,
+  }) => {
     const response = await api.get(
       `${API_PREFIX}/products/${REVIEWED_PRODUCT}/reviews?rating=${OUT_OF_RANGE_RATING}`,
     );

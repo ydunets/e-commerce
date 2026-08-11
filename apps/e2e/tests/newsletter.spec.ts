@@ -14,7 +14,7 @@ const FAILURE_MESSAGE =
   'Failed to subscribe. Please ensure your email is correct or try again later.';
 
 test(
-  'subscribing with a new email shows the success toast and clears the field',
+  'should show the success toast and clear the field when a new address is submitted',
   { tag: '@smoke' },
   async ({ gotoHydrated, page }) => {
     await gotoHydrated(ROUTES.home);
@@ -28,7 +28,7 @@ test(
   },
 );
 
-test('an API failure shows the failure toast', async ({
+test('should show the failure toast when the subscription request fails', async ({
   gotoHydrated,
   page,
 }) => {
@@ -51,7 +51,7 @@ test('an API failure shows the failure toast', async ({
   await expect(page.getByRole('status')).toHaveText(FAILURE_MESSAGE);
 });
 
-test('the Subscribe button is disabled while the request is in flight', async ({
+test('should disable the Subscribe button while the request is in flight', async ({
   gotoHydrated,
   page,
 }) => {
@@ -79,7 +79,10 @@ test('the Subscribe button is disabled while the request is in flight', async ({
   await expect(button).toBeEnabled();
 });
 
-test('the form submits from the keyboard', async ({ gotoHydrated, page }) => {
+test('should submit the form when Enter is pressed in the address field', async ({
+  gotoHydrated,
+  page,
+}) => {
   await gotoHydrated(ROUTES.home);
   await page.route(SUBSCRIBE_ENDPOINT, (route) =>
     route.fulfill({

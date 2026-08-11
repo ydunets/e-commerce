@@ -9,7 +9,9 @@ test.beforeEach(async ({ gotoHydrated }) => {
   await gotoHydrated(ROUTES.home);
 });
 
-test('opens and closes the drawer', async ({ page }) => {
+test('should open and close the drawer when the menu and close buttons are used', async ({
+  page,
+}) => {
   const menuButton = page.getByRole('button', OPEN_MENU);
   const drawer = page.getByRole('dialog', DRAWER);
 
@@ -25,7 +27,9 @@ test('opens and closes the drawer', async ({ page }) => {
   await expect(menuButton).toHaveAttribute('aria-expanded', 'false');
 });
 
-test('navigates from a drawer link and closes it', async ({ page }) => {
+test('should navigate and close the drawer when a drawer link is followed', async ({
+  page,
+}) => {
   await page.getByRole('button', OPEN_MENU).click();
 
   const drawer = page.getByRole('dialog', DRAWER);

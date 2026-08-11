@@ -9,7 +9,7 @@ const ADD_TO_CART = { name: 'Add to Cart' } as const;
 test.use({ trace: 'off' });
 
 test(
-  'records a trace of the add-to-cart flow on demand',
+  'should record a trace of the add-to-cart flow when tracing is started explicitly',
   {
     annotation: {
       type: 'purpose',

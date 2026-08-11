@@ -24,12 +24,25 @@ export type CartResponse = {
   totalUnits: number;
 };
 
+const JSON_CONTENT_TYPE = 'application/json';
+
 /**
- * Reads a response body at the type the caller expects. `APIResponse.json()`
- * answers `any`, so this keeps that one unavoidable cast in a single place
- * instead of at every call site.
+ * Reads a response body at the type the caller expects, refusing to parse
+ * anything that does not declare itself as JSON. A proxy error page or an
+ * HTML 404 would otherwise surface as a confusing parse failure deep in an
+ * assertion; this names the real problem at the read. `APIResponse.json()`
+ * answers `any`, so the one unavoidable cast also lives here. Deliberately
+ * throws instead of catching: in a test, a swallowed error is a hidden
+ * failure.
  */
 export async function readJson<T>(response: APIResponse): Promise<T> {
+  const contentType = response.headers()['content-type'];
+  if (!contentType?.includes(JSON_CONTENT_TYPE)) {
+    throw new TypeError(
+      `expected ${JSON_CONTENT_TYPE} from ${response.url()} ` +
+        `but got "${contentType ?? 'no content-type'}" (status ${response.status()})`,
+    );
+  }
   return (await response.json()) as T;
 }
 

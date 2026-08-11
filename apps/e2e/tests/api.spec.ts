@@ -76,7 +76,7 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
     await expect(async () => {
       const response = await api.get(HEALTH_ROUTE);
       expect(response).toBeOK();
-      expect(await response.json()).toEqual({ status: 'ok' });
+      expect(await readJson(response)).toEqual({ status: 'ok' });
     }).toPass({
       intervals: READINESS_INTERVALS_MS,
       timeout: READINESS_TIMEOUT_MS,
@@ -121,7 +121,7 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
     await test.step('read it back', async () => {
       const response = await api.get(`${API_PREFIX}/carts/${cartId}`);
       expect(response).toBeOK();
-      expect(await response.json()).toEqual(created);
+      expect(await readJson<CartResponse>(response)).toEqual(created);
     });
 
     await test.step('raise the quantity of a line', async () => {

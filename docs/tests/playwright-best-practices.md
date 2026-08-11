@@ -249,5 +249,10 @@ reports group by behaviour.
   annotation where the value only exists mid-test.
 - Named constants over literals, including status codes (`STATUS_NOT_FOUND`),
   poll bounds, and seeded facts, each with a comment naming its source.
-- Body reads go through `readJson<T>(response)` so the cast that
-  `APIResponse.json()` forces lives in one place.
+- Every body read goes through `readJson<T>(response)`, never a raw
+  `response.json()`. The helper refuses to parse a body whose content type is
+  not JSON, so a proxy error page fails with a message naming the URL, status,
+  and offending content type instead of a parse error deep in an assertion.
+  It throws rather than catching, because a swallowed error in a test is a
+  hidden failure. It also keeps the cast that `APIResponse.json()` forces in
+  one place.

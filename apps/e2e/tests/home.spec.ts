@@ -2,10 +2,6 @@ import type { Page } from '@playwright/test';
 import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
 import { PRODUCT, ROUTES } from './helpers';
 
-// The first test blocks every script to inspect the server-rendered markup,
-// and Chromium logs a resource failure for each blocked request.
-test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
-
 const HERO_HEADING = { name: 'Discover the StyleNest collection' } as const;
 const SHOP_LINK = { name: 'Shop now' } as const;
 const MAIN_NAV = { name: 'Main' } as const;
@@ -26,23 +22,30 @@ const latestArrivals = (page: Page) =>
   page.getByRole('region', { name: 'Latest Arrivals' });
 
 test.describe('Storefront Home', () => {
-  test('should render the hero and Latest Arrivals on the server when scripts are blocked', async ({
-    page,
-  }) => {
-    // Block scripts: what remains is exactly what the server sent.
-    await page.route('**/*.js', (route) => route.abort());
-    await page.goto(ROUTES.home);
+  // Scoped to the one test that blocks scripts on purpose: Chromium logs a
+  // resource failure per blocked request, and every other test here must stay
+  // strict about console errors.
+  test.describe('with scripts blocked', () => {
+    test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
-    await expect(page.getByRole('heading', HERO_HEADING)).toBeVisible();
-    await expect(page.getByRole('link', SHOP_LINK)).toBeVisible();
-    // Latest Arrivals arrives server-rendered too, with the product data
-    // already in the HTML.
-    await expect(
-      page.getByRole('heading', { name: 'Latest Arrivals' }),
-    ).toBeVisible();
-    await expect(
-      latestArrivals(page).getByRole('link', { name: LATEST_ARRIVALS[0] }),
-    ).toBeVisible();
+    test('should render the hero and Latest Arrivals on the server when scripts are blocked', async ({
+      page,
+    }) => {
+      // Block scripts: what remains is exactly what the server sent.
+      await page.route('**/*.js', (route) => route.abort());
+      await page.goto(ROUTES.home);
+
+      await expect(page.getByRole('heading', HERO_HEADING)).toBeVisible();
+      await expect(page.getByRole('link', SHOP_LINK)).toBeVisible();
+      // Latest Arrivals arrives server-rendered too, with the product data
+      // already in the HTML.
+      await expect(
+        page.getByRole('heading', { name: 'Latest Arrivals' }),
+      ).toBeVisible();
+      await expect(
+        latestArrivals(page).getByRole('link', { name: LATEST_ARRIVALS[0] }),
+      ).toBeVisible();
+    });
   });
 
   test('should list the eight newest products in order in Latest Arrivals', async ({

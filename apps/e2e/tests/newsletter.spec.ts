@@ -1,10 +1,6 @@
 import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
 import { ROUTES, uniqueEmail } from './helpers';
 
-// The failure test answers the subscription with a 500, which Chromium reports
-// as a resource failure on top of the toast the form renders.
-test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
-
 const SUBSCRIBE_ENDPOINT = '**/api/v1/newsletter/subscriptions';
 const EMAIL_FIELD = { name: 'Email address' } as const;
 const SUBSCRIBE_BUTTON = { name: 'Subscribe' } as const;
@@ -18,16 +14,22 @@ test.describe('Newsletter Subscription', () => {
     'should show the success toast and clear the field when a new address is submitted',
     { tag: '@smoke' },
     async ({ gotoHydrated, page }) => {
-        await gotoHydrated(ROUTES.home);
+      await gotoHydrated(ROUTES.home);
 
-        const field = page.getByRole('textbox', EMAIL_FIELD);
-        await field.fill(uniqueEmail());
-        await page.getByRole('button', SUBSCRIBE_BUTTON).click();
+      const field = page.getByRole('textbox', EMAIL_FIELD);
+      await field.fill(uniqueEmail());
+      await page.getByRole('button', SUBSCRIBE_BUTTON).click();
 
-        await expect(page.getByRole('status')).toHaveText(SUCCESS_MESSAGE);
-        await expect(field).toHaveValue('');
-      },
-    );
+      await expect(page.getByRole('status')).toHaveText(SUCCESS_MESSAGE);
+      await expect(field).toHaveValue('');
+    },
+  );
+
+  // Scoped to the one test that answers the subscription with a 500, which
+  // Chromium reports as a resource failure on top of the toast the form
+  // renders. The other tests fulfil success responses and stay strict.
+  test.describe('when the API fails', () => {
+    test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
     test('should show the failure toast when the subscription request fails', async ({
       gotoHydrated,
@@ -50,8 +52,8 @@ test.describe('Newsletter Subscription', () => {
       await page.getByRole('button', SUBSCRIBE_BUTTON).click();
 
       await expect(page.getByRole('status')).toHaveText(FAILURE_MESSAGE);
-    },
-  );
+    });
+  });
 
   test(
     'should disable the Subscribe button while the request is in flight',

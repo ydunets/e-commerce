@@ -2,10 +2,6 @@ import type { Page } from '@playwright/test';
 import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
 import { ROUTES } from './helpers';
 
-// The first test blocks every script to inspect the server-rendered markup,
-// and Chromium logs a resource failure for each blocked request.
-test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
-
 const NEWSLETTER_HEADING = 'Join our newsletter';
 const COPYRIGHT_PATTERN = new RegExp(
   `© ${new Date().getUTCFullYear()} StyleNest, Inc\\.`,
@@ -15,18 +11,25 @@ const SOCIAL_LABELS = ['YouTube', 'Instagram', 'Facebook', 'GitHub', 'X'] as con
 const footer = (page: Page) => page.getByRole('contentinfo');
 
 test.describe('Site Footer', () => {
-  test('should render the footer and its newsletter form on the server when scripts are blocked', async ({
-    page,
-  }) => {
-    // Block scripts: what remains is exactly what the server sent.
-    await page.route('**/*.js', (route) => route.abort());
-    await page.goto(ROUTES.home);
+  // Scoped to the one test that blocks scripts on purpose: Chromium logs a
+  // resource failure per blocked request, and every other test here must stay
+  // strict about console errors.
+  test.describe('with scripts blocked', () => {
+    test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
-    await expect(footer(page).getByText(NEWSLETTER_HEADING)).toBeVisible();
-    await expect(footer(page).getByRole('textbox')).toBeVisible();
-    await expect(
-      footer(page).getByRole('button', { name: 'Subscribe' }),
-    ).toBeVisible();
+    test('should render the footer and its newsletter form on the server when scripts are blocked', async ({
+      page,
+    }) => {
+      // Block scripts: what remains is exactly what the server sent.
+      await page.route('**/*.js', (route) => route.abort());
+      await page.goto(ROUTES.home);
+
+      await expect(footer(page).getByText(NEWSLETTER_HEADING)).toBeVisible();
+      await expect(footer(page).getByRole('textbox')).toBeVisible();
+      await expect(
+        footer(page).getByRole('button', { name: 'Subscribe' }),
+      ).toBeVisible();
+    });
   });
 
   test('should show the current copyright year and every social link', async ({

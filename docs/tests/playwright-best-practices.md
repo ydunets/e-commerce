@@ -237,6 +237,9 @@ reports group by behaviour.
 ## Conventions specific to this suite
 
 - Titles follow `should <outcome> when <condition>`; groups are noun phrases.
+- `test.step` appears when a flow has two or more user-visible phases the
+  title cannot carry; a short test stays flat, because steps in a twelve-line
+  test add report noise, not clarity.
 - Selection runs through tags (`@smoke`, `@critical`, `@slow`) and the
   `test:smoke` / `test:critical` / `test:not-slow` scripts, never through
   bracket markers in titles.

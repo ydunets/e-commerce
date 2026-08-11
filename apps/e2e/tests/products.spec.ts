@@ -1,10 +1,6 @@
 import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
 import { PRODUCT, ROUTES } from './helpers';
 
-// The first test blocks every script to inspect the server-rendered markup,
-// and Chromium logs a resource failure for each blocked request.
-test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
-
 // All 19 seeded products, newest-first by created_at (see products seed).
 const ALL_PRODUCTS = [
   'Urban Drift Bucket Hat',
@@ -29,24 +25,31 @@ const ALL_PRODUCTS = [
 ] as const;
 
 test.describe('Product Catalog', () => {
-  test('should render every product newest-first on the server when scripts are blocked', async ({
-    page,
-  }) => {
-    // Block scripts: what remains is exactly what the server sent.
-    await page.route('**/*.js', (route) => route.abort());
-    await page.goto(ROUTES.products);
+  // Scoped to the one test that blocks scripts on purpose: Chromium logs a
+  // resource failure per blocked request, and every other test here must stay
+  // strict about console errors.
+  test.describe('with scripts blocked', () => {
+    test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
-    await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
+    test('should render every product newest-first on the server when scripts are blocked', async ({
+      page,
+    }) => {
+      // Block scripts: what remains is exactly what the server sent.
+      await page.route('**/*.js', (route) => route.abort());
+      await page.goto(ROUTES.products);
 
-    // Scope to the grid's <ul>, excluding the navbar's links.
-    const cards = page
-      .getByRole('region', { name: 'Products' })
-      .locator('ul')
-      .getByRole('link');
-    await expect(cards).toHaveCount(ALL_PRODUCTS.length);
-    for (const [index, name] of ALL_PRODUCTS.entries()) {
-      await expect(cards.nth(index)).toHaveAccessibleName(name);
-    }
+      await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
+
+      // Scope to the grid's <ul>, excluding the navbar's links.
+      const cards = page
+        .getByRole('region', { name: 'Products' })
+        .locator('ul')
+        .getByRole('link');
+      await expect(cards).toHaveCount(ALL_PRODUCTS.length);
+      for (const [index, name] of ALL_PRODUCTS.entries()) {
+        await expect(cards.nth(index)).toHaveAccessibleName(name);
+      }
+    });
   });
 
   test('should carry the StyleNest document title', async ({

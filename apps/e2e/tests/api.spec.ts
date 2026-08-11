@@ -48,7 +48,7 @@ type ValidationError = {
   subErrors?: { path: string; message: string }[];
 };
 
-test.describe('the storefront API', { tag: '@critical' }, () => {
+test.describe('Storefront API', { tag: '@critical' }, () => {
   // Readiness is genuinely eventual rather than merely slow, which is what
   // separates a retrying assertion from a polled value here.
   test.beforeAll(async ({ api }) => {
@@ -103,8 +103,6 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
     await test.step('read it back', async () => {
       const response = await api.get(`${API_PREFIX}/carts/${cartId}`);
       expect(response).toBeOK();
-      // Compared against what the write answered, not against a recorded
-      // shape: the claim is that reading returns what writing reported.
       expect(await response.json()).toEqual(created);
     });
 
@@ -150,57 +148,75 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
     });
   });
 
-  test('should reject the request when the sku is unknown, the cart is unknown or the cart id is malformed', async ({
-    api,
-  }) => {
-    const unknownSku = await api.post(`${API_PREFIX}/carts/items`, {
+  test('should answer 404 when the sku does not exist', async ({ api }) => {
+    const response = await api.post(`${API_PREFIX}/carts/items`, {
       data: { sku: UNKNOWN_SKU, quantity: 1 },
     });
-    expect(unknownSku.status()).toBe(STATUS_NOT_FOUND);
 
-    const unknownCart = await api.get(
-      `${API_PREFIX}/carts/${UNKNOWN_CART_ID}`,
-    );
-    expect(unknownCart.status()).toBe(STATUS_NOT_FOUND);
-
-    const malformed = await api.get(
-      `${API_PREFIX}/carts/${MALFORMED_CART_ID}`,
-    );
-    expect(malformed.status()).toBe(STATUS_BAD_REQUEST);
-    const body = (await malformed.json()) as ValidationError;
-    // The offending field, not the validator's wording: the message text
-    // belongs to the server's own unit specs.
-    expect(body.subErrors?.[0]?.path).toBe('/cartId');
+    expect(response.status()).toBe(STATUS_NOT_FOUND);
   });
 
-  test('should accept a subscription when the address is valid and reject it when it is malformed', async ({
+  test('should answer 404 when the cart does not exist', async ({ api }) => {
+    const response = await api.get(`${API_PREFIX}/carts/${UNKNOWN_CART_ID}`);
+
+    expect(response.status()).toBe(STATUS_NOT_FOUND);
+  });
+
+  test(
+    'should answer 400 when the cart id is not a uuid',
+    {
+      annotation: {
+        type: 'edge-case',
+        description:
+          'the path parameter fails schema validation before any handler runs',
+      },
+    },
+    async ({ api }) => {
+      const response = await api.get(
+        `${API_PREFIX}/carts/${MALFORMED_CART_ID}`,
+      );
+
+      expect(response.status()).toBe(STATUS_BAD_REQUEST);
+      const body = (await response.json()) as ValidationError;
+      // The offending field, not the validator's wording: the message text
+      // belongs to the server's own unit specs.
+      expect(body.subErrors?.[0]?.path).toBe('/cartId');
+    },
+  );
+
+  test('should confirm the subscription when the address is valid', async ({
     api,
   }) => {
-    const accepted = await api.post(`${API_PREFIX}/newsletter/subscriptions`, {
+    const response = await api.post(`${API_PREFIX}/newsletter/subscriptions`, {
       data: { email: uniqueEmail() },
     });
-    expect(accepted).toBeOK();
-    expect((await accepted.json()) as { message: string }).toHaveProperty(
+
+    expect(response).toBeOK();
+    expect((await response.json()) as { message: string }).toHaveProperty(
       'message',
     );
+  });
 
-    const rejected = await api.post(`${API_PREFIX}/newsletter/subscriptions`, {
+  test('should answer 400 when the address is malformed', async ({ api }) => {
+    const response = await api.post(`${API_PREFIX}/newsletter/subscriptions`, {
       data: { email: 'not-an-email' },
     });
-    expect(rejected.status()).toBe(STATUS_BAD_REQUEST);
-    const body = (await rejected.json()) as ValidationError;
+
+    expect(response.status()).toBe(STATUS_BAD_REQUEST);
+    const body = (await response.json()) as ValidationError;
     expect(body.error).toBe('Bad Request');
     expect(body.subErrors?.[0]?.path).toBe('/email');
   });
 
-  test('should return one page of reviews and a summary that accounts for every review', async ({
+  test('should return one page of reviews when a page size is given', async ({
     api,
   }) => {
-    const page = await api.get(
+    const response = await api.get(
       `${API_PREFIX}/products/${REVIEWED_PRODUCT}/reviews?page=1&limit=${PAGE_SIZE}`,
     );
-    expect(page).toBeOK();
-    const paginated = (await page.json()) as {
+
+    expect(response).toBeOK();
+    const paginated = (await response.json()) as {
       count: number;
       limit: number;
       page: number;
@@ -212,12 +228,17 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
       page: 1,
     });
     expect(paginated.data).toHaveLength(PAGE_SIZE);
+  });
 
-    const summary = await api.get(
+  test('should account for every review in the rating summary', async ({
+    api,
+  }) => {
+    const response = await api.get(
       `${API_PREFIX}/products/${REVIEWED_PRODUCT}/reviews/summary`,
     );
-    expect(summary).toBeOK();
-    const ratings = (await summary.json()) as {
+
+    expect(response).toBeOK();
+    const ratings = (await response.json()) as {
       total: number;
       average: number;
       distribution: Record<string, number>;
@@ -232,15 +253,22 @@ test.describe('the storefront API', { tag: '@critical' }, () => {
     );
   });
 
-  test('should reject the request when the rating filter falls outside the star range', async ({
-    api,
-  }) => {
-    const response = await api.get(
-      `${API_PREFIX}/products/${REVIEWED_PRODUCT}/reviews?rating=${OUT_OF_RANGE_RATING}`,
-    );
+  test(
+    'should answer 400 when the rating filter is outside the star range',
+    {
+      annotation: {
+        type: 'edge-case',
+        description: 'the querystring schema caps the filter at five stars',
+      },
+    },
+    async ({ api }) => {
+      const response = await api.get(
+        `${API_PREFIX}/products/${REVIEWED_PRODUCT}/reviews?rating=${OUT_OF_RANGE_RATING}`,
+      );
 
-    expect(response.status()).toBe(STATUS_BAD_REQUEST);
-    const body = (await response.json()) as ValidationError;
-    expect(body.subErrors?.[0]?.path).toBe('/rating');
-  });
+      expect(response.status()).toBe(STATUS_BAD_REQUEST);
+      const body = (await response.json()) as ValidationError;
+      expect(body.subErrors?.[0]?.path).toBe('/rating');
+    },
+  );
 });

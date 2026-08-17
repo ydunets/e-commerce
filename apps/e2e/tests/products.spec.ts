@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { gotoHydrated, PRODUCT, ROUTES } from './helpers';
+import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
+import { PRODUCT, ROUTES } from './helpers';
 
 // All 19 seeded products, newest-first by created_at (see products seed).
 const ALL_PRODUCTS = [
@@ -24,62 +24,78 @@ const ALL_PRODUCTS = [
   'Urban Bomber Jacket',
 ] as const;
 
-test('renders every seeded product newest-first before any JS runs', async ({
-  page,
-}) => {
-  // Block scripts: what remains is exactly what the server sent.
-  await page.route('**/*.js', (route) => route.abort());
-  await page.goto(ROUTES.products);
+test.describe('Product Catalog', () => {
+  // Only this test provokes resource-failure noise; the rest stay strict.
+  test.describe('with scripts blocked', () => {
+    test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
-  await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
+    test('should render every product newest-first on the server when scripts are blocked', async ({
+      page,
+    }) => {
+      await page.route('**/*.js', (route) => route.abort());
+      await page.goto(ROUTES.products);
 
-  // Scope to the grid's <ul>, excluding the navbar's links.
-  const cards = page
-    .getByRole('region', { name: 'Products' })
-    .locator('ul')
-    .getByRole('link');
-  await expect(cards).toHaveCount(ALL_PRODUCTS.length);
-  for (const [index, name] of ALL_PRODUCTS.entries()) {
-    await expect(cards.nth(index)).toHaveAccessibleName(name);
-  }
-});
+      await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
 
-test('has a StyleNest document title', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.products);
+      // Scope to the grid's <ul>, excluding the navbar's links.
+      const cards = page
+        .getByRole('region', { name: 'Products' })
+        .locator('ul')
+        .getByRole('link');
+      await expect(cards).toHaveCount(ALL_PRODUCTS.length);
+      for (const [index, name] of ALL_PRODUCTS.entries()) {
+        await expect(cards.nth(index)).toHaveAccessibleName(name);
+      }
+    });
+  });
 
-  await expect(page).toHaveTitle(/StyleNest/);
-});
+  test('should carry the StyleNest document title', async ({
+    gotoHydrated,
+    page,
+  }) => {
+    await gotoHydrated(ROUTES.products);
 
-test('"View all" navigates from the home Latest Arrivals section', async ({
-  page,
-}) => {
-  await gotoHydrated(page, ROUTES.home);
+    await expect(page).toHaveTitle(/StyleNest/);
+  });
 
-  await page
-    .getByRole('region', { name: 'Latest Arrivals' })
-    .getByRole('link', { name: 'View all' })
-    .click();
+  test('should reach the catalog when "View all" is followed from Latest Arrivals', async ({
+    gotoHydrated,
+    page,
+  }) => {
+    await gotoHydrated(ROUTES.home);
 
-  await expect(page).toHaveURL(ROUTES.products);
-  await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
-});
+    await page
+      .getByRole('region', { name: 'Latest Arrivals' })
+      .getByRole('link', { name: 'View all' })
+      .click();
 
-test('the hero "Shop now" CTA navigates to the catalog', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.home);
+    await expect(page).toHaveURL(ROUTES.products);
+    await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
+  });
 
-  await page.getByRole('link', { name: 'Shop now' }).click();
+  test('should reach the catalog when the hero "Shop now" call to action is followed', async ({
+    gotoHydrated,
+    page,
+  }) => {
+    await gotoHydrated(ROUTES.home);
 
-  await expect(page).toHaveURL(ROUTES.products);
-  await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
-});
+    await page.getByRole('link', { name: 'Shop now' }).click();
 
-test('a card click reaches the product details page', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.products);
+    await expect(page).toHaveURL(ROUTES.products);
+    await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
+  });
 
-  await page.getByRole('link', { name: PRODUCT.name }).click();
+  test('should open the product details page when a catalog card is clicked', async ({
+    gotoHydrated,
+    page,
+  }) => {
+    await gotoHydrated(ROUTES.products);
 
-  await expect(page).toHaveURL(PRODUCT.path);
-  await expect(
-    page.getByRole('heading', { name: PRODUCT.name }),
-  ).toBeVisible();
+    await page.getByRole('link', { name: PRODUCT.name }).click();
+
+    await expect(page).toHaveURL(PRODUCT.path);
+    await expect(
+      page.getByRole('heading', { name: PRODUCT.name }),
+    ).toBeVisible();
+  });
 });

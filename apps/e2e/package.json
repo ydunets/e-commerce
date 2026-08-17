@@ -7,11 +7,14 @@
     "test": "playwright test",
     "test:desktop": "playwright test --project=desktop-chromium",
     "test:mobile": "playwright test --project=mobile-chromium",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:critical": "playwright test --grep @critical",
+    "test:not-slow": "playwright test --grep-invert @slow",
     "test:ui": "playwright test --ui",
     "report": "playwright show-report"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.0",
+    "@playwright/test": "^1.62.1",
     "@types/node": "^24.13.2",
     "typescript": "7.0.2"
   }

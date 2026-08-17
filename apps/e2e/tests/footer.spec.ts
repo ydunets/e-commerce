@@ -1,5 +1,6 @@
-import { expect, type Page, test } from '@playwright/test';
-import { gotoHydrated, ROUTES } from './helpers';
+import type { Page } from '@playwright/test';
+import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
+import { ROUTES } from './helpers';
 
 const NEWSLETTER_HEADING = 'Join our newsletter';
 const COPYRIGHT_PATTERN = new RegExp(
@@ -9,35 +10,47 @@ const SOCIAL_LABELS = ['YouTube', 'Instagram', 'Facebook', 'GitHub', 'X'] as con
 
 const footer = (page: Page) => page.getByRole('contentinfo');
 
-test('server-renders the footer with the newsletter form before any JS runs', async ({
-  page,
-}) => {
-  // Block scripts: what remains is exactly what the server sent.
-  await page.route('**/*.js', (route) => route.abort());
-  await page.goto(ROUTES.home);
+test.describe('Site Footer', () => {
+  // Only this test provokes resource-failure noise; the rest stay strict.
+  test.describe('with scripts blocked', () => {
+    test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
-  await expect(footer(page).getByText(NEWSLETTER_HEADING)).toBeVisible();
-  await expect(footer(page).getByRole('textbox')).toBeVisible();
-  await expect(
-    footer(page).getByRole('button', { name: 'Subscribe' }),
-  ).toBeVisible();
-});
+    test('should render the footer and its newsletter form on the server when scripts are blocked', async ({
+      page,
+    }) => {
+      await page.route('**/*.js', (route) => route.abort());
+      await page.goto(ROUTES.home);
 
-test('shows the copyright year and every social link', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.home);
+      await expect(footer(page).getByText(NEWSLETTER_HEADING)).toBeVisible();
+      await expect(footer(page).getByRole('textbox')).toBeVisible();
+      await expect(
+        footer(page).getByRole('button', { name: 'Subscribe' }),
+      ).toBeVisible();
+    });
+  });
 
-  await expect(footer(page).getByText(COPYRIGHT_PATTERN)).toBeVisible();
-  for (const label of SOCIAL_LABELS) {
-    await expect(
-      footer(page).getByRole('link', { name: label, exact: true }),
-    ).toBeVisible();
-  }
-});
+  test('should show the current copyright year and every social link', async ({
+    gotoHydrated,
+    page,
+  }) => {
+    await gotoHydrated(ROUTES.home);
 
-test('a shop link navigates to the products catalog', async ({ page }) => {
-  await gotoHydrated(page, ROUTES.home);
+    await expect.soft(footer(page).getByText(COPYRIGHT_PATTERN)).toBeVisible();
+    for (const label of SOCIAL_LABELS) {
+      await expect
+        .soft(footer(page).getByRole('link', { name: label, exact: true }))
+        .toBeVisible();
+    }
+  });
 
-  await footer(page).getByRole('link', { name: 'Latest arrivals' }).click();
+  test('should navigate to the products catalog when a footer shop link is followed', async ({
+    gotoHydrated,
+    page,
+  }) => {
+    await gotoHydrated(ROUTES.home);
 
-  await expect(page).toHaveURL(ROUTES.products);
+    await footer(page).getByRole('link', { name: 'Latest arrivals' }).click();
+
+    await expect(page).toHaveURL(ROUTES.products);
+  });
 });

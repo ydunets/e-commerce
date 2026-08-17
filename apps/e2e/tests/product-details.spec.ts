@@ -1,5 +1,10 @@
-import { expect, type Page, test } from '@playwright/test';
-import { gotoHydrated, PRODUCT, ROUTES } from './helpers';
+import type { Page } from '@playwright/test';
+import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
+import { PRODUCT, ROUTES } from './helpers';
+
+// One test aborts the collection request to prove the page stands without the
+// section, and Chromium logs that abort as a resource failure.
+test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
 const COLOR_GREEN = { name: 'Green' } as const;
 const COLOR_BROWN = { name: 'Brown' } as const;
@@ -39,122 +44,175 @@ function collectionCard(page: Page, name: string) {
     .filter({ has: page.getByRole('link', { name }) });
 }
 
-test.beforeEach(async ({ page }) => {
-  await gotoHydrated(page, PRODUCT.path);
-});
+test.describe('Product Details', () => {
+  test.beforeEach(async ({ gotoHydrated }) => {
+    await gotoHydrated(PRODUCT.path);
+  });
 
-test('server-renders the product with price and rating', async ({ page }) => {
-  await expect(
-    page.getByRole('heading', { name: PRODUCT.name }),
-  ).toBeVisible();
-  await expect(page.getByText('20% OFF')).toBeVisible();
-  await expect(page.getByRole('button', { name: /reviews/ })).toBeVisible();
-  await expect(page.getByRole('button', ADD_TO_CART)).toBeEnabled();
-});
-
-test('selecting a colour updates the swatch and the gallery', async ({
-  page,
-}) => {
-  const green = page.getByRole('radio', COLOR_GREEN);
-  const brown = page.getByRole('radio', COLOR_BROWN);
-  const mainImage = page.getByRole('img', { name: PRODUCT.name });
-  // Seeded data: green has several images (thumbnails shown), brown has one
-  // (the gallery collapses to just the main image).
-  const thumbnails = page.getByRole('button', { name: /View image/ });
-
-  await expect(green).toBeChecked();
-  await expect(thumbnails.first()).toBeVisible();
-
-  await brown.click();
-
-  await expect(brown).toBeChecked();
-  await expect(green).not.toBeChecked();
-  await expect(mainImage).toBeVisible();
-  await expect(thumbnails).toHaveCount(0);
-
-  await green.click();
-
-  await expect(green).toBeChecked();
-  await expect(thumbnails.first()).toBeVisible();
-});
-
-test('"In this collection" lists the collection siblings, never the current product', async ({
-  page,
-}) => {
-  const section = page.getByRole('region', COLLECTION_SECTION);
-  const cards = section.locator('ul').getByRole('link');
-
-  await expect(cards).toHaveCount(COLLECTION_SIBLINGS.length);
-  for (const [index, name] of COLLECTION_SIBLINGS.entries()) {
-    await expect(cards.nth(index)).toHaveAccessibleName(name);
-  }
-  await expect(section.getByRole('link', { name: PRODUCT.name })).toHaveCount(0);
-});
-
-test('a collection card shows the sale price with the original struck through', async ({
-  page,
-}) => {
-  const card = collectionCard(page, DISCOUNTED_SIBLING);
-
-  await expect(card).toContainText(SIBLING_SALE_PRICE);
-  await expect(card.getByText(SIBLING_ORIGINAL_PRICE)).toBeVisible();
-});
-
-test('a collection card crosses out a fully out-of-stock colour', async ({
-  page,
-}) => {
-  await gotoHydrated(page, FRESH_PRODUCT_PATH);
-
-  const card = collectionCard(page, OUT_OF_STOCK_SIBLING.name);
-
-  await expect(card.getByRole('radio', OUT_OF_STOCK_SWATCH)).toBeVisible();
-});
-
-test('the page stands without the section when the collection request fails', async ({
-  page,
-}) => {
-  await page.route(
-    (url) =>
-      url.pathname.endsWith('/v1/products') &&
-      url.searchParams.has('collection'),
-    (route) => route.abort(),
+  test(
+    'should render the product with its price and rating from the server',
+    { tag: '@smoke' },
+    async ({ page }) => {
+      await expect(
+        page.getByRole('heading', { name: PRODUCT.name }),
+      ).toBeVisible();
+      await expect(page.getByText('20% OFF')).toBeVisible();
+      await expect(page.getByRole('button', { name: /reviews/ })).toBeVisible();
+      await expect(page.getByRole('button', ADD_TO_CART)).toBeEnabled();
+    },
   );
-  await gotoHydrated(page, ROUTES.home);
-  await page.getByRole('link', { name: PRODUCT.name }).click();
 
-  await expect(
-    page.getByRole('heading', { name: PRODUCT.name }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('region', SPECIFICATIONS_SECTION),
-  ).toBeVisible();
-  await expect(page.getByRole('region', COLLECTION_SECTION)).toHaveCount(0);
-});
+  test(
+    'should update the swatch and the gallery when another colour is selected',
+    { tag: '@critical' },
+    async ({ page }, testInfo) => {
+      const green = page.getByRole('radio', COLOR_GREEN);
+      const brown = page.getByRole('radio', COLOR_BROWN);
+      const mainImage = page.getByRole('img', { name: PRODUCT.name });
+      // Seeded data: green has several images (thumbnails shown), brown has one
+      // (the gallery collapses to just the main image).
+      const thumbnails = page.getByRole('button', { name: /View image/ });
 
-test('a collection card navigates to its product page', async ({ page }) => {
-  await page
-    .getByRole('region', COLLECTION_SECTION)
-    .getByRole('link', { name: COLLECTION_SIBLINGS[0] })
-    .click();
+      await test.step('the default colour offers its thumbnails', async () => {
+        await expect(green).toBeChecked();
+        await expect(thumbnails.first()).toBeVisible();
+      });
 
-  await expect(page).toHaveURL(SIBLING_PATH);
-  await expect(
-    page.getByRole('heading', { name: COLLECTION_SIBLINGS[0] }),
-  ).toBeVisible();
-});
+      await test.step('a single-image colour collapses the gallery', async () => {
+        await brown.click();
 
-test('quantity stepper increments and respects the minimum', async ({
-  page,
-}) => {
-  const increase = page.getByRole('button', INCREASE);
-  const decrease = page.getByRole('button', DECREASE);
-  const quantity = page.locator('[aria-live="polite"]');
+        // Gathered before the assertions so a failure carries its evidence.
+        await testInfo.attach('gallery-after-switch.json', {
+          body: JSON.stringify(
+            {
+              mainImage: await mainImage.getAttribute('src'),
+              thumbnails: await thumbnails.count(),
+            },
+            null,
+            2,
+          ),
+          contentType: 'application/json',
+        });
 
-  await expect(quantity).toHaveText(INITIAL_QUANTITY);
-  await expect(decrease).toBeDisabled();
+        await expect(brown).toBeChecked();
+        await expect(green).not.toBeChecked();
+        await expect(mainImage).toBeVisible();
+        await expect(thumbnails).toHaveCount(0);
+      });
 
-  await increase.click();
+      await test.step('switching back restores the thumbnails', async () => {
+        await green.click();
 
-  await expect(quantity).toHaveText(INCREMENTED_QUANTITY);
-  await expect(decrease).toBeEnabled();
+        await expect(green).toBeChecked();
+        await expect(thumbnails.first()).toBeVisible();
+      });
+    },
+  );
+
+  test('should list the collection siblings and never the current product in "In this collection"', async ({
+    page,
+  }, testInfo) => {
+    const section = page.getByRole('region', COLLECTION_SECTION);
+    const cards = section.locator('ul').getByRole('link');
+
+    const rendered = await cards.evaluateAll((links) =>
+      links.map((link) => link.getAttribute('aria-label') ?? link.textContent),
+    );
+    await testInfo.attach('collection-cards.json', {
+      body: JSON.stringify(rendered, null, 2),
+      contentType: 'application/json',
+    });
+
+    await expect(cards).toHaveCount(COLLECTION_SIBLINGS.length);
+    for (const [index, name] of COLLECTION_SIBLINGS.entries()) {
+      await expect(cards.nth(index)).toHaveAccessibleName(name);
+    }
+    await expect(section.getByRole('link', { name: PRODUCT.name })).toHaveCount(0);
+  });
+
+  test('should show the sale price with the original struck through on a discounted collection card', async ({
+    page,
+  }) => {
+    const card = collectionCard(page, DISCOUNTED_SIBLING);
+
+    await expect(card).toContainText(SIBLING_SALE_PRICE);
+    await expect(card.getByText(SIBLING_ORIGINAL_PRICE)).toBeVisible();
+  });
+
+  test(
+    'should cross out a colour on a collection card when that colour is fully out of stock',
+    {
+      annotation: {
+        type: 'seeded-data',
+        description:
+          "tangerine-mini-tote's collection surfaces classic-canvas-tee, whose beige colour is the seed's only fully out-of-stock colour",
+      },
+    },
+    async ({ gotoHydrated, page }) => {
+      await gotoHydrated(FRESH_PRODUCT_PATH);
+
+      const card = collectionCard(page, OUT_OF_STOCK_SIBLING.name);
+
+      await expect(card.getByRole('radio', OUT_OF_STOCK_SWATCH)).toBeVisible();
+    },
+  );
+
+  test(
+    'should render the page without the collection section when the collection request fails',
+    {
+      annotation: {
+        type: 'edge-case',
+        description:
+          'the collection request is aborted, so the section must be absent rather than broken',
+      },
+    },
+    async ({ gotoHydrated, page }) => {
+      await page.route(
+        (url) =>
+          url.pathname.endsWith('/v1/products') &&
+          url.searchParams.has('collection'),
+        (route) => route.abort(),
+      );
+      await gotoHydrated(ROUTES.home);
+      await page.getByRole('link', { name: PRODUCT.name }).click();
+
+      await expect(
+        page.getByRole('heading', { name: PRODUCT.name }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole('region', SPECIFICATIONS_SECTION),
+      ).toBeVisible();
+      await expect(page.getByRole('region', COLLECTION_SECTION)).toHaveCount(0);
+    },
+  );
+
+  test('should navigate to the sibling product page when a collection card is clicked', async ({
+    page,
+  }) => {
+    await page
+      .getByRole('region', COLLECTION_SECTION)
+      .getByRole('link', { name: COLLECTION_SIBLINGS[0] })
+      .click();
+
+    await expect(page).toHaveURL(SIBLING_PATH);
+    await expect(
+      page.getByRole('heading', { name: COLLECTION_SIBLINGS[0] }),
+    ).toBeVisible();
+  });
+
+  test('should increment the quantity and keep the decrement disabled at the minimum', async ({
+    page,
+  }) => {
+    const increase = page.getByRole('button', INCREASE);
+    const decrease = page.getByRole('button', DECREASE);
+    const quantity = page.locator('[aria-live="polite"]');
+
+    await expect(quantity).toHaveText(INITIAL_QUANTITY);
+    await expect(decrease).toBeDisabled();
+
+    await increase.click();
+
+    await expect(quantity).toHaveText(INCREMENTED_QUANTITY);
+    await expect(decrease).toBeEnabled();
+  });
 });

@@ -57,7 +57,7 @@ export const Navbar = ({
   const closeDrawer = () => dialogRef.current?.close();
 
   return (
-    <header className={styles.root}>
+    <header className={styles.root} data-print-hidden>
       <div className={styles.container}>
         <div className={styles.leftCluster}>
           <Link to={brandHref} className={styles.brand} aria-label={brandLabel}>

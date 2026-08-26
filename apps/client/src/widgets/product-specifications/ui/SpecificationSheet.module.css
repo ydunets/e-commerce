@@ -1,0 +1,17 @@
+@reference "../../../app.css";
+
+.root {
+  @apply flex flex-col gap-4;
+}
+
+.header {
+  @apply flex flex-wrap items-center justify-between gap-4;
+}
+
+.title {
+  @apply text-lg font-semibold text-ink;
+}
+
+.frame {
+  @apply h-56 w-full rounded-sm border border-line bg-white;
+}

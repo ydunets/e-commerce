@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-router';
 import { type ReactNode, useEffect, useState } from 'react';
 import { useCart } from '@/entities/cart';
+import { CookieBanner } from '@/shared/ui/cookie-banner';
 import { Footer } from '@/shared/ui/footer';
 import { Navbar } from '@/shared/ui/navbar';
 import { NewsletterForm } from '@/widgets/newsletter-form';
@@ -72,6 +73,7 @@ function RootDocument({ children }: { children: ReactNode }) {
           <SiteNavbar />
           {children}
           <Footer newsletterSlot={<NewsletterForm />} />
+          <CookieBanner />
         </QueryClientProvider>
         <Scripts />
       </body>

@@ -6,6 +6,7 @@ import { useMediaQuery } from '@/shared/lib/useMediaQuery';
 import { Dialog } from '@/shared/ui/dialog';
 import { useReviews } from '../lib/useReviews';
 import { ReviewList } from './ReviewList';
+import { ReviewPhotoPicker } from './ReviewPhotoPicker';
 import { ReviewSummary } from './ReviewSummary';
 
 export type TProductReviewsDialogProps = {
@@ -73,6 +74,7 @@ const ReviewsContent = ({ productId }: { productId: string }) => {
           <p className="text-muted">Couldn't load the rating summary.</p>
         )}
         {summaryQuery.status === 'pending' && <SummarySkeleton />}
+        <ReviewPhotoPicker />
       </div>
 
       <ReviewList

@@ -3,6 +3,7 @@ import type { Specification } from '@/entities/specification';
 import { Tabs, tabButtonId, tabPanelId } from '@/shared/ui/tabs';
 import { getSpecificationIcon } from '../lib/icon-map';
 import styles from './ProductSpecificationsSection.module.css';
+import { SpecificationSheet } from './SpecificationSheet';
 
 const TABS_ID_PREFIX = 'product-specifications';
 
@@ -90,6 +91,8 @@ export const ProductSpecificationsSection = ({
           </div>
         ))}
       </div>
+
+      <SpecificationSheet specifications={specifications} />
     </section>
   );
 };

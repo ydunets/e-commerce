@@ -173,7 +173,9 @@ test.describe('Product Details', () => {
           url.searchParams.has('collection'),
         (route) => route.abort(),
       );
-      await gotoHydrated(ROUTES.home);
+      // Reached by a client-side navigation from the catalog, so the aborted
+      // request is the one the product route makes after hydration.
+      await gotoHydrated(ROUTES.products);
       await page.getByRole('link', { name: PRODUCT.name }).click();
 
       await expect(

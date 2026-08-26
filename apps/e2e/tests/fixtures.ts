@@ -27,6 +27,16 @@ const CART_LABEL = 'Shopping bag';
  */
 export const BLOCKED_REQUEST_NOISE = ['Failed to load resource'];
 
+/**
+ * Errors that belong to the platform rather than to the application: the cookie
+ * the image CDN sets on its own responses, which Firefox reports as a page
+ * error, and the empty body the dev server answers its lazy-compilation
+ * trigger with, which Firefox tries to parse as XML. No application change
+ * prevents either, so the guard ignores them everywhere rather than making
+ * each spec that renders a product image declare an allowance.
+ */
+const PLATFORM_NOISE = [/Cookie .* has been rejected/, /_rspack\/lazy\//];
+
 /** Overridable from `use` in the config, a project, or a single spec. */
 export type TestOptions = {
   /**
@@ -66,7 +76,10 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
   errorGuard: [
     async ({ context, allowedConsoleErrors }, use) => {
-      const allowed = allowedConsoleErrors.map((source) => new RegExp(source));
+      const allowed = [
+        ...PLATFORM_NOISE,
+        ...allowedConsoleErrors.map((source) => new RegExp(source)),
+      ];
       const unexpected: string[] = [];
       const record = (text: string) => {
         if (!allowed.some((pattern) => pattern.test(text))) {

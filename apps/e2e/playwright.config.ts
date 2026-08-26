@@ -12,6 +12,11 @@ const IS_CI = !!process.env.CI;
 const MOBILE_SPECS = /mobile-.*\.spec\.ts/;
 const STREAMING_SPECS = /streaming\.spec\.ts/;
 
+// The storefront's cross-browser promise (#41) is kept by the smoke set:
+// rendering, composition, add-to-cart and the newsletter, run on all three
+// engines. Running the whole suite three times over would buy little more.
+const SMOKE_TAG = /@smoke/;
+
 // Above the storefront's own request latency, below the point where a genuinely
 // stuck assertion stops looking stuck.
 const ASSERTION_TIMEOUT_MS = 7_000;
@@ -45,6 +50,18 @@ export default defineConfig<TestOptions, WorkerOptions>({
     {
       name: 'desktop-chromium',
       use: { ...devices['Desktop Chrome'] },
+      testIgnore: [MOBILE_SPECS, STREAMING_SPECS],
+    },
+    {
+      name: 'desktop-firefox',
+      use: { ...devices['Desktop Firefox'] },
+      grep: SMOKE_TAG,
+      testIgnore: [MOBILE_SPECS, STREAMING_SPECS],
+    },
+    {
+      name: 'desktop-webkit',
+      use: { ...devices['Desktop Safari'] },
+      grep: SMOKE_TAG,
       testIgnore: [MOBILE_SPECS, STREAMING_SPECS],
     },
     {

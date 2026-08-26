@@ -56,10 +56,11 @@ export const ROUTES = {
 /** Versioned API routes; `/health` and `/api-docs/json` sit outside this prefix. */
 export const API_PREFIX = '/api/v1';
 
-/** The cart as every cart route answers it. */
+/** The subset of the cart response the specs assert; the full contract lives in the server. */
 export type CartResponse = {
   id: string;
-  lines: { sku: string; quantity: number }[];
+  lines: { sku: string; quantity: number; name: string }[];
+  coupons: { code: string }[];
   totalUnits: number;
 };
 

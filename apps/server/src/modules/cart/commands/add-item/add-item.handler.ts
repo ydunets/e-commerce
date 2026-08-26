@@ -43,10 +43,14 @@ export default function makeAddItem({ commandBus, queryBus, cartRepository }: De
       }
 
       await cartRepository.upsertLine(cart.id, payload.sku, quantity);
-      const lines = existingLine
-        ? cart.lines.map((line) => (line.sku === payload.sku ? { ...line, quantity } : line))
-        : [...cart.lines, { sku: payload.sku, quantity }];
-      return { ...cart, lines };
+
+      // Re-read instead of patching in memory: a freshly added line needs the
+      // read model's joined product data, which only the repository has.
+      const persisted = await cartRepository.findOneById(cart.id);
+      if (!persisted) {
+        throw new NotFoundException(`Cart ${cart.id} not found`);
+      }
+      return persisted;
     },
     init() {
       commandBus.register(addItemCommand.type, this.handler);

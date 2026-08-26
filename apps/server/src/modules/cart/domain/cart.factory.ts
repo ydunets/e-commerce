@@ -6,5 +6,6 @@ export function createCart(): CartEntity {
     id: randomUUID(),
     createdAt: new Date(),
     lines: [],
+    coupons: [],
   };
 }

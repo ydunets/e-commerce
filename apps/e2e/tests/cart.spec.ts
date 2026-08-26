@@ -131,9 +131,11 @@ test.describe('Shopping Cart', () => {
       expect(cartId).toMatch(UUID_PATTERN);
 
       const cart = await serverCart(api, cartId!);
-      expect(cart?.lines).toEqual([
-        { sku: SEEDED_CART.sku, quantity: SEEDED_CART.quantity },
-      ]);
+      expect(cart?.lines).toHaveLength(1);
+      expect(cart?.lines[0]).toMatchObject({
+        sku: SEEDED_CART.sku,
+        quantity: SEEDED_CART.quantity,
+      });
     });
   });
 

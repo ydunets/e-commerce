@@ -8,8 +8,6 @@ import {
   type TSizeSelectorProps,
 } from '../src/shared/ui/size-selector';
 
-const GROUP = { name: 'Available sizes' } as const;
-
 const IN_TAB_SEQUENCE = '0';
 const OUT_OF_TAB_SEQUENCE = '-1';
 
@@ -47,10 +45,7 @@ function ControlledSelector({
 
 const size = (label: string) => screen.getByRole('radio', { name: label });
 
-const checkedSize = () =>
-  screen
-    .getByRole('radiogroup', GROUP)
-    .querySelector('[role="radio"][aria-checked="true"]');
+const checkedSize = () => screen.getByRole('radio', { checked: true });
 
 test('keeps only the checked size in the tab sequence', () => {
   render(<ControlledSelector options={SIZES} initialValue="sm" />);

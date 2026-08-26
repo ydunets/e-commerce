@@ -1,0 +1,11 @@
+- navigation "Main":
+  - list:
+    - listitem:
+      - link "Home":
+        - /url: /
+    - listitem:
+      - link "Products":
+        - /url: /products
+    - listitem:
+      - link "About":
+        - /url: /about

@@ -13,6 +13,14 @@ import { ProductSpecificationsSection } from '@/widgets/product-specifications';
 const COLLECTION_SECTION_TITLE = 'In this collection';
 const COLLECTION_PRODUCT_COUNT = 4;
 
+/**
+ * The storefront compositions (Figma 5-6578 Desktop, 5-6592 Tablet, 5-6606
+ * Mobile) inset one content column by 16px on every breakpoint and stack the
+ * sections flush inside it, so the vertical rhythm comes from each section's
+ * own padding rather than from gaps at page level.
+ */
+const CONTENT_COLUMN = 'mx-auto max-w-[1440px] px-4';
+
 export const Route = createFileRoute('/products/$productId')({
   loader: async ({ params }) => {
     const specifications = getSpecifications(API_BASE).catch(() => null);
@@ -47,17 +55,13 @@ function ProductPage() {
   const { product, specifications, collectionProducts } = Route.useLoaderData();
 
   return (
-    <main>
-      <div className="mx-auto max-w-[1280px] px-4 py-10 md:px-8">
-        <ProductDetailsSection product={product} />
-      </div>
+    <main className={CONTENT_COLUMN}>
+      <ProductDetailsSection product={product} />
       <Suspense fallback={null}>
         <Await promise={specifications}>
           {(data) =>
             data && data.length > 0 ? (
-              <div className="mx-auto max-w-[1440px] px-4">
-                <ProductSpecificationsSection specifications={data} />
-              </div>
+              <ProductSpecificationsSection specifications={data} />
             ) : null
           }
         </Await>
@@ -66,12 +70,10 @@ function ProductPage() {
         <Await promise={collectionProducts}>
           {(data) =>
             data && data.length > 0 ? (
-              <div className="mx-auto max-w-[1440px] px-4">
-                <ProductGridSection
-                  title={COLLECTION_SECTION_TITLE}
-                  products={data}
-                />
-              </div>
+              <ProductGridSection
+                title={COLLECTION_SECTION_TITLE}
+                products={data}
+              />
             ) : null
           }
         </Await>

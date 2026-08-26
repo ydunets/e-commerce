@@ -1,32 +1,16 @@
-import type { Page } from '@playwright/test';
 import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
-import { PRODUCT, ROUTES } from './helpers';
+import { API_PREFIX, ROUTES } from './helpers';
 
 const HERO_HEADING = { name: 'Discover the StyleNest collection' } as const;
 const SHOP_LINK = { name: 'Shop now' } as const;
 const MAIN_NAV = { name: 'Main' } as const;
-
-// The 8 newest seeded products by created_at DESC (see products seed).
-const LATEST_ARRIVALS = [
-  'Urban Drift Bucket Hat',
-  'Tangerine Mini Tote',
-  'Elemental Sneakers',
-  'Metro Hoodie',
-  'Sunbeam Mules',
-  'Azure Attitude Shades',
-  'Voyager Hoodie',
-  'LA Baseball Hat',
-] as const;
-
-const latestArrivals = (page: Page) =>
-  page.getByRole('region', { name: 'Latest Arrivals' });
 
 test.describe('Storefront Home', () => {
   // Only this test provokes resource-failure noise; the rest stay strict.
   test.describe('with scripts blocked', () => {
     test.use({ allowedConsoleErrors: BLOCKED_REQUEST_NOISE });
 
-    test('should render the hero and Latest Arrivals on the server when scripts are blocked', async ({
+    test('should render the hero on the server when scripts are blocked', async ({
       page,
     }) => {
       await page.route('**/*.js', (route) => route.abort());
@@ -34,93 +18,32 @@ test.describe('Storefront Home', () => {
 
       await expect(page.getByRole('heading', HERO_HEADING)).toBeVisible();
       await expect(page.getByRole('link', SHOP_LINK)).toBeVisible();
+      // No grid in the server-rendered markup means no product fetch behind it.
+      await expect(page.getByRole('article')).toHaveCount(0);
       await expect(
         page.getByRole('heading', { name: 'Latest Arrivals' }),
-      ).toBeVisible();
-      await expect(
-        latestArrivals(page).getByRole('link', { name: LATEST_ARRIVALS[0] }),
-      ).toBeVisible();
+      ).toHaveCount(0);
     });
   });
 
-  test('should list the eight newest products in order in Latest Arrivals', async ({
+  // Listings live on the catalog route alone (#41), so the home page holds no
+  // product grid and issues no product request of its own.
+  test('should present the hero alone, without a product listing', async ({
     gotoHydrated,
     page,
   }) => {
-    await gotoHydrated(ROUTES.home);
-
-    await expect(
-      latestArrivals(page).getByRole('link', { name: 'View all' }),
-    ).toBeVisible();
-
-    // Cards live in the section's <ul>, separate from the "View all" action.
-    const cards = latestArrivals(page).locator('ul').getByRole('link');
-    await expect(cards).toHaveCount(LATEST_ARRIVALS.length);
-    for (const [index, name] of LATEST_ARRIVALS.entries()) {
-      await expect(cards.nth(index)).toHaveAccessibleName(name);
-    }
-  });
-
-  test('should show the default colour variant with its sale and list price on a card', async ({
-    gotoHydrated,
-    page,
-  }) => {
-    await gotoHydrated(ROUTES.home);
-
-    // Seeded facts: voyager-hoodie's first inventory colour is green, on sale
-    // at $76 from a $95 list price.
-    const voyagerCard = latestArrivals(page).getByRole('link', {
-      name: PRODUCT.name,
+    const productRequests: string[] = [];
+    page.on('request', (request) => {
+      if (request.url().includes(`${API_PREFIX}/products`)) {
+        productRequests.push(request.url());
+      }
     });
-    await expect(voyagerCard).toContainText('Green');
-    await expect(voyagerCard).toContainText('$76');
-    await expect(voyagerCard).toContainText('$95');
-  });
 
-  // The crossed out-of-stock swatch cannot be asserted here: the only fully
-  // out-of-stock seeded colour (classic-canvas-tee beige) is the 9th-newest
-  // product, outside the home grid. The /products spec (#22) covers it; the
-  // ColorSwatches stories exercise the state interactively meanwhile.
-  test('should swap the card to another colour variant when its swatch is clicked, without navigating', async ({
-    gotoHydrated,
-    page,
-  }) => {
     await gotoHydrated(ROUTES.home);
 
-    // Seeded facts: urban-drift-bucket-hat comes in black (default) and white,
-    // with a different catalog image per colour.
-    const card = page
-      .locator('article')
-      .filter({ has: page.getByRole('link', { name: LATEST_ARRIVALS[0] }) });
-    const image = card.getByRole('link').locator('img');
-    await expect(card).toContainText('Black');
-    const defaultImageSrc = await image.getAttribute('src');
-    expect(defaultImageSrc).toBeTruthy();
-
-    const whiteSwatch = card.getByRole('radio', { name: /White/ });
-    await whiteSwatch.click();
-
-    await expect(whiteSwatch).toHaveAttribute('aria-checked', 'true');
-    await expect(card).toContainText('White');
-    await expect(image).not.toHaveAttribute('src', defaultImageSrc ?? '');
-    // Selection is local card state: no navigation, no URL change.
-    await expect(page).toHaveURL(ROUTES.home);
-  });
-
-  test('should open the product details page when a card is clicked', async ({
-    gotoHydrated,
-    page,
-  }) => {
-    await gotoHydrated(ROUTES.home);
-
-    await latestArrivals(page)
-      .getByRole('link', { name: PRODUCT.name })
-      .click();
-
-    await expect(page).toHaveURL(PRODUCT.path);
-    await expect(
-      page.getByRole('heading', { name: PRODUCT.name }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', HERO_HEADING)).toBeVisible();
+    await expect(page.getByRole('article')).toHaveCount(0);
+    expect(productRequests).toEqual([]);
   });
 
   test('should offer the desktop navigation and reach the catalog from it', async ({

@@ -1,0 +1,7 @@
+- article:
+  - link "Urban Drift Bucket Hat":
+    - /url: /products/urban-drift-bucket-hat
+    - text: /Black Urban Drift Bucket Hat \$\d+/
+  - radiogroup "Urban Drift Bucket Hat colors":
+    - radio "Black" [checked]
+    - radio "White"

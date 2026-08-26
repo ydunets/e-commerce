@@ -27,6 +27,22 @@ const CART_LABEL = 'Shopping bag';
  */
 export const BLOCKED_REQUEST_NOISE = ['Failed to load resource'];
 
+/**
+ * Errors Firefox reports about the platform rather than the application: the
+ * cookie the image CDN sets on its own responses, and the empty body the dev
+ * server answers its lazy-compilation trigger with, which Firefox parses as
+ * XML. No application change prevents either, so the projects that run that
+ * engine declare the allowance and the others stay strict.
+ */
+export const ENGINE_NOISE = [
+  'Cookie .* has been rejected',
+  '_rspack/lazy/',
+];
+
+/** The cookie banner covers the page bottom until a visitor answers it. */
+export const COOKIE_BANNER = { name: 'Cookie notice' } as const;
+export const ACCEPT_COOKIES = { name: 'Accept cookies' } as const;
+
 /** Overridable from `use` in the config, a project, or a single spec. */
 export type TestOptions = {
   /**
@@ -35,6 +51,17 @@ export type TestOptions = {
    * cross a process boundary and a RegExp does not survive it.
    */
   allowedConsoleErrors: string[];
+  /**
+   * Regular expression sources for errors the browser itself emits, which no
+   * spec provokes and none can prevent. Set per project, and kept separate
+   * from `allowedConsoleErrors` so a spec's own allowance does not drop it.
+   */
+  engineNoise: string[];
+  /**
+   * Whether the cookie banner is answered on the spec's behalf the moment it
+   * blocks an action. The spec that asserts the banner itself turns this off.
+   */
+  dismissCookieBanner: boolean;
 };
 
 export type WorkerOptions = {
@@ -43,6 +70,7 @@ export type WorkerOptions = {
 
 type TestFixtures = TestOptions & {
   errorGuard: void;
+  cookieBannerHandler: void;
   gotoHydrated: (path: string) => Promise<void>;
 };
 
@@ -64,9 +92,35 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
   allowedConsoleErrors: [[], { option: true }],
 
+  engineNoise: [[], { option: true }],
+
+  dismissCookieBanner: [true, { option: true }],
+
+  /**
+   * An overlay handler rather than a click in every spec: Playwright runs it
+   * only when the banner actually stands in the way of an action, so the specs
+   * that never reach the page bottom are left alone.
+   */
+  cookieBannerHandler: [
+    async ({ page, dismissCookieBanner }, use) => {
+      if (dismissCookieBanner) {
+        await page.addLocatorHandler(
+          page.getByRole('region', COOKIE_BANNER),
+          async (banner) => {
+            await banner.getByRole('button', ACCEPT_COOKIES).click();
+          },
+        );
+      }
+      await use();
+    },
+    { auto: true },
+  ],
+
   errorGuard: [
-    async ({ context, allowedConsoleErrors }, use) => {
-      const allowed = allowedConsoleErrors.map((source) => new RegExp(source));
+    async ({ context, allowedConsoleErrors, engineNoise }, use) => {
+      const allowed = [...engineNoise, ...allowedConsoleErrors].map(
+        (source) => new RegExp(source),
+      );
       const unexpected: string[] = [];
       const record = (text: string) => {
         if (!allowed.some((pattern) => pattern.test(text))) {

@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import {
   API_ORIGIN,
+  ENGINE_NOISE,
   type TestOptions,
   type WorkerOptions,
 } from './tests/fixtures';
@@ -9,8 +10,14 @@ const CLIENT_URL = 'http://localhost:5173';
 const PROD_CLIENT_URL = 'http://localhost:4173';
 const IS_CI = !!process.env.CI;
 
+const SETUP_SPECS = /.*\.setup\.ts/;
 const MOBILE_SPECS = /mobile-.*\.spec\.ts/;
 const STREAMING_SPECS = /streaming\.spec\.ts/;
+
+// The storefront's cross-browser promise (#41) is kept by the smoke set:
+// rendering, composition, add-to-cart and the newsletter, run on all three
+// engines. Running the whole suite three times over would buy little more.
+const SMOKE_TAG = /@smoke/;
 
 // Above the storefront's own request latency, below the point where a genuinely
 // stuck assertion stops looking stuck.
@@ -43,9 +50,29 @@ export default defineConfig<TestOptions, WorkerOptions>({
   },
   projects: [
     {
+      // Fixtures the specs start from, built over the public API. A project
+      // rather than a global setup, so its steps land in the report and the
+      // specs that need it declare the dependency themselves.
+      name: 'setup',
+      testMatch: SETUP_SPECS,
+    },
+    {
       name: 'desktop-chromium',
       use: { ...devices['Desktop Chrome'] },
-      testIgnore: [MOBILE_SPECS, STREAMING_SPECS],
+      dependencies: ['setup'],
+      testIgnore: [MOBILE_SPECS, STREAMING_SPECS, SETUP_SPECS],
+    },
+    {
+      name: 'desktop-firefox',
+      use: { ...devices['Desktop Firefox'], engineNoise: ENGINE_NOISE },
+      grep: SMOKE_TAG,
+      testIgnore: [MOBILE_SPECS, STREAMING_SPECS, SETUP_SPECS],
+    },
+    {
+      name: 'desktop-webkit',
+      use: { ...devices['Desktop Safari'], engineNoise: ENGINE_NOISE },
+      grep: SMOKE_TAG,
+      testIgnore: [MOBILE_SPECS, STREAMING_SPECS, SETUP_SPECS],
     },
     {
       name: 'mobile-chromium',

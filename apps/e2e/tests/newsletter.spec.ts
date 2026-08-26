@@ -1,13 +1,14 @@
 import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
-import { ROUTES, uniqueEmail } from './helpers';
+import { FIXED_CLOCK, NEWSLETTER, ROUTES, uniqueEmail } from './helpers';
 
 const SUBSCRIBE_ENDPOINT = '**/api/v1/newsletter/subscriptions';
-const EMAIL_FIELD = { name: 'Email address' } as const;
-const SUBSCRIBE_BUTTON = { name: 'Subscribe' } as const;
-const SUCCESS_MESSAGE =
-  'Subscription successful! Please check your email to confirm.';
-const FAILURE_MESSAGE =
-  'Failed to subscribe. Please ensure your email is correct or try again later.';
+const EMAIL_FIELD = NEWSLETTER.field;
+const SUBSCRIBE_BUTTON = NEWSLETTER.submit;
+const SUCCESS_MESSAGE = NEWSLETTER.success;
+const FAILURE_MESSAGE = NEWSLETTER.failure;
+
+// Mirrors TOAST_DURATION_MS in apps/client/src/widgets/newsletter-form/lib/toast-context.tsx.
+const TOAST_LIFETIME_MS = 10_000;
 
 test.describe('Newsletter Subscription', () => {
   test(
@@ -84,6 +85,36 @@ test.describe('Newsletter Subscription', () => {
       releaseResponse();
       await expect(page.getByRole('status')).toHaveText(SUCCESS_MESSAGE);
       await expect(button).toBeEnabled();
+    },
+  );
+
+  test(
+    'should dismiss the toast once its lifetime has elapsed',
+    {
+      annotation: {
+        type: 'determinism',
+        description:
+          'the ten-second lifetime is advanced on a controlled clock rather than waited out',
+      },
+    },
+    async ({ gotoHydrated, page }) => {
+      await page.clock.install({ time: FIXED_CLOCK });
+      await gotoHydrated(ROUTES.home);
+      await page.route(SUBSCRIBE_ENDPOINT, (route) =>
+        route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify({ message: SUCCESS_MESSAGE }),
+        }),
+      );
+
+      await page.getByRole('textbox', EMAIL_FIELD).fill(uniqueEmail());
+      await page.getByRole('button', SUBSCRIBE_BUTTON).click();
+      await expect(page.getByRole('status')).toHaveText(SUCCESS_MESSAGE);
+
+      await page.clock.fastForward(TOAST_LIFETIME_MS);
+
+      await expect(page.getByRole('status')).toHaveCount(0);
     },
   );
 

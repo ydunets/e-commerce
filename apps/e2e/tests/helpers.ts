@@ -1,4 +1,4 @@
-import type { APIResponse } from '@playwright/test';
+import type { APIResponse, Page } from '@playwright/test';
 
 export const PRODUCT = {
   name: 'Voyager Hoodie',
@@ -6,6 +6,45 @@ export const PRODUCT = {
   /** Seeded inventory rows for the default green colour (see the products seed). */
   sku: 'vh-green-md',
   secondSku: 'vh-brown-xs',
+} as const;
+
+/** Mirrors CART_ID_STORAGE_KEY in apps/client/src/entities/cart/lib/cartStorage.ts. */
+export const CART_ID_STORAGE_KEY = 'stylenest.cart-id';
+
+/** Mirrors COOKIE_CHOICE_KEY in apps/client/src/shared/ui/cookie-banner/cookieChoice.ts. */
+export const COOKIE_CHOICE_KEY = 'stylenest.cookie-choice';
+
+/** The cart the setup project creates for the specs that start from one. */
+export const SEEDED_CART = {
+  sku: PRODUCT.sku,
+  quantity: 2,
+} as const;
+
+/**
+ * Browser storage state written by the setup project, holding nothing but the
+ * seeded cart's identifier. Relative to the e2e package root, which is where
+ * every documented way of running the suite starts Playwright.
+ */
+export const SEEDED_CART_STATE = 'tests/.state/cart.json';
+
+/**
+ * The instant the clock-driven specs pin. Deliberately far from every seeded
+ * date and from the day the suite runs, so an assertion that passes can only
+ * be reading the data rather than wall time.
+ */
+export const FIXED_CLOCK = new Date('2030-06-15T12:00:00Z');
+
+/** The navbar's bag, whose accessible name carries the cart count. */
+export const cartLink = (page: Page) =>
+  page.getByRole('link', { name: /shopping bag/i });
+
+/** The newsletter form, which the footer puts on every page. */
+export const NEWSLETTER = {
+  field: { name: 'Email address' },
+  submit: { name: 'Subscribe' },
+  success: 'Subscription successful! Please check your email to confirm.',
+  failure:
+    'Failed to subscribe. Please ensure your email is correct or try again later.',
 } as const;
 
 export const ROUTES = {

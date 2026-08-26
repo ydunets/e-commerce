@@ -1,7 +1,10 @@
 @reference "../../../app.css";
 
+/* Page-level padding of the Figma storefront sections (5-6578 Desktop 96px,
+   5-6592 Tablet 16px/64px, 5-6606 Mobile 16px/48px), which is what puts this
+   section's content box on the same margins as the two sections below it. */
 .root {
-  @apply w-full rounded-2xl bg-white p-6 shadow-xs lg:p-10;
+  @apply w-full px-4 py-12 md:py-16 lg:p-24;
 }
 
 /* Figma: gallery/info sit 48px apart when stacked, 32px apart side-by-side. */

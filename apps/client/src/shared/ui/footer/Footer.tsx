@@ -80,7 +80,10 @@ export const Footer = ({ newsletterSlot }: TFooterProps) => {
 
         <div className={styles.container}>
           <div className={styles.bottomRow}>
-            <p className={styles.copyright}>
+            {/* The year is read from whichever clock renders it, so a client
+                whose clock disagrees with the server's would otherwise tear
+                the tree on hydration. The server's value stands. */}
+            <p className={styles.copyright} suppressHydrationWarning>
               © {year} StyleNest, Inc. All rights reserved.
             </p>
             <div className={styles.socialList}>

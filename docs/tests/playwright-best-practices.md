@@ -245,8 +245,11 @@ reports group by behaviour.
   bracket markers in titles.
 - Annotations carry the why a title cannot: `seeded-data` for assertions bound
   to seed rows, `edge-case` for deliberately provoked conditions,
-  `known-issue` for documented hazards, plus a runtime-pushed `trace`
-  annotation where the value only exists mid-test.
+  `known-issue` for documented hazards, `aria-pattern` for a WAI-ARIA contract
+  under test, `design-fidelity` for a value read from the Figma compositions,
+  `determinism` for a spec that pins a clock, a recording or a seeded state,
+  and `network` for one that controls routes or connectivity, plus a
+  runtime-pushed `trace` annotation where the value only exists mid-test.
 - Named constants over literals, including status codes (`STATUS_NOT_FOUND`),
   poll bounds, and seeded facts, each with a comment naming its source.
 - Every body read goes through `readJson<T>(response)`, never a raw
@@ -256,3 +259,81 @@ reports group by behaviour.
   It throws rather than catching, because a swallowed error in a test is a
   hidden failure. It also keeps the cast that `APIResponse.json()` forces in
   one place.
+
+## Determinism fixtures (#47)
+
+- **Seeded cart.** The `setup` project (`tests/cart.setup.ts`) creates a cart
+  over the public API and writes its identifier as browser storage state to
+  `tests/.state/cart.json`, which is generated and git-ignored. Projects that
+  need it declare `dependencies: ['setup']`; the specs that start from a filled
+  cart declare `test.use({ storageState: SEEDED_CART_STATE })` on their own
+  group, never at file level, because the neighbouring specs assert an empty
+  bag. One cart is shared by the run, so those specs only read it. Nothing
+  writes to the database directly: the e2e Postgres carries no volume and is
+  shared with whatever dev stack is running.
+- **Fixed clock.** `FIXED_CLOCK` in `tests/helpers.ts` is the instant the
+  clock-driven specs pin, deliberately years away from every seeded date.
+  `page.clock.setFixedTime` covers rendered dates; `page.clock.install` plus
+  `fastForward` drives the toast's ten-second lifetime instead of waiting it
+  out. The copyright year is rendered by the server and kept through hydration
+  (`suppressHydrationWarning`), so its spec compares the page against the
+  server that rendered it rather than against wall time.
+- **Recorded catalogue.** `tests/fixtures/catalog.har` holds the listing
+  exchange the catalogue makes on a client-side navigation. Refresh it with
+  `RECORD_HAR=1 pnpm --filter @e-commerce/e2e test tests/network.spec.ts`
+  against a running stack, then commit the file. Replay uses
+  `notFound: 'abort'`, so an exchange missing from the recording fails loudly
+  instead of reaching the live API.
+- **Route control.** `tests/network.spec.ts` covers the three shapes a handler
+  can take (fulfilment, abortion, continuation with a rewritten query) and
+  removes its handler with `page.unroute` before asserting the live listing.
+  Offline behaviour is emulated at the context level, never by stubbing
+  `fetch`.
+- **Console allowances stay narrow.** `allowedConsoleErrors` defaults to empty
+  and is declared by the spec that provokes the noise. The one exception is
+  `engineNoise`, a separate option carrying what a browser reports about
+  itself (Firefox's third-party cookie rejection, the dev server's
+  lazy-compilation trigger). It is set on the Firefox and WebKit projects
+  alone, so Chromium stays strict and a spec's own allowance never displaces
+  it.
+
+## Rendering baselines and budgets (#48)
+
+- **Screenshots** live in `tests/visual.spec.ts-snapshots/` and were captured on
+  macOS with the `desktop-chromium` project; the file names carry both, so a
+  run on another platform asks for its own baselines
+  (`playwright test --update-snapshots`). CI runs `pnpm check`, not `pnpm e2e`,
+  so the committed macOS baselines gate nothing there. Every capture masks the
+  images the remote CDN serves, applies `tests/screenshot.css` to stop
+  animations and the caret, and allows a one percent pixel difference for text
+  antialiasing.
+- **Structural snapshots** (`*.aria.yml`) compare roles, names and structure
+  rather than pixels, so they hold across platforms and catch a landmark or a
+  label going missing.
+- **Accessibility budgets** live in `tests/a11y.spec.ts`: each route is scanned
+  with axe against the WCAG A and AA tags and is allowed a recorded number of
+  violations, zero everywhere today. A new violation fails the route's test and
+  the report carries the axe output as an attachment.
+- **Media emulation** covers the colour scheme (the shop ships one palette and
+  must keep it), reduced motion (animations collapse), and print (the navbar
+  and the cookie banner carry `data-print-hidden`).
+- **Touch** is the mobile project's only pointer: taps rather than clicks, and
+  a scroll synthesised through the Chromium protocol, since the touchscreen API
+  has no drag.
+
+## Capabilities this suite deliberately does not exercise
+
+| Capability | Why it does not apply here |
+| --- | --- |
+| Electron | The shop ships as a web application; there is no desktop build to drive. |
+| Android | No native app, and the mobile project already emulates the phone viewport, touch, and user agent. |
+| Browser extensions | Nothing in the product is delivered as an extension. |
+| Playwright component testing | Components are covered by rstest with Testing Library, and Storybook renders them in isolation; a third component runner would duplicate both. |
+| Client certificates | The API authenticates nobody: the cart is anonymous by design (ADR 0002). |
+| HTTP credentials | No route is behind basic authentication, locally or deployed. |
+| Service workers | The client registers none, so there is no offline cache or background sync to assert; the offline branch is covered by context-level emulation instead. |
+
+The two capabilities the shop may plausibly grow into, multi-role storage state
+and WebSocket routing, are written out as exercises under `scratch/` rather
+than pretended into the suite. See `scratch/README.md`.
+

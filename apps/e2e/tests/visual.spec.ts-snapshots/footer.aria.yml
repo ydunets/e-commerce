@@ -1,0 +1,45 @@
+- contentinfo:
+  - paragraph: Join our newsletter
+  - paragraph: We’ll send you a nice letter once per week. No spam.
+  - text: Email address
+  - textbox "Email address":
+    - /placeholder: Enter your email
+  - button "Subscribe"
+  - img "StyleNest"
+  - paragraph: Craft stunning style journeys that weave more joy into every thread.
+  - paragraph: Shop Categories
+  - list:
+    - listitem:
+      - link "Unisex":
+        - /url: /products
+    - listitem:
+      - link "Women":
+        - /url: /products
+    - listitem:
+      - link "Men":
+        - /url: /products
+  - paragraph: Shop Collections
+  - list:
+    - listitem:
+      - link "Latest arrivals":
+        - /url: /products
+    - listitem:
+      - link "Urban Oasis":
+        - /url: /products
+    - listitem:
+      - link "Cozy Comfort":
+        - /url: /products
+    - listitem:
+      - link "Fresh Fusion":
+        - /url: /products
+  - paragraph: /© \d+ StyleNest, Inc\. All rights reserved\./
+  - link "YouTube":
+    - /url: "#youtube"
+  - link "Instagram":
+    - /url: "#instagram"
+  - link "Facebook":
+    - /url: "#facebook"
+  - link "GitHub":
+    - /url: "#github"
+  - link "X":
+    - /url: "#x"

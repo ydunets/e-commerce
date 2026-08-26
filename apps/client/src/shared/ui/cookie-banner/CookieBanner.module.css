@@ -1,0 +1,11 @@
+@reference "../../../app.css";
+
+/* Anchored to the bottom of the viewport and above the page, which is what
+   makes it the overlay the e2e suite dismisses through a locator handler. */
+.root {
+  @apply fixed inset-x-0 bottom-0 z-50 flex flex-wrap items-center justify-between gap-4 border-t border-line bg-white px-4 py-4 shadow-lg md:px-8;
+}
+
+.copy {
+  @apply text-sm text-muted;
+}

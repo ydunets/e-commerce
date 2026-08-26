@@ -1,3 +1,18 @@
+# [1.15.0](https://github.com/ydunets/e-commerce/compare/v1.14.0...v1.15.0) (2026-08-26)
+
+
+### Bug Fixes
+
+* **client:** keep the copyright year through hydration ([babf0c5](https://github.com/ydunets/e-commerce/commit/babf0c537afadbfec1af89492833e5795b1d2e26))
+* **e2e:** record the accessibility scanner in the lockfile ([349c012](https://github.com/ydunets/e-commerce/commit/349c0128ceaab19d05dded1635f60a5b59108463))
+
+
+### Features
+
+* **client:** add the storefront's remaining browser surfaces ([e5bef08](https://github.com/ydunets/e-commerce/commit/e5bef08aa852038e3287ff133bb60bc7e1b265e5))
+* **client:** consolidate listings on the products route ([7ef2887](https://github.com/ydunets/e-commerce/commit/7ef2887f426a4aedc4fa4bd223bc52ae65af00a4))
+* **client:** give SizeSelector the radiogroup keys ([1ff9cb2](https://github.com/ydunets/e-commerce/commit/1ff9cb27a97bc8b48130266269cb7adb1f0ebe79)), closes [#50](https://github.com/ydunets/e-commerce/issues/50)
+
 # [1.14.0](https://github.com/ydunets/e-commerce/compare/v1.13.0...v1.14.0) (2026-08-07)
 
 

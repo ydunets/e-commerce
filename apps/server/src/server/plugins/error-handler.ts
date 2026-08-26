@@ -28,6 +28,16 @@ const fastifyErrorCodesMap: Record<string, FastifyErrorMapper | undefined> = {
   }),
 };
 
+function exceptionResponse(error: ExceptionBase): ApiErrorResponse {
+  return {
+    statusCode: error.statusCode,
+    message: error.message,
+    error: error.error,
+    correlationId: getRequestId(),
+    ...(error.metadata !== undefined && { details: error.metadata }),
+  };
+}
+
 async function errorHandlerPlugin(fastify: FastifyInstance) {
   fastify.setErrorHandler((error: FastifyError | Error, _, res) => {
     // Handle fastify errors
@@ -63,12 +73,7 @@ async function errorHandlerPlugin(fastify: FastifyInstance) {
       } else {
         fastify.log.warn(error);
       }
-      return res.status(error.statusCode).send({
-        statusCode: error.statusCode,
-        message: error.message,
-        error: error.error,
-        correlationId: getRequestId(),
-      } satisfies ApiErrorResponse);
+      return res.status(error.statusCode).send(exceptionResponse(error));
     }
 
     // Catch all other errors

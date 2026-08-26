@@ -106,7 +106,13 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
       expect(response).toBeOK();
       const cart = await readJson<CartResponse>(response);
       cartId = cart.id;
-      expect(cart.lines).toEqual([{ sku: PRODUCT.sku, quantity: 2 }]);
+      expect(cart.lines).toHaveLength(1);
+      expect(cart.lines[0]).toMatchObject({
+        sku: PRODUCT.sku,
+        quantity: 2,
+        name: PRODUCT.name,
+      });
+      expect(cart.coupons).toEqual([]);
       expect(cart.totalUnits).toBe(2);
       return cart;
     });
@@ -138,9 +144,10 @@ test.describe('Storefront API', { tag: '@critical' }, () => {
       });
       expect(response).toBeOK();
       const cart = await readJson<CartResponse>(response);
+      // Latest added first: the appended line leads.
       expect(cart.lines.map((line) => line.sku)).toEqual([
-        PRODUCT.sku,
         PRODUCT.secondSku,
+        PRODUCT.sku,
       ]);
       expect(cart.totalUnits).toBe(4);
     });

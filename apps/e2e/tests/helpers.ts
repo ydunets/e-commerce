@@ -56,10 +56,27 @@ export const ROUTES = {
 /** Versioned API routes; `/health` and `/api-docs/json` sit outside this prefix. */
 export const API_PREFIX = '/api/v1';
 
-/** The cart as every cart route answers it. */
+/** The cart as every cart route answers it: lines enriched with product data. */
 export type CartResponse = {
   id: string;
-  lines: { sku: string; quantity: number }[];
+  lines: {
+    sku: string;
+    quantity: number;
+    product_id: string;
+    name: string;
+    color: string;
+    size: string | null;
+    image_url: string | null;
+    list_price: number;
+    discount_percentage: number | null;
+    sale_price: number;
+    stock: number;
+  }[];
+  coupons: {
+    code: string;
+    discount_type: 'percentage' | 'fixed';
+    value: number;
+  }[];
   totalUnits: number;
 };
 

@@ -16,6 +16,12 @@ export const apiErrorResponseSchema = Type.Object(
         description: 'Field-level details for a validation failure',
       }),
     ),
+    details: Type.Optional(
+      Type.Unknown({
+        description:
+          'Machine-readable payload of a domain failure, e.g. an insufficient stock conflict',
+      }),
+    ),
   },
   { $id: 'ApiErrorResponse' },
 );

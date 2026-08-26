@@ -33,7 +33,9 @@ export default function makeUpdateItem({ commandBus, queryBus, cartRepository }:
       return {
         ...cart,
         lines: cart.lines.map((line) =>
-          line.sku === payload.sku ? { ...line, quantity: payload.quantity } : line,
+          line.sku === payload.sku
+            ? { ...line, quantity: payload.quantity, stock: stockLevel.stock }
+            : line,
         ),
       };
     },

@@ -30,9 +30,9 @@ describe('applyCouponCommand handler', () => {
   it('applies an existing coupon and appends it to the cart', async () => {
     const { deps, applied } = fakeDeps({ cart: cartWith([]), coupon: WELCOME });
 
-    const cart = await makeApplyCoupon(deps).handler({
-      payload: { cartId: 'cart-1', code: 'WELCOME15' },
-    } as never);
+    const cart = await makeApplyCoupon(deps).handler(
+      applyCouponCommand({ cartId: 'cart-1', code: 'WELCOME15' }),
+    );
 
     assert.deepEqual(applied, [{ cartId: 'cart-1', code: 'WELCOME15' }]);
     assert.deepEqual(cart.coupons, [WELCOME]);
@@ -41,9 +41,9 @@ describe('applyCouponCommand handler', () => {
   it('keeps a single entry when the coupon is already applied', async () => {
     const { deps } = fakeDeps({ cart: cartWith([WELCOME]), coupon: WELCOME });
 
-    const cart = await makeApplyCoupon(deps).handler({
-      payload: { cartId: 'cart-1', code: 'WELCOME15' },
-    } as never);
+    const cart = await makeApplyCoupon(deps).handler(
+      applyCouponCommand({ cartId: 'cart-1', code: 'WELCOME15' }),
+    );
 
     assert.deepEqual(cart.coupons, [WELCOME]);
   });
@@ -53,9 +53,9 @@ describe('applyCouponCommand handler', () => {
 
     await assert.rejects(
       () =>
-        makeApplyCoupon(deps).handler({
-          payload: { cartId: 'cart-1', code: 'NO-SUCH-CODE' },
-        } as never),
+        makeApplyCoupon(deps).handler(
+          applyCouponCommand({ cartId: 'cart-1', code: 'NO-SUCH-CODE' }),
+        ),
       NotFoundException,
     );
     assert.equal(applied.length, 0);
@@ -66,9 +66,7 @@ describe('applyCouponCommand handler', () => {
 
     await assert.rejects(
       () =>
-        makeApplyCoupon(deps).handler({
-          payload: { cartId: 'missing', code: 'WELCOME15' },
-        } as never),
+        makeApplyCoupon(deps).handler(applyCouponCommand({ cartId: 'missing', code: 'WELCOME15' })),
       NotFoundException,
     );
   });

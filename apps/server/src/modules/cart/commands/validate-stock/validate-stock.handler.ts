@@ -31,19 +31,11 @@ export default function makeValidateStock({ commandBus, cartRepository }: Depend
       }
 
       await cartRepository.applyStockChanges(payload.cartId, changes);
-      const clamped = new Map(changes.map((change) => [change.sku, change.quantity]));
-      return {
-        cart: {
-          ...cart,
-          lines: cart.lines
-            .map((line) => {
-              const quantity = clamped.get(line.sku);
-              return quantity === undefined ? line : { ...line, quantity };
-            })
-            .filter((line) => line.quantity > 0),
-        },
-        changes,
-      };
+      const corrected = await cartRepository.findOneById(payload.cartId);
+      if (!corrected) {
+        throw new NotFoundException(`Cart ${payload.cartId} not found`);
+      }
+      return { cart: corrected, changes };
     },
     init() {
       commandBus.register(validateStockCommand.type, this.handler);

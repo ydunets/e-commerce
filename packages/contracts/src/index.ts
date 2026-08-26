@@ -3,13 +3,9 @@
 export type { ApiErrorResponse, ApiErrorSubError } from './api-error.ts';
 export type {
   AddCartItemBodyDto,
-  AppliedCouponDto,
   ApplyCouponBodyDto,
-  CartDiscountTypeDto,
   CartLineDto,
   CartResponseDto,
-  InsufficientStockDetail,
-  StockChangeDto,
   UpdateCartItemBodyDto,
   ValidateCartResponseDto,
 } from './cart.ts';
@@ -32,16 +28,12 @@ export type {
 export { apiErrorResponseSchema, apiErrorSubErrorSchema } from './api-error.ts';
 export {
   addCartItemBodySchema,
-  appliedCouponDtoSchema,
   applyCouponBodySchema,
   cartCouponParamsSchema,
-  cartDiscountTypeSchema,
   cartLineDtoSchema,
   cartLineParamsSchema,
   cartParamsSchema,
   cartResponseDtoSchema,
-  insufficientStockDetailSchema,
-  stockChangeDtoSchema,
   updateCartItemBodySchema,
   validateCartResponseDtoSchema,
 } from './cart.ts';
@@ -61,6 +53,5 @@ export {
 
 // Constants and helpers
 
-export { CART_DISCOUNT_TYPES } from './cart.ts';
 export { compareSizes, SIZE_RANK } from './sizes.ts';
 export { SPECIFICATION_ICONS } from './specification.ts';

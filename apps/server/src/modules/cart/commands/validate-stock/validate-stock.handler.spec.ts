@@ -28,16 +28,31 @@ function cartWith(lines: EnrichedCartLine[]): CartEntity {
   return { id: 'cart-1', createdAt: new Date(), lines, coupons: [] };
 }
 
+// The handler re-reads the cart after reconciling, so the fake repository has
+// to reflect the applied changes the way the real one does.
 function fakeDeps(options: { cart?: CartEntity }): {
   deps: Dependencies;
   reconciled: { cartId: string; changes: StockChange[] }[];
 } {
   const reconciled: { cartId: string; changes: StockChange[] }[] = [];
+  let stored = options.cart;
   const deps = {
     cartRepository: {
-      findOneById: async (id: string) => (options.cart?.id === id ? options.cart : undefined),
-      applyStockChanges: async (cartId: string, changes: StockChange[]) =>
-        void reconciled.push({ cartId, changes }),
+      findOneById: async (id: string) => (stored?.id === id ? stored : undefined),
+      applyStockChanges: async (cartId: string, changes: StockChange[]) => {
+        reconciled.push({ cartId, changes });
+        if (stored?.id !== cartId) return;
+        const clamped = new Map(changes.map((change) => [change.sku, change.quantity]));
+        stored = {
+          ...stored,
+          lines: stored.lines
+            .map((line) => {
+              const quantity = clamped.get(line.sku);
+              return quantity === undefined ? line : { ...line, quantity };
+            })
+            .filter((line) => line.quantity > 0),
+        };
+      },
     },
   } as never as Dependencies;
   return { deps, reconciled };
@@ -48,9 +63,9 @@ describe('validateStockCommand handler', () => {
     const cart = cartWith([enrichedLine('sku-a', 2, 5)]);
     const { deps, reconciled } = fakeDeps({ cart });
 
-    const result = await makeValidateStock(deps).handler({
-      payload: { cartId: 'cart-1' },
-    } as never);
+    const result = await makeValidateStock(deps).handler(
+      validateStockCommand({ cartId: 'cart-1' }),
+    );
 
     assert.deepEqual(result.changes, []);
     assert.deepEqual(result.cart, cart);
@@ -60,9 +75,9 @@ describe('validateStockCommand handler', () => {
   it('clamps an oversold line and reports the change', async () => {
     const { deps, reconciled } = fakeDeps({ cart: cartWith([enrichedLine('sku-a', 5, 3)]) });
 
-    const result = await makeValidateStock(deps).handler({
-      payload: { cartId: 'cart-1' },
-    } as never);
+    const result = await makeValidateStock(deps).handler(
+      validateStockCommand({ cartId: 'cart-1' }),
+    );
 
     assert.deepEqual(result.changes, [
       { sku: 'sku-a', name: 'Voyager Hoodie', previousQuantity: 5, quantity: 3, stock: 3 },
@@ -76,9 +91,9 @@ describe('validateStockCommand handler', () => {
       cart: cartWith([enrichedLine('sku-a', 2, 0), enrichedLine('sku-b', 1, 5)]),
     });
 
-    const result = await makeValidateStock(deps).handler({
-      payload: { cartId: 'cart-1' },
-    } as never);
+    const result = await makeValidateStock(deps).handler(
+      validateStockCommand({ cartId: 'cart-1' }),
+    );
 
     assert.deepEqual(
       result.cart.lines.map((line) => line.sku),
@@ -93,7 +108,7 @@ describe('validateStockCommand handler', () => {
     const { deps } = fakeDeps({});
 
     await assert.rejects(
-      () => makeValidateStock(deps).handler({ payload: { cartId: 'missing' } } as never),
+      () => makeValidateStock(deps).handler(validateStockCommand({ cartId: 'missing' })),
       NotFoundException,
     );
   });

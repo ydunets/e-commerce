@@ -67,9 +67,7 @@ describe('addItemCommand handler', () => {
   it('mints a cart implicitly when no cartId is given', async () => {
     const { deps, inserted, upserted } = fakeDeps({ stock: 5 });
 
-    const cart = await makeAddItem(deps).handler({
-      payload: { sku: SKU, quantity: 2 },
-    } as never);
+    const cart = await makeAddItem(deps).handler(addItemCommand({ sku: SKU, quantity: 2 }));
 
     assert.equal(inserted.length, 1);
     assert.equal(cart.id, inserted[0]!.id);
@@ -80,9 +78,7 @@ describe('addItemCommand handler', () => {
   it('answers the persisted read model, enriched with product data', async () => {
     const { deps } = fakeDeps({ stock: 5 });
 
-    const cart = await makeAddItem(deps).handler({
-      payload: { sku: SKU, quantity: 2 },
-    } as never);
+    const cart = await makeAddItem(deps).handler(addItemCommand({ sku: SKU, quantity: 2 }));
 
     assert.deepEqual(cart.lines, [enrichedLine(SKU, 2)]);
   });
@@ -96,9 +92,9 @@ describe('addItemCommand handler', () => {
     };
     const { deps, inserted, upserted } = fakeDeps({ stock: 5, existingCart });
 
-    const cart = await makeAddItem(deps).handler({
-      payload: { cartId: 'cart-1', sku: SKU, quantity: 3 },
-    } as never);
+    const cart = await makeAddItem(deps).handler(
+      addItemCommand({ cartId: 'cart-1', sku: SKU, quantity: 3 }),
+    );
 
     assert.equal(inserted.length, 0);
     assert.deepEqual(upserted, [{ cartId: 'cart-1', sku: SKU, quantity: 5 }]);
@@ -115,10 +111,7 @@ describe('addItemCommand handler', () => {
     const { deps, upserted } = fakeDeps({ stock: 5, existingCart });
 
     await assert.rejects(
-      () =>
-        makeAddItem(deps).handler({
-          payload: { cartId: 'cart-1', sku: SKU, quantity: 2 },
-        } as never),
+      () => makeAddItem(deps).handler(addItemCommand({ cartId: 'cart-1', sku: SKU, quantity: 2 })),
       ConflictException,
     );
     assert.equal(upserted.length, 0);
@@ -128,7 +121,7 @@ describe('addItemCommand handler', () => {
     const { deps, inserted } = fakeDeps({ stock: 0 });
 
     await assert.rejects(
-      () => makeAddItem(deps).handler({ payload: { sku: SKU, quantity: 1 } } as never),
+      () => makeAddItem(deps).handler(addItemCommand({ sku: SKU, quantity: 1 })),
       ConflictException,
     );
     assert.equal(inserted.length, 0);
@@ -138,7 +131,7 @@ describe('addItemCommand handler', () => {
     const { deps, inserted } = fakeDeps({});
 
     await assert.rejects(
-      () => makeAddItem(deps).handler({ payload: { sku: SKU, quantity: 1 } } as never),
+      () => makeAddItem(deps).handler(addItemCommand({ sku: SKU, quantity: 1 })),
       NotFoundException,
     );
     assert.equal(inserted.length, 0);
@@ -148,10 +141,7 @@ describe('addItemCommand handler', () => {
     const { deps } = fakeDeps({ stock: 5 });
 
     await assert.rejects(
-      () =>
-        makeAddItem(deps).handler({
-          payload: { cartId: 'missing', sku: SKU, quantity: 1 },
-        } as never),
+      () => makeAddItem(deps).handler(addItemCommand({ cartId: 'missing', sku: SKU, quantity: 1 })),
       NotFoundException,
     );
   });

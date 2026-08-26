@@ -23,9 +23,9 @@ describe('removeCouponCommand handler', () => {
       removed: true,
     });
 
-    const cart = await makeRemoveCoupon(deps).handler({
-      payload: { cartId: 'cart-1', code: 'WELCOME15' },
-    } as never);
+    const cart = await makeRemoveCoupon(deps).handler(
+      removeCouponCommand({ cartId: 'cart-1', code: 'WELCOME15' }),
+    );
 
     assert.deepEqual(cart.coupons, [SAVE]);
   });
@@ -38,9 +38,9 @@ describe('removeCouponCommand handler', () => {
 
     await assert.rejects(
       () =>
-        makeRemoveCoupon(deps).handler({
-          payload: { cartId: 'cart-1', code: 'WELCOME15' },
-        } as never),
+        makeRemoveCoupon(deps).handler(
+          removeCouponCommand({ cartId: 'cart-1', code: 'WELCOME15' }),
+        ),
       NotFoundException,
     );
   });
@@ -50,9 +50,9 @@ describe('removeCouponCommand handler', () => {
 
     await assert.rejects(
       () =>
-        makeRemoveCoupon(deps).handler({
-          payload: { cartId: 'missing', code: 'WELCOME15' },
-        } as never),
+        makeRemoveCoupon(deps).handler(
+          removeCouponCommand({ cartId: 'missing', code: 'WELCOME15' }),
+        ),
       NotFoundException,
     );
   });

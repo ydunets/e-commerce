@@ -89,13 +89,6 @@ export const cartCouponParamsSchema = Type.Object({
   code: Type.String({ example: 'WELCOME15' }),
 });
 
-// The `details` payload a stock conflict (409) carries in the error envelope.
-export const insufficientStockDetailSchema = Type.Object({
-  sku: Type.String(),
-  requested: Type.Integer(),
-  available: Type.Integer(),
-});
-
 export type CartDiscountTypeDto = Static<typeof cartDiscountTypeSchema>;
 export type CartLineDto = Static<typeof cartLineDtoSchema>;
 export type AppliedCouponDto = Static<typeof appliedCouponDtoSchema>;
@@ -105,4 +98,3 @@ export type ValidateCartResponseDto = Static<typeof validateCartResponseDtoSchem
 export type AddCartItemBodyDto = Static<typeof addCartItemBodySchema>;
 export type UpdateCartItemBodyDto = Static<typeof updateCartItemBodySchema>;
 export type ApplyCouponBodyDto = Static<typeof applyCouponBodySchema>;
-export type InsufficientStockDetail = Static<typeof insufficientStockDetailSchema>;

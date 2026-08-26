@@ -50,8 +50,8 @@ export default function cartRepository({ db }: Dependencies): CartRepository {
     async findOneById(id: string): Promise<CartEntity | undefined> {
       // Product data joins in here per line (the same trade as
       // review.repository.productExists: SQL beats a bus round-trip per line).
-      const [rows, couponRows] = (await Promise.all([
-        db`
+      const [rows, couponRows] = await Promise.all([
+        db<CartRow[]>`
           SELECT c.cart_id, c.created_at, l.sku, l.quantity,
             i.product_id, p.name, i.color, i.size, i.list_price,
             i.discount_percentage, i.sale_price, i.stock, img.image_url
@@ -67,14 +67,14 @@ export default function cartRepository({ db }: Dependencies): CartRepository {
           WHERE c.cart_id = ${id}
           ORDER BY l.created_at DESC, l.sku
         `,
-        db`
+        db<CouponRow[]>`
           SELECT cc.code, co.discount_type, co.value
           FROM cart_coupons cc
           JOIN coupons co ON co.code = cc.code
           WHERE cc.cart_id = ${id}
           ORDER BY cc.created_at, cc.code
         `,
-      ])) as unknown as [CartRow[], CouponRow[]];
+      ]);
       const [first] = rows;
       if (!first) return undefined;
 
@@ -121,7 +121,7 @@ export default function cartRepository({ db }: Dependencies): CartRepository {
     },
 
     async findCouponByCode(code: string): Promise<CartCoupon | undefined> {
-      const [row]: [CouponRow?] = await db`
+      const [row] = await db<CouponRow[]>`
         SELECT code, discount_type, value FROM coupons WHERE code = ${code} LIMIT 1
       `;
       return row

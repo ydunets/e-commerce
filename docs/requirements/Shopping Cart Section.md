@@ -145,6 +145,9 @@ This is a complex challenge with many sections and components, please read the r
 
 ### Delivery
 
+- Tracked by issue #58, with one sub-issue per stage: #59 (server API),
+  #60 (cart page), #61 (coupons and order summary), #62 (stock modals and
+  checkout), #63 (e2e coverage).
 - Stacked PRs branched from `origin/main`: (1) contracts plus server work
   (read-model enrichment, structured 409, coupons, reconcile endpoint; may
   split into atomic PRs per module boundary), (2) cart page UI with quantity

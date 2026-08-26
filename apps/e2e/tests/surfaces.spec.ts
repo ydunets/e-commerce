@@ -2,18 +2,19 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { COOKIE_BANNER, expect, test } from './fixtures';
+import { ACCEPT_COOKIES, COOKIE_BANNER, expect, test } from './fixtures';
 import { COOKIE_CHOICE_KEY, PRODUCT, ROUTES } from './helpers';
 
+// The sheet the specifications section embeds and offers for download, served
+// from apps/client/public/spec-sheet.html.
 const SPEC_SHEET_FRAME = { name: 'Care and materials' } as const;
-const DOWNLOAD_BUTTON = { name: 'Download specification sheet' } as const;
-const SHEET_FILE_NAME = 'stylenest-specification-sheet.csv';
-const SHEET_HEADER = 'section,feature';
+const SHEET_FILE_NAME = 'spec-sheet.html';
+const SHEET_LINE = 'Made in Portugal';
+const DOWNLOAD_LINK = { name: 'Download specification sheet' } as const;
 
 const REVIEWS_BUTTON = { name: /reviews/ } as const;
 const PHOTO_FIELD = { name: 'Add a photo' } as const;
 const REMOVE_PHOTO = { name: 'Remove' } as const;
-const ACCEPT_COOKIES = { name: 'Accept cookies' } as const;
 
 // A 1x1 transparent GIF: the smallest thing the picker will accept.
 const PIXEL_GIF = Buffer.from(
@@ -39,10 +40,10 @@ test.describe('Storefront Surfaces', () => {
     const sheet = page.frameLocator(`iframe[title="${SPEC_SHEET_FRAME.name}"]`);
 
     await expect(sheet.getByText('Machine wash cold')).toBeVisible();
-    await expect(sheet.getByText('Made in Portugal')).toBeVisible();
+    await expect(sheet.getByText(SHEET_LINE)).toBeVisible();
   });
 
-  test('should download the specification sheet built from the rendered specifications', async ({
+  test('should hand the same sheet over as a download', async ({
     gotoHydrated,
     page,
   }) => {
@@ -50,15 +51,14 @@ test.describe('Storefront Surfaces', () => {
 
     const download = await test.step('trigger the download', async () => {
       const pending = page.waitForEvent('download');
-      await page.getByRole('button', DOWNLOAD_BUTTON).click();
+      await page.getByRole('link', DOWNLOAD_LINK).click();
       return pending;
     });
 
     expect(download.suggestedFilename()).toBe(SHEET_FILE_NAME);
 
     const body = await readFile(await download.path(), 'utf8');
-    expect(body.split('\n')[0]).toBe(SHEET_HEADER);
-    expect(body).toContain('Sustainability');
+    expect(body).toContain(SHEET_LINE);
   });
 
   test.describe('the review photo picker', () => {

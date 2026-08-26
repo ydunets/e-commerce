@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import {
   API_ORIGIN,
+  ENGINE_NOISE,
   type TestOptions,
   type WorkerOptions,
 } from './tests/fixtures';
@@ -63,13 +64,13 @@ export default defineConfig<TestOptions, WorkerOptions>({
     },
     {
       name: 'desktop-firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: { ...devices['Desktop Firefox'], engineNoise: ENGINE_NOISE },
       grep: SMOKE_TAG,
       testIgnore: [MOBILE_SPECS, STREAMING_SPECS, SETUP_SPECS],
     },
     {
       name: 'desktop-webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: { ...devices['Desktop Safari'], engineNoise: ENGINE_NOISE },
       grep: SMOKE_TAG,
       testIgnore: [MOBILE_SPECS, STREAMING_SPECS, SETUP_SPECS],
     },

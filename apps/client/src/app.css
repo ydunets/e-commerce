@@ -74,7 +74,10 @@ body {
 }
 
 /* A visitor who asks for less motion gets none: every animation and
-   transition in the shop is decoration over content that is already there. */
+   transition in the shop is decoration over content that is already there.
+   The declarations below have to outrank the component rules they override,
+   which sit at higher specificity than the universal selector reaches. */
+/* biome-ignore-start lint/complexity/noImportantStyles: an accessibility override must win over the component rule it neutralises */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -93,3 +96,4 @@ body {
     display: none !important;
   }
 }
+/* biome-ignore-end lint/complexity/noImportantStyles: end of the overrides */

@@ -12,6 +12,14 @@
   @apply text-lg font-semibold text-ink;
 }
 
+.download {
+  @apply rounded-sm border border-line bg-white px-4 py-2 text-sm font-semibold text-ink shadow-xs;
+}
+
+.download:focus-visible {
+  @apply focus-ring;
+}
+
 .frame {
   @apply h-56 w-full rounded-sm border border-line bg-white;
 }

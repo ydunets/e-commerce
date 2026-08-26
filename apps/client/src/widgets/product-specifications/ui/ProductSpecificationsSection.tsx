@@ -92,7 +92,7 @@ export const ProductSpecificationsSection = ({
         ))}
       </div>
 
-      <SpecificationSheet specifications={specifications} />
+      <SpecificationSheet />
     </section>
   );
 };

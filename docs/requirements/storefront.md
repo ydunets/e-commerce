@@ -26,7 +26,22 @@ individual briefs; their functionality must stay intact after integration:
 ### Page level
 
 - Page layout rules: standard page margin and padding per the design
-  specifications, including spacing between sections.
+  specifications, including spacing between sections. Read from the three
+  composition frames on 2026-08-26 (values in CSS pixels):
+
+  | | Desktop (5-6578) | Tablet (5-6592) | Mobile (5-6606) |
+  | --- | --- | --- | --- |
+  | Frame width | 1440 | 768 | 375 |
+  | Header | full bleed, 76 tall, content inset 112 | full bleed, 84 tall, content inset 32 | full bleed, 84 tall, content inset 16 |
+  | Content column | inset 16 on every side, 1408 wide | inset 16, 736 wide | inset 16, 343 wide |
+  | Section order | details, specification, category grid, footer | same | same |
+  | Spacing between sections | 0: each section carries its own padding | 0 | 0 |
+  | Details section padding | 96 | 16 horizontal, 64 vertical | 16 |
+  | Absolute content margin | 112 | 32 | 32 (28 for the category grid, whose own brief sets 12) |
+
+  The sections sit flush inside one white rounded content card on a near-white
+  page. The card itself is not reproduced: the shop's page background is white
+  already, so only the margins and the flush stacking are implemented (#41).
 - Static copy and asset alignment: assets, icons, or copy may differ from the
   original component briefs; align them with this design.
 - Placeholders: redirection links may stay empty for unspecified buttons or

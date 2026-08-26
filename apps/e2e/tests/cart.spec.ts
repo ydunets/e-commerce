@@ -3,6 +3,7 @@ import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
 import {
   API_PREFIX,
   CART_ID_STORAGE_KEY,
+  cartLink,
   type CartResponse,
   COOKIE_CHOICE_KEY,
   PRODUCT,
@@ -27,9 +28,6 @@ const UUID_PATTERN =
 // Seeded data: autumnal-knitwear defaults to blue / XS with 15 in stock.
 const LOW_STOCK_PRODUCT_PATH = '/products/autumnal-knitwear';
 const LOW_STOCK = 15;
-
-const cartLink = (page: Page) =>
-  page.getByRole('link', { name: /shopping bag/i });
 
 const storedCartId = (page: Page) =>
   page.evaluate((key) => localStorage.getItem(key), CART_ID_STORAGE_KEY);
@@ -111,7 +109,7 @@ test.describe('Shopping Cart', () => {
         await expect(cartLink(page)).toHaveCartCount(SEEDED_CART.quantity);
       });
 
-        await test.step('confirm the cart itself was not persisted', async () => {
+      await test.step('confirm the cart itself was not persisted', async () => {
         const storage = await page.evaluate(() => Object.keys(localStorage));
         // The device holds the cart's identifier and the visitor's cookie
         // answer, and nothing else: the lines live on the server (ADR 0002).

@@ -1,13 +1,11 @@
 import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
-import { FIXED_CLOCK, ROUTES, uniqueEmail } from './helpers';
+import { FIXED_CLOCK, NEWSLETTER, ROUTES, uniqueEmail } from './helpers';
 
 const SUBSCRIBE_ENDPOINT = '**/api/v1/newsletter/subscriptions';
-const EMAIL_FIELD = { name: 'Email address' } as const;
-const SUBSCRIBE_BUTTON = { name: 'Subscribe' } as const;
-const SUCCESS_MESSAGE =
-  'Subscription successful! Please check your email to confirm.';
-const FAILURE_MESSAGE =
-  'Failed to subscribe. Please ensure your email is correct or try again later.';
+const EMAIL_FIELD = NEWSLETTER.field;
+const SUBSCRIBE_BUTTON = NEWSLETTER.submit;
+const SUCCESS_MESSAGE = NEWSLETTER.success;
+const FAILURE_MESSAGE = NEWSLETTER.failure;
 
 // Mirrors TOAST_DURATION_MS in apps/client/src/widgets/newsletter-form/lib/toast-context.tsx.
 const TOAST_LIFETIME_MS = 10_000;

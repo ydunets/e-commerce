@@ -1,13 +1,6 @@
 import type { Page, Route } from '@playwright/test';
 import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
-import { API_PREFIX, ROUTES, uniqueEmail } from './helpers';
-
-const EMAIL_FIELD = { name: 'Email address' } as const;
-const SUBSCRIBE_BUTTON = { name: 'Subscribe' } as const;
-const SUCCESS_MESSAGE =
-  'Subscription successful! Please check your email to confirm.';
-const FAILURE_MESSAGE =
-  'Failed to subscribe. Please ensure your email is correct or try again later.';
+import { API_PREFIX, NEWSLETTER, ROUTES, uniqueEmail } from './helpers';
 
 /**
  * Catalogue listing as the browser requests it. Only client-side navigations
@@ -115,21 +108,21 @@ test.describe('Network Control', () => {
       },
       async ({ context, gotoHydrated, page }) => {
         await gotoHydrated(ROUTES.home);
-        const field = page.getByRole('textbox', EMAIL_FIELD);
-        const subscribe = page.getByRole('button', SUBSCRIBE_BUTTON);
+        const field = page.getByRole('textbox', NEWSLETTER.field);
+        const subscribe = page.getByRole('button', NEWSLETTER.submit);
 
         await context.setOffline(true);
         await field.fill(uniqueEmail());
         await subscribe.click();
 
-        await expect(page.getByRole('status')).toHaveText(FAILURE_MESSAGE);
+        await expect(page.getByRole('status')).toHaveText(NEWSLETTER.failure);
         await expect(subscribe).toBeEnabled();
 
         await context.setOffline(false);
         await field.fill(uniqueEmail());
         await subscribe.click();
 
-        await expect(page.getByRole('status')).toHaveText(SUCCESS_MESSAGE);
+        await expect(page.getByRole('status')).toHaveText(NEWSLETTER.success);
       },
     );
   });

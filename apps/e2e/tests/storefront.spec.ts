@@ -13,19 +13,25 @@ const BREAKPOINTS = [
   {
     name: 'Desktop',
     viewport: { width: 1440, height: 900 },
+    // 16 page inset + 96 section padding
     contentLeft: { details: 112, specifications: 112, collection: 112 },
   },
   {
     name: 'Tablet',
     viewport: { width: 768, height: 1024 },
+    // 16 + 16
     contentLeft: { details: 32, specifications: 32, collection: 32 },
   },
   {
     name: 'Mobile',
     viewport: { width: 375, height: 812 },
+    // 16 + 16, and 16 + 12 for the grid, whose own brief sets the tighter value
     contentLeft: { details: 32, specifications: 32, collection: 28 },
   },
 ] as const;
+
+// The compositions stack the sections with no space of their own between them.
+const SECTION_GAP = 0;
 
 const SPECIFICATIONS_SECTION = { name: 'Product specifications' } as const;
 const COLLECTION_SECTION = { name: 'In this collection' } as const;
@@ -36,10 +42,10 @@ const sections = (page: Page) => ({
   collection: page.getByRole('region', COLLECTION_SECTION),
 });
 
-async function topOf(locator: Locator) {
+async function boxOf(locator: Locator) {
   const box = await locator.boundingBox();
   if (!box) throw new Error('element is not rendered, so it has no box');
-  return box.y;
+  return box;
 }
 
 /**
@@ -76,10 +82,36 @@ test.describe('Storefront Page Composition', () => {
           const tops: number[] = [];
           for (const section of order) {
             await expect(section).toBeVisible();
-            tops.push(await topOf(section));
+            tops.push((await boxOf(section)).y);
           }
 
           expect(tops).toEqual([...tops].sort((a, b) => a - b));
+        },
+      );
+
+      test(
+        'should leave no gap between the sections',
+        {
+          annotation: {
+            type: 'design-fidelity',
+            description:
+              'the compositions stack the sections flush and let each one carry its own padding',
+          },
+        },
+        async ({ gotoHydrated, page }) => {
+          await gotoHydrated(PRODUCT.path);
+          const { details, specifications, collection } = sections(page);
+
+          const [first, second, third] = await Promise.all(
+            [details, specifications, collection].map(boxOf),
+          );
+
+          expect(Math.round(second.y - (first.y + first.height))).toBe(
+            SECTION_GAP,
+          );
+          expect(Math.round(third.y - (second.y + second.height))).toBe(
+            SECTION_GAP,
+          );
         },
       );
 

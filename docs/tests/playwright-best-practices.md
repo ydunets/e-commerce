@@ -245,8 +245,11 @@ reports group by behaviour.
   bracket markers in titles.
 - Annotations carry the why a title cannot: `seeded-data` for assertions bound
   to seed rows, `edge-case` for deliberately provoked conditions,
-  `known-issue` for documented hazards, plus a runtime-pushed `trace`
-  annotation where the value only exists mid-test.
+  `known-issue` for documented hazards, `aria-pattern` for a WAI-ARIA contract
+  under test, `design-fidelity` for a value read from the Figma compositions,
+  `determinism` for a spec that pins a clock, a recording or a seeded state,
+  and `network` for one that controls routes or connectivity, plus a
+  runtime-pushed `trace` annotation where the value only exists mid-test.
 - Named constants over literals, including status codes (`STATUS_NOT_FOUND`),
   poll bounds, and seeded facts, each with a comment naming its source.
 - Every body read goes through `readJson<T>(response)`, never a raw
@@ -286,6 +289,13 @@ reports group by behaviour.
   removes its handler with `page.unroute` before asserting the live listing.
   Offline behaviour is emulated at the context level, never by stubbing
   `fetch`.
+- **Console allowances stay narrow.** `allowedConsoleErrors` defaults to empty
+  and is declared by the spec that provokes the noise. The one exception is
+  `engineNoise`, a separate option carrying what a browser reports about
+  itself (Firefox's third-party cookie rejection, the dev server's
+  lazy-compilation trigger). It is set on the Firefox and WebKit projects
+  alone, so Chromium stays strict and a spec's own allowance never displaces
+  it.
 
 ## Rendering baselines and budgets (#48)
 

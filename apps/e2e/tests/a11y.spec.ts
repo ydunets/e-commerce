@@ -18,26 +18,33 @@ const ROUTE_BUDGETS = [
   { name: 'product', path: PRODUCT.path, budget: 0 },
 ] as const;
 
-for (const route of ROUTE_BUDGETS) {
-  test(`should stay within the accessibility budget on the ${route.name} route`, async ({
-    gotoHydrated,
-    page,
-  }, testInfo) => {
-    await gotoHydrated(route.path);
+test.describe('Accessibility Budgets', () => {
+  for (const route of ROUTE_BUDGETS) {
+    test(`should stay within the accessibility budget on the ${route.name} route`, async ({
+      gotoHydrated,
+      page,
+    }, testInfo) => {
+      await gotoHydrated(route.path);
 
-    const { violations } = await new AxeBuilder({ page })
-      .withTags(STANDARD_TAGS)
-      .analyze();
+      const { violations } = await new AxeBuilder({ page })
+        .withTags(STANDARD_TAGS)
+        .analyze();
+      const found = violations.map(
+        (violation) => `${violation.id}: ${violation.help}`,
+      );
 
-    // Attached before the assertion so a failure carries its evidence.
-    await testInfo.attach(`axe-${route.name}.json`, {
-      body: JSON.stringify(violations, null, 2),
-      contentType: 'application/json',
+      // Attached before the assertion so a failure carries its evidence.
+      await testInfo.attach(`axe-${route.name}.json`, {
+        body: JSON.stringify(violations, null, 2),
+        contentType: 'application/json',
+      });
+
+      // A ceiling, not a count: remediating a tolerated violation must not
+      // fail the route it improves.
+      expect(
+        found.length,
+        `the ${route.name} route may carry at most ${route.budget} violations, and carries ${found.join(', ') || 'none'}`,
+      ).toBeLessThanOrEqual(route.budget);
     });
-
-    expect(
-      violations.map((violation) => `${violation.id}: ${violation.help}`),
-      `the ${route.name} route may carry at most ${route.budget} violations`,
-    ).toHaveLength(route.budget);
-  });
-}
+  }
+});

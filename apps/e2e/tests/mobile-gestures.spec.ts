@@ -1,16 +1,11 @@
 import type { Page } from '@playwright/test';
-import { expect, test } from './fixtures';
-import { PRODUCT } from './helpers';
+import { ACCEPT_COOKIES, expect, test } from './fixtures';
+import { cartLink, PRODUCT } from './helpers';
 
 const COLOUR_BROWN = { name: 'Brown' } as const;
 const ADD_TO_CART = { name: 'Add to Cart' } as const;
-const ACCEPT_COOKIES = { name: 'Accept cookies' } as const;
-
 // Far enough to leave the product images behind, short enough to stay on the page.
 const SWIPE_DISTANCE = 400;
-
-const cartLink = (page: Page) =>
-  page.getByRole('link', { name: /shopping bag/i });
 
 /**
  * A real one-finger scroll. The touchscreen API is a press and a release with

@@ -1,4 +1,3 @@
-// Mirrors the key asserted in apps/e2e/tests/surfaces.spec.ts.
 const COOKIE_CHOICE_KEY = 'stylenest.cookie-choice';
 const ACCEPTED = 'accepted';
 

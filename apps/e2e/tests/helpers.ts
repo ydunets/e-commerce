@@ -1,4 +1,4 @@
-import type { APIResponse } from '@playwright/test';
+import type { APIResponse, Page } from '@playwright/test';
 
 export const PRODUCT = {
   name: 'Voyager Hoodie',
@@ -33,6 +33,19 @@ export const SEEDED_CART_STATE = 'tests/.state/cart.json';
  * be reading the data rather than wall time.
  */
 export const FIXED_CLOCK = new Date('2030-06-15T12:00:00Z');
+
+/** The navbar's bag, whose accessible name carries the cart count. */
+export const cartLink = (page: Page) =>
+  page.getByRole('link', { name: /shopping bag/i });
+
+/** The newsletter form, which the footer puts on every page. */
+export const NEWSLETTER = {
+  field: { name: 'Email address' },
+  submit: { name: 'Subscribe' },
+  success: 'Subscription successful! Please check your email to confirm.',
+  failure:
+    'Failed to subscribe. Please ensure your email is correct or try again later.',
+} as const;
 
 export const ROUTES = {
   home: '/',

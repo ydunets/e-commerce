@@ -5,6 +5,8 @@ const OPEN_MENU = { name: 'Open menu' } as const;
 const CLOSE_MENU = { name: 'Close menu' } as const;
 const DRAWER = { name: 'Site menu' } as const;
 
+// The project runs with a touchscreen, so every pointer action here is a tap:
+// a click would exercise a device the visitor does not have.
 test.describe('Mobile Navigation', () => {
   test.beforeEach(async ({ gotoHydrated }) => {
     await gotoHydrated(ROUTES.home);
@@ -17,12 +19,12 @@ test.describe('Mobile Navigation', () => {
     const drawer = page.getByRole('dialog', DRAWER);
 
     await expect(drawer).toBeHidden();
-    await menuButton.click();
+    await menuButton.tap();
 
     await expect(drawer).toBeVisible();
     await expect(menuButton).toHaveAttribute('aria-expanded', 'true');
 
-    await drawer.getByRole('button', CLOSE_MENU).click();
+    await drawer.getByRole('button', CLOSE_MENU).tap();
 
     await expect(drawer).toBeHidden();
     await expect(menuButton).toHaveAttribute('aria-expanded', 'false');
@@ -31,10 +33,10 @@ test.describe('Mobile Navigation', () => {
   test('should navigate and close the drawer when a drawer link is followed', async ({
     page,
   }) => {
-    await page.getByRole('button', OPEN_MENU).click();
+    await page.getByRole('button', OPEN_MENU).tap();
 
     const drawer = page.getByRole('dialog', DRAWER);
-    await drawer.getByRole('link', { name: 'About' }).click();
+    await drawer.getByRole('link', { name: 'About' }).tap();
 
     await expect(page).toHaveURL(ROUTES.about);
     await expect(drawer).toBeHidden();

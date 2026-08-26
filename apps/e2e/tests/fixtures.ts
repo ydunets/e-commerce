@@ -37,6 +37,10 @@ export const BLOCKED_REQUEST_NOISE = ['Failed to load resource'];
  */
 const PLATFORM_NOISE = [/Cookie .* has been rejected/, /_rspack\/lazy\//];
 
+/** The cookie banner covers the page bottom until a visitor answers it. */
+export const COOKIE_BANNER = { name: 'Cookie notice' } as const;
+const ACCEPT_COOKIES = { name: 'Accept cookies' } as const;
+
 /** Overridable from `use` in the config, a project, or a single spec. */
 export type TestOptions = {
   /**
@@ -45,6 +49,11 @@ export type TestOptions = {
    * cross a process boundary and a RegExp does not survive it.
    */
   allowedConsoleErrors: string[];
+  /**
+   * Whether the cookie banner is answered on the spec's behalf the moment it
+   * blocks an action. The spec that asserts the banner itself turns this off.
+   */
+  dismissCookieBanner: boolean;
 };
 
 export type WorkerOptions = {
@@ -53,6 +62,7 @@ export type WorkerOptions = {
 
 type TestFixtures = TestOptions & {
   errorGuard: void;
+  cookieBannerHandler: void;
   gotoHydrated: (path: string) => Promise<void>;
 };
 
@@ -73,6 +83,28 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   ],
 
   allowedConsoleErrors: [[], { option: true }],
+
+  dismissCookieBanner: [true, { option: true }],
+
+  /**
+   * An overlay handler rather than a click in every spec: Playwright runs it
+   * only when the banner actually stands in the way of an action, so the specs
+   * that never reach the page bottom are left alone.
+   */
+  cookieBannerHandler: [
+    async ({ page, dismissCookieBanner }, use) => {
+      if (dismissCookieBanner) {
+        await page.addLocatorHandler(
+          page.getByRole('region', COOKIE_BANNER),
+          async (banner) => {
+            await banner.getByRole('button', ACCEPT_COOKIES).click();
+          },
+        );
+      }
+      await use();
+    },
+    { auto: true },
+  ],
 
   errorGuard: [
     async ({ context, allowedConsoleErrors }, use) => {

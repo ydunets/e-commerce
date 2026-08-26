@@ -11,6 +11,9 @@ export const PRODUCT = {
 /** Mirrors CART_ID_STORAGE_KEY in apps/client/src/entities/cart/lib/cartStorage.ts. */
 export const CART_ID_STORAGE_KEY = 'stylenest.cart-id';
 
+/** Mirrors COOKIE_CHOICE_KEY in apps/client/src/shared/ui/cookie-banner/cookieChoice.ts. */
+export const COOKIE_CHOICE_KEY = 'stylenest.cookie-choice';
+
 /** The cart the setup project creates for the specs that start from one. */
 export const SEEDED_CART = {
   sku: PRODUCT.sku,

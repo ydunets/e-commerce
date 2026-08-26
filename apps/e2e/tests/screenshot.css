@@ -1,0 +1,13 @@
+/*
+ * Neutralises everything that would make two captures of the same page differ:
+ * running animations and transitions, a blinking caret, and smooth scrolling
+ * that can leave the page mid-flight when the shot is taken.
+ */
+*,
+*::before,
+*::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+  caret-color: transparent !important;
+}

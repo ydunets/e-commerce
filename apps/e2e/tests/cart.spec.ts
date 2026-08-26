@@ -4,6 +4,7 @@ import {
   API_PREFIX,
   CART_ID_STORAGE_KEY,
   type CartResponse,
+  COOKIE_CHOICE_KEY,
   PRODUCT,
   readJson,
   SEEDED_CART,
@@ -12,6 +13,12 @@ import {
 
 const ADD_TO_CART = { name: 'Add to Cart' } as const;
 const INCREASE = { name: 'Increase quantity' } as const;
+
+// Every key the client is allowed to keep on the device.
+const PERSISTED_KEYS: readonly string[] = [
+  CART_ID_STORAGE_KEY,
+  COOKIE_CHOICE_KEY,
+];
 
 const STALE_CART_ID = '00000000-0000-4000-8000-000000000000';
 const UUID_PATTERN =
@@ -104,9 +111,15 @@ test.describe('Shopping Cart', () => {
         await expect(cartLink(page)).toHaveCartCount(SEEDED_CART.quantity);
       });
 
-      await test.step('confirm only the cart id was persisted', async () => {
+        await test.step('confirm the cart itself was not persisted', async () => {
         const storage = await page.evaluate(() => Object.keys(localStorage));
-        expect(storage).toEqual([CART_ID_STORAGE_KEY]);
+        // The device holds the cart's identifier and the visitor's cookie
+        // answer, and nothing else: the lines live on the server (ADR 0002).
+        expect(
+          storage.filter((key) => !PERSISTED_KEYS.includes(key)),
+          'nothing beyond the cart id and the cookie answer is kept',
+        ).toEqual([]);
+        expect(storage).toContain(CART_ID_STORAGE_KEY);
         expect(await storedCartId(page)).toMatch(UUID_PATTERN);
       });
     });

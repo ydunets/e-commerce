@@ -12,5 +12,11 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["tests", "reporters", "playwright.config.ts", "env.d.ts"]
+  "include": [
+    "tests",
+    "scratch",
+    "reporters",
+    "playwright.config.ts",
+    "env.d.ts"
+  ]
 }

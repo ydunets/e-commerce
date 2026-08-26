@@ -286,3 +286,44 @@ reports group by behaviour.
   removes its handler with `page.unroute` before asserting the live listing.
   Offline behaviour is emulated at the context level, never by stubbing
   `fetch`.
+
+## Rendering baselines and budgets (#48)
+
+- **Screenshots** live in `tests/visual.spec.ts-snapshots/` and were captured on
+  macOS with the `desktop-chromium` project; the file names carry both, so a
+  run on another platform asks for its own baselines
+  (`playwright test --update-snapshots`). CI runs `pnpm check`, not `pnpm e2e`,
+  so the committed macOS baselines gate nothing there. Every capture masks the
+  images the remote CDN serves, applies `tests/screenshot.css` to stop
+  animations and the caret, and allows a one percent pixel difference for text
+  antialiasing.
+- **Structural snapshots** (`*.aria.yml`) compare roles, names and structure
+  rather than pixels, so they hold across platforms and catch a landmark or a
+  label going missing.
+- **Accessibility budgets** live in `tests/a11y.spec.ts`: each route is scanned
+  with axe against the WCAG A and AA tags and is allowed a recorded number of
+  violations, zero everywhere today. A new violation fails the route's test and
+  the report carries the axe output as an attachment.
+- **Media emulation** covers the colour scheme (the shop ships one palette and
+  must keep it), reduced motion (animations collapse), and print (the navbar
+  and the cookie banner carry `data-print-hidden`).
+- **Touch** is the mobile project's only pointer: taps rather than clicks, and
+  a scroll synthesised through the Chromium protocol, since the touchscreen API
+  has no drag.
+
+## Capabilities this suite deliberately does not exercise
+
+| Capability | Why it does not apply here |
+| --- | --- |
+| Electron | The shop ships as a web application; there is no desktop build to drive. |
+| Android | No native app, and the mobile project already emulates the phone viewport, touch, and user agent. |
+| Browser extensions | Nothing in the product is delivered as an extension. |
+| Playwright component testing | Components are covered by rstest with Testing Library, and Storybook renders them in isolation; a third component runner would duplicate both. |
+| Client certificates | The API authenticates nobody: the cart is anonymous by design (ADR 0002). |
+| HTTP credentials | No route is behind basic authentication, locally or deployed. |
+| Service workers | The client registers none, so there is no offline cache or background sync to assert; the offline branch is covered by context-level emulation instead. |
+
+The two capabilities the shop may plausibly grow into, multi-role storage state
+and WebSocket routing, are written out as exercises under `scratch/` rather
+than pretended into the suite. See `scratch/README.md`.
+

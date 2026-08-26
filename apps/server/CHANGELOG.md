@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/ydunets/e-commerce/compare/v1.15.0...v1.16.0) (2026-08-26)
+
+
+### Features
+
+* **server:** extend the cart api for the cart page ([ea20094](https://github.com/ydunets/e-commerce/commit/ea20094491c131a761ecf099a01f1edf1e7b94c4))
+
 # [1.15.0](https://github.com/ydunets/e-commerce/compare/v1.14.0...v1.15.0) (2026-08-26)
 
 

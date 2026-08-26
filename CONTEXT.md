@@ -45,6 +45,17 @@ _Avoid_: Cart item (ambiguous with inventory item)
 The number the navbar badge shows: the sum of all line quantities in the cart (total units), not the number of distinct lines.
 _Avoid_: Item count, cart size
 
+**Coupon**:
+A discount code from a closed, migration-embedded catalog (e.g. WELCOME15), carrying either a percentage of the subtotal or a fixed amount off. Validation is existence-only: a code either exists or it does not.
+_Avoid_: Promo code, voucher, discount code
+
+**Applied coupon**:
+A coupon attached to a cart, listed in application order and shown as a removable tag in the order summary. Multiple coupons stack.
+
+**Stock reconciliation**:
+The comparison of every cart line against current stock, run through `POST /carts/:cartId/validate`: a quantity above stock is clamped to it, and a line whose stock reached zero is removed. The reported changes drive the "Insufficient stock" modal. The route says "validate" because the brief does; the operation mutates.
+_Avoid_: Stock check (ambiguous with the per-write 409 guard)
+
 **Category**:
 A top-level audience grouping of products: men, women, unisex.
 

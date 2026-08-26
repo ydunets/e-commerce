@@ -1,5 +1,6 @@
-import { type CSSProperties, type KeyboardEvent, useRef } from 'react';
+import type { CSSProperties } from 'react';
 import { cx } from '@/shared/lib/cx';
+import { useRadioGroup } from '@/shared/lib/useRadioGroup';
 import styles from './ColorSwatches.module.css';
 import { resolveSwatchColor } from './swatch-colors';
 
@@ -42,45 +43,11 @@ export const ColorSwatches = ({
   label = 'Available colors',
   size = 'md',
 }: TColorSwatchesProps) => {
-  const buttons = useRef(new Map<string, HTMLButtonElement>());
-
-  const selectOption = (option: TColorOption) => {
-    onChange(option.value);
-    buttons.current.get(option.value)?.focus({ preventScroll: true });
-  };
-
-  const moveSelection = (from: number, step: number) => {
-    const count = options.length;
-    for (let hop = 1; hop <= count; hop += 1) {
-      const option = options[(((from + step * hop) % count) + count) % count];
-      if (!option.disabled) return selectOption(option);
-    }
-  };
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const currentIndex = options.findIndex((option) => option.value === value);
-
-    switch (event.key) {
-      case 'ArrowRight':
-      case 'ArrowDown':
-        moveSelection(currentIndex, 1);
-        break;
-      case 'ArrowLeft':
-      case 'ArrowUp':
-        moveSelection(currentIndex, -1);
-        break;
-      case 'Home':
-        moveSelection(options.length - 1, 1);
-        break;
-      case 'End':
-        moveSelection(0, -1);
-        break;
-      default:
-        return;
-    }
-
-    event.preventDefault();
-  };
+  const { handleKeyDown, optionRef, select, tabIndexFor } = useRadioGroup(
+    options,
+    value,
+    onChange,
+  );
 
   return (
     <div
@@ -96,10 +63,7 @@ export const ColorSwatches = ({
           // biome-ignore lint/a11y/useSemanticElements: WAI-ARIA radiogroup composite with roving tabindex; native radios cannot be styled as these controls.
           <button
             key={option.value}
-            ref={(node) => {
-              if (node) buttons.current.set(option.value, node);
-              else buttons.current.delete(option.value);
-            }}
+            ref={optionRef(option.value)}
             type="button"
             role="radio"
             aria-checked={selected}
@@ -109,7 +73,7 @@ export const ColorSwatches = ({
                 : option.label
             }
             disabled={option.disabled}
-            tabIndex={selected ? 0 : -1}
+            tabIndex={tabIndexFor(option.value)}
             data-color={option.value}
             style={
               { '--swatch-fill': fill, '--swatch-ring': ring } as CSSProperties
@@ -121,7 +85,7 @@ export const ColorSwatches = ({
               option.disabled && styles.disabled,
               option.outOfStock && styles.outOfStock,
             )}
-            onClick={() => selectOption(option)}
+            onClick={() => select(option.value)}
           >
             {selected && !option.disabled && !option.outOfStock && checkIcon}
           </button>

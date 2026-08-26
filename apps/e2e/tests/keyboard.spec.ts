@@ -2,32 +2,39 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { PRODUCT, ROUTES } from './helpers';
 
-// Seeded data: classic-canvas-tee carries five colours, the widest swatch group
-// in the catalog, so wrapping and the Home and End keys have somewhere to go.
-const MULTI_COLOUR_PRODUCT_PATH = '/products/classic-canvas-tee';
+// Seeded data: classic-canvas-tee carries five colours and five sizes, the
+// widest groups in the catalog, so wrapping and the Home and End keys have
+// somewhere to go.
+const MULTI_OPTION_PRODUCT_PATH = '/products/classic-canvas-tee';
 const COLOUR_GROUP = { name: 'Available colors' } as const;
-const CHECKED_SWATCH = '[role="radio"][aria-checked="true"]';
+const SIZE_GROUP = { name: 'Available sizes' } as const;
+const CHECKED_OPTION = '[role="radio"][aria-checked="true"]';
 
 const colourGroup = (page: Page) => page.getByRole('radiogroup', COLOUR_GROUP);
+const sizeGroup = (page: Page) => page.getByRole('radiogroup', SIZE_GROUP);
 
-/** The accessible name of whichever swatch is currently checked. */
-async function checkedColour(group: Locator): Promise<string | null> {
-  return group.locator(CHECKED_SWATCH).getAttribute('aria-label');
+/** The accessible name of whichever option is currently checked. */
+async function checkedOption(group: Locator): Promise<string | null> {
+  return group.locator(CHECKED_OPTION).evaluate(
+    (option) => option.getAttribute('aria-label') ?? option.textContent,
+  );
 }
 
-/** Accessible names of every swatch, in render order. */
-function colourNames(group: Locator): Promise<(string | null)[]> {
+/** Accessible names of every option in the group, in render order. */
+function optionNames(group: Locator): Promise<(string | null)[]> {
   return group
     .getByRole('radio')
-    .evaluateAll((swatches) =>
-      swatches.map((swatch) => swatch.getAttribute('aria-label')),
+    .evaluateAll((options) =>
+      options.map(
+        (option) => option.getAttribute('aria-label') ?? option.textContent,
+      ),
     );
 }
 
 test.describe('Keyboard Navigation', () => {
   test.describe('the colour swatch group', () => {
     test.beforeEach(async ({ gotoHydrated }) => {
-      await gotoHydrated(MULTI_COLOUR_PRODUCT_PATH);
+      await gotoHydrated(MULTI_OPTION_PRODUCT_PATH);
     });
 
     test(
@@ -47,7 +54,7 @@ test.describe('Keyboard Navigation', () => {
           1,
         );
         await expect(
-          group.locator(`${CHECKED_SWATCH}[tabindex="0"]`),
+          group.locator(`${CHECKED_OPTION}[tabindex="0"]`),
         ).toHaveCount(1);
       },
     );
@@ -56,61 +63,154 @@ test.describe('Keyboard Navigation', () => {
       page,
     }) => {
       const group = colourGroup(page);
-      const [first, second] = await colourNames(group);
+      const [first, second] = await optionNames(group);
 
-      await group.locator(CHECKED_SWATCH).focus();
-      expect(await checkedColour(group)).toBe(first);
+      await group.locator(CHECKED_OPTION).focus();
+      expect(await checkedOption(group)).toBe(first);
 
       await page.keyboard.press('ArrowRight');
 
-      expect(await checkedColour(group)).toBe(second);
-      await expect(group.locator(CHECKED_SWATCH)).toBeFocused();
+      expect(await checkedOption(group)).toBe(second);
+      await expect(group.locator(CHECKED_OPTION)).toBeFocused();
     });
 
     test('should move the selection backward when ArrowLeft is pressed', async ({
       page,
     }) => {
       const group = colourGroup(page);
-      const [first, second] = await colourNames(group);
+      const [first, second] = await optionNames(group);
 
-      await group.locator(CHECKED_SWATCH).focus();
+      await group.locator(CHECKED_OPTION).focus();
       await page.keyboard.press('ArrowDown');
-      expect(await checkedColour(group)).toBe(second);
+      expect(await checkedOption(group)).toBe(second);
 
       await page.keyboard.press('ArrowUp');
 
-      expect(await checkedColour(group)).toBe(first);
+      expect(await checkedOption(group)).toBe(first);
     });
 
     test('should wrap to the first colour when ArrowRight passes the last', async ({
       page,
     }) => {
       const group = colourGroup(page);
-      const names = await colourNames(group);
+      const names = await optionNames(group);
 
-      await group.locator(CHECKED_SWATCH).focus();
+      await group.locator(CHECKED_OPTION).focus();
       await page.keyboard.press('End');
-      expect(await checkedColour(group)).toBe(names.at(-1));
+      expect(await checkedOption(group)).toBe(names.at(-1));
 
       await page.keyboard.press('ArrowRight');
 
-      expect(await checkedColour(group)).toBe(names[0]);
+      expect(await checkedOption(group)).toBe(names[0]);
     });
 
     test('should jump to the last colour on End and the first on Home', async ({
       page,
     }) => {
       const group = colourGroup(page);
-      const names = await colourNames(group);
+      const names = await optionNames(group);
 
-      await group.locator(CHECKED_SWATCH).focus();
+      await group.locator(CHECKED_OPTION).focus();
       await page.keyboard.press('End');
 
-      expect(await checkedColour(group)).toBe(names.at(-1));
+      expect(await checkedOption(group)).toBe(names.at(-1));
 
       await page.keyboard.press('Home');
 
-      expect(await checkedColour(group)).toBe(names[0]);
+      expect(await checkedOption(group)).toBe(names[0]);
+    });
+  });
+
+  test.describe('the size group', () => {
+    test.beforeEach(async ({ gotoHydrated }) => {
+      await gotoHydrated(MULTI_OPTION_PRODUCT_PATH);
+    });
+
+    test('should expose only the checked size to the tab sequence', async ({
+      page,
+    }) => {
+      const group = sizeGroup(page);
+
+      await expect(group.getByRole('radio')).not.toHaveCount(1);
+      await expect(group.locator('[role="radio"][tabindex="0"]')).toHaveCount(1);
+      await expect(group.locator(`${CHECKED_OPTION}[tabindex="0"]`)).toHaveCount(
+        1,
+      );
+    });
+
+    test('should move the selection forward when ArrowRight is pressed', async ({
+      page,
+    }) => {
+      const group = sizeGroup(page);
+      const [first, second] = await optionNames(group);
+
+      await group.locator(CHECKED_OPTION).focus();
+      expect(await checkedOption(group)).toBe(first);
+
+      await page.keyboard.press('ArrowRight');
+
+      expect(await checkedOption(group)).toBe(second);
+      await expect(group.locator(CHECKED_OPTION)).toBeFocused();
+    });
+
+    test('should move the selection backward when ArrowLeft is pressed', async ({
+      page,
+    }) => {
+      const group = sizeGroup(page);
+      const [first, second] = await optionNames(group);
+
+      await group.locator(CHECKED_OPTION).focus();
+      await page.keyboard.press('ArrowDown');
+      expect(await checkedOption(group)).toBe(second);
+
+      await page.keyboard.press('ArrowUp');
+
+      expect(await checkedOption(group)).toBe(first);
+    });
+
+    test('should wrap to the first size when ArrowRight passes the last', async ({
+      page,
+    }) => {
+      const group = sizeGroup(page);
+      const names = await optionNames(group);
+
+      await group.locator(CHECKED_OPTION).focus();
+      await page.keyboard.press('End');
+      expect(await checkedOption(group)).toBe(names.at(-1));
+
+      await page.keyboard.press('ArrowRight');
+
+      expect(await checkedOption(group)).toBe(names[0]);
+    });
+
+    test('should jump to the last size on End and the first on Home', async ({
+      page,
+    }) => {
+      const group = sizeGroup(page);
+      const names = await optionNames(group);
+
+      await group.locator(CHECKED_OPTION).focus();
+      await page.keyboard.press('End');
+
+      expect(await checkedOption(group)).toBe(names.at(-1));
+
+      await page.keyboard.press('Home');
+
+      expect(await checkedOption(group)).toBe(names[0]);
+    });
+
+    // Every seeded size of a colour shares that colour's stock, so a group with
+    // some sizes sold out cannot be reached from the catalog. The disabled-skip
+    // branch is pinned in the SizeSelector unit spec instead.
+    test('should keep an entirely sold-out size group out of the tab sequence', async ({
+      page,
+    }) => {
+      // Seeded data: every beige SKU of classic-canvas-tee is out of stock.
+      await colourGroup(page).getByRole('radio', { name: /Beige/ }).click();
+
+      const group = sizeGroup(page);
+      await expect(group.getByRole('radio').first()).toBeDisabled();
+      await expect(group.locator('[role="radio"][tabindex="0"]')).toHaveCount(0);
     });
   });
 
@@ -129,10 +229,10 @@ test.describe('Keyboard Navigation', () => {
 
       await expect(thumbnails.first()).toBeVisible();
 
-      await group.locator(CHECKED_SWATCH).focus();
+      await group.locator(CHECKED_OPTION).focus();
       await page.keyboard.press('ArrowRight');
 
-      await expect(group.locator(CHECKED_SWATCH)).toHaveAccessibleName('Brown');
+      await expect(group.locator(CHECKED_OPTION)).toHaveAccessibleName('Brown');
       await expect(thumbnails).toHaveCount(0);
     });
   });

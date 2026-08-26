@@ -256,3 +256,33 @@ reports group by behaviour.
   It throws rather than catching, because a swallowed error in a test is a
   hidden failure. It also keeps the cast that `APIResponse.json()` forces in
   one place.
+
+## Determinism fixtures (#47)
+
+- **Seeded cart.** The `setup` project (`tests/cart.setup.ts`) creates a cart
+  over the public API and writes its identifier as browser storage state to
+  `tests/.state/cart.json`, which is generated and git-ignored. Projects that
+  need it declare `dependencies: ['setup']`; the specs that start from a filled
+  cart declare `test.use({ storageState: SEEDED_CART_STATE })` on their own
+  group, never at file level, because the neighbouring specs assert an empty
+  bag. One cart is shared by the run, so those specs only read it. Nothing
+  writes to the database directly: the e2e Postgres carries no volume and is
+  shared with whatever dev stack is running.
+- **Fixed clock.** `FIXED_CLOCK` in `tests/helpers.ts` is the instant the
+  clock-driven specs pin, deliberately years away from every seeded date.
+  `page.clock.setFixedTime` covers rendered dates; `page.clock.install` plus
+  `fastForward` drives the toast's ten-second lifetime instead of waiting it
+  out. The copyright year is rendered by the server and kept through hydration
+  (`suppressHydrationWarning`), so its spec compares the page against the
+  server that rendered it rather than against wall time.
+- **Recorded catalogue.** `tests/fixtures/catalog.har` holds the listing
+  exchange the catalogue makes on a client-side navigation. Refresh it with
+  `RECORD_HAR=1 pnpm --filter @e-commerce/e2e test tests/network.spec.ts`
+  against a running stack, then commit the file. Replay uses
+  `notFound: 'abort'`, so an exchange missing from the recording fails loudly
+  instead of reaching the live API.
+- **Route control.** `tests/network.spec.ts` covers the three shapes a handler
+  can take (fulfilment, abortion, continuation with a rewritten query) and
+  removes its handler with `page.unroute` before asserting the live listing.
+  Offline behaviour is emulated at the context level, never by stubbing
+  `fetch`.

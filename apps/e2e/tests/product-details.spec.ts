@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
-import { PRODUCT, ROUTES } from './helpers';
+import { FIXED_CLOCK, PRODUCT, ROUTES } from './helpers';
 
 // One test aborts the collection request to prove the page stands without the
 // section, and Chromium logs that abort as a resource failure.
@@ -156,6 +156,38 @@ test.describe('Product Details', () => {
       await expect(card.getByRole('radio', OUT_OF_STOCK_SWATCH)).toBeVisible();
     },
   );
+
+  test.describe('the reviews dialog', () => {
+    // Seeded data: the newest review of voyager-hoodie was left on 2024-05-26,
+    // and the dialog lists reviews newest first.
+    const NEWEST_REVIEW_DATE = '2024-05-26';
+    const NEWEST_REVIEW_RENDERED = 'May 26, 2024';
+
+    test(
+      'should date a review from its own record rather than from the clock',
+      {
+        annotation: {
+          type: 'determinism',
+          description:
+            'the clock is pinned years away from the seeded dates, so a date that still renders correctly is read from the data',
+        },
+      },
+      async ({ gotoHydrated, page }) => {
+        await page.clock.setFixedTime(FIXED_CLOCK);
+        await gotoHydrated(PRODUCT.path);
+
+        await page.getByRole('button', { name: /reviews/ }).click();
+
+        const newest = page
+          .getByRole('dialog')
+          .locator('article')
+          .first()
+          .locator('time');
+        await expect(newest).toHaveAttribute('datetime', NEWEST_REVIEW_DATE);
+        await expect(newest).toHaveText(NEWEST_REVIEW_RENDERED);
+      },
+    );
+  });
 
   test(
     'should render the page without the collection section when the collection request fails',

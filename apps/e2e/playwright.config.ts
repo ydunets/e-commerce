@@ -9,6 +9,7 @@ const CLIENT_URL = 'http://localhost:5173';
 const PROD_CLIENT_URL = 'http://localhost:4173';
 const IS_CI = !!process.env.CI;
 
+const SETUP_SPECS = /.*\.setup\.ts/;
 const MOBILE_SPECS = /mobile-.*\.spec\.ts/;
 const STREAMING_SPECS = /streaming\.spec\.ts/;
 
@@ -48,21 +49,29 @@ export default defineConfig<TestOptions, WorkerOptions>({
   },
   projects: [
     {
+      // Fixtures the specs start from, built over the public API. A project
+      // rather than a global setup, so its steps land in the report and the
+      // specs that need it declare the dependency themselves.
+      name: 'setup',
+      testMatch: SETUP_SPECS,
+    },
+    {
       name: 'desktop-chromium',
       use: { ...devices['Desktop Chrome'] },
-      testIgnore: [MOBILE_SPECS, STREAMING_SPECS],
+      dependencies: ['setup'],
+      testIgnore: [MOBILE_SPECS, STREAMING_SPECS, SETUP_SPECS],
     },
     {
       name: 'desktop-firefox',
       use: { ...devices['Desktop Firefox'] },
       grep: SMOKE_TAG,
-      testIgnore: [MOBILE_SPECS, STREAMING_SPECS],
+      testIgnore: [MOBILE_SPECS, STREAMING_SPECS, SETUP_SPECS],
     },
     {
       name: 'desktop-webkit',
       use: { ...devices['Desktop Safari'] },
       grep: SMOKE_TAG,
-      testIgnore: [MOBILE_SPECS, STREAMING_SPECS],
+      testIgnore: [MOBILE_SPECS, STREAMING_SPECS, SETUP_SPECS],
     },
     {
       name: 'mobile-chromium',

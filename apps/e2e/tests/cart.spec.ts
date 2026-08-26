@@ -2,16 +2,17 @@ import type { APIRequestContext, Page } from '@playwright/test';
 import { BLOCKED_REQUEST_NOISE, expect, test } from './fixtures';
 import {
   API_PREFIX,
+  CART_ID_STORAGE_KEY,
   type CartResponse,
   PRODUCT,
   readJson,
+  SEEDED_CART,
+  SEEDED_CART_STATE,
 } from './helpers';
 
 const ADD_TO_CART = { name: 'Add to Cart' } as const;
 const INCREASE = { name: 'Increase quantity' } as const;
 
-// Mirrors CART_ID_STORAGE_KEY in apps/client/src/entities/cart/lib/cartStorage.ts.
-const CART_ID_STORAGE_KEY = 'stylenest.cart-id';
 const STALE_CART_ID = '00000000-0000-4000-8000-000000000000';
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -74,33 +75,54 @@ test.describe('Shopping Cart', () => {
     },
   );
 
-  test('should keep the badge count across reload and navigation', async ({
-    gotoHydrated,
-    page,
-  }) => {
-    await test.step('add one unit to the bag', async () => {
-      await gotoHydrated(PRODUCT.path);
-      await page.getByRole('button', ADD_TO_CART).click();
-      await expect(cartLink(page)).toHaveCartCount(1);
+  // The setup project already created this cart over the public API and wrote
+  // its identifier into browser storage, so the flow that fills a cart is not
+  // replayed here. Every test in this group only reads it: one cart is shared
+  // by the whole run, and a mutation would race the workers.
+  test.describe('starting from a seeded cart', () => {
+    test.use({ storageState: SEEDED_CART_STATE });
+
+    test('should keep the badge count across reload and navigation', async ({
+      gotoHydrated,
+      page,
+    }) => {
+      await test.step('open the product page', async () => {
+        await gotoHydrated(PRODUCT.path);
+        await expect(cartLink(page)).toHaveCartCount(SEEDED_CART.quantity);
+      });
+
+      await test.step('reload the product page', async () => {
+        await gotoHydrated(PRODUCT.path);
+        await expect(cartLink(page)).toHaveCartCount(SEEDED_CART.quantity);
+      });
+
+      await test.step('navigate to another route', async () => {
+        await page
+          .getByRole('navigation', { name: 'Main' })
+          .getByRole('link', { name: 'Home' })
+          .click();
+        await expect(cartLink(page)).toHaveCartCount(SEEDED_CART.quantity);
+      });
+
+      await test.step('confirm only the cart id was persisted', async () => {
+        const storage = await page.evaluate(() => Object.keys(localStorage));
+        expect(storage).toEqual([CART_ID_STORAGE_KEY]);
+        expect(await storedCartId(page)).toMatch(UUID_PATTERN);
+      });
     });
 
-    await test.step('reload the product page', async () => {
-      await gotoHydrated(PRODUCT.path);
-      await expect(cartLink(page)).toHaveCartCount(1);
-    });
+    test('should report the seeded lines when the cart is read back over the API', async ({
+      api,
+      page,
+    }) => {
+      await page.goto(PRODUCT.path);
+      const cartId = await storedCartId(page);
+      expect(cartId).toMatch(UUID_PATTERN);
 
-    await test.step('navigate to another route', async () => {
-      await page
-        .getByRole('navigation', { name: 'Main' })
-        .getByRole('link', { name: 'Home' })
-        .click();
-      await expect(cartLink(page)).toHaveCartCount(1);
-    });
-
-    await test.step('confirm only the cart id was persisted', async () => {
-      const storage = await page.evaluate(() => Object.keys(localStorage));
-      expect(storage).toEqual([CART_ID_STORAGE_KEY]);
-      expect(await storedCartId(page)).toMatch(UUID_PATTERN);
+      const cart = await serverCart(api, cartId!);
+      expect(cart?.lines).toEqual([
+        { sku: SEEDED_CART.sku, quantity: SEEDED_CART.quantity },
+      ]);
     });
   });
 

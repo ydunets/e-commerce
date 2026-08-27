@@ -11,6 +11,7 @@ export const cartLineDtoSchema = Type.Object({
   quantity: Type.Integer({ minimum: 1, example: 2 }),
   product_id: Type.String({ example: 'voyager-hoodie' }),
   name: Type.String({ example: 'Voyager Hoodie' }),
+  description: Type.String({ example: 'A hoodie for every journey.' }),
   color: Type.String({ example: 'brown' }),
   size: Type.Union([Type.String(), Type.Null()]),
   image_url: Type.Union([Type.String(), Type.Null()]),

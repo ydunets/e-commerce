@@ -72,6 +72,7 @@ export const CartLineRow = ({
           {colorLabel(line.color)}
           {line.size !== null && ` • ${sizeLabel(line.size)}`}
         </p>
+        <p className={styles.description}>{line.description}</p>
 
         <div className={styles.controls}>
           <QuantityStepper

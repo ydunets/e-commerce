@@ -57,6 +57,9 @@ test('links the name to the product detail page and shows the struck price', asy
   );
   expect(screen.getByText('Brown • S')).toBeInTheDocument();
   expect(
+    screen.getByText(discountedCartLineFixture.description),
+  ).toBeInTheDocument();
+  expect(
     screen.getByText(`$${discountedCartLineFixture.sale_price}`),
   ).toBeInTheDocument();
   expect(

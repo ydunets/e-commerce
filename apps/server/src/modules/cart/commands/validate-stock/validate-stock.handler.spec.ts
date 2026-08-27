@@ -14,6 +14,7 @@ function enrichedLine(sku: string, quantity: number, stock: number): EnrichedCar
     quantity,
     productId: 'voyager-hoodie',
     name: 'Voyager Hoodie',
+    description: 'A hoodie for every journey.',
     color: 'brown',
     size: 's',
     imageUrl: null,

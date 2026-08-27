@@ -29,6 +29,10 @@
   @apply text-base text-muted;
 }
 
+.description {
+  @apply line-clamp-2 text-sm text-muted;
+}
+
 .controls {
   @apply mt-auto flex w-full items-center gap-4 pt-4 md:gap-6;
 }

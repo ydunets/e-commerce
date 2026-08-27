@@ -8,6 +8,7 @@ export interface CartLine {
 export interface EnrichedCartLine extends CartLine {
   productId: string;
   name: string;
+  description: string;
   color: string;
   size: string | null;
   imageUrl: string | null;

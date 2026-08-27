@@ -6,6 +6,8 @@ export const discountedCartLineFixture: CartLineDto = {
   quantity: 2,
   product_id: 'voyager-hoodie',
   name: 'Voyager Hoodie',
+  description:
+    'Journey in style and comfort with our Voyager Hoodie, made for every adventure.',
   color: 'brown',
   size: 'sm',
   image_url: 'https://picsum.photos/seed/vh-brown/600',
@@ -21,6 +23,8 @@ export const fullPriceCartLineFixture: CartLineDto = {
   quantity: 1,
   product_id: 'azure-attitude-shades',
   name: 'Azure Attitude Shades',
+  description:
+    'Step out in style with our Azure Attitude Shades, featuring a bold blue tint.',
   color: 'blue',
   size: null,
   image_url: 'https://picsum.photos/seed/aas-blue/600',

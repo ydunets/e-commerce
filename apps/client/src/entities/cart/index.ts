@@ -5,6 +5,6 @@ export {
   type UpdateCartLineInput,
   useAddToCart,
   useCart,
-  useRemoveCartItem,
-  useUpdateCartItem,
+  useRemoveCartLine,
+  useUpdateCartLine,
 } from './lib/useCart';

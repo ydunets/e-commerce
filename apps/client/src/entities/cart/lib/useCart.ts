@@ -103,22 +103,25 @@ function nextPatchStamp(sku: string): number {
   return stamp;
 }
 
-function sendLinePatch(
+function patchIsCurrent(sku: string, stamp: number): boolean {
+  return patchStamps.get(sku) === stamp;
+}
+
+async function sendLinePatch(
   queryClient: QueryClient,
   { cartId, sku, quantity }: UpdateCartLineInput,
   stamp: number,
-): void {
-  updateCartItem(cartId, sku, { quantity })
-    .then((cart) => {
-      if (patchStamps.get(sku) === stamp) {
-        queryClient.setQueryData(CART_QUERY_KEY, cart);
-      }
-    })
-    .catch(() => {
-      if (patchStamps.get(sku) === stamp) {
-        queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
-      }
-    });
+): Promise<void> {
+  try {
+    const cart = await updateCartItem(cartId, sku, { quantity });
+    if (patchIsCurrent(sku, stamp)) {
+      queryClient.setQueryData(CART_QUERY_KEY, cart);
+    }
+  } catch {
+    if (patchIsCurrent(sku, stamp)) {
+      await queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+    }
+  }
 }
 
 function linePatcher(sku: string) {
@@ -139,13 +142,15 @@ function cancelPendingQuantityPatch(sku: string): void {
 /**
  * Debounced, optimistic quantity mutation: each call patches the cached cart
  * immediately, and one PATCH per line fires with the final absolute quantity
- * once the stepper has been idle for `UPDATE_DEBOUNCE_MS`.
+ * once the stepper has been idle for `UPDATE_DEBOUNCE_MS`. In-flight cart
+ * refetches are cancelled so they cannot overwrite the optimistic value.
  */
-export function useUpdateCartItem() {
+export function useUpdateCartLine() {
   const queryClient = useQueryClient();
 
   const updateQuantity = (input: UpdateCartLineInput) => {
     const stamp = nextPatchStamp(input.sku);
+    void queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
     queryClient.setQueryData<CartResponseDto | null>(CART_QUERY_KEY, (cart) =>
       cart ? withLineQuantity(cart, input.sku, input.quantity) : cart,
     );
@@ -160,7 +165,7 @@ export type RemoveCartLineInput = {
   sku: string;
 };
 
-export function useRemoveCartItem() {
+export function useRemoveCartLine() {
   const queryClient = useQueryClient();
 
   return useMutation({

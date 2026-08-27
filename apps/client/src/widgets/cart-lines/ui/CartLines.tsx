@@ -1,5 +1,5 @@
 import type { CartLineDto, CartResponseDto } from '@e-commerce/contracts';
-import { useRemoveCartItem, useUpdateCartItem } from '@/entities/cart';
+import { useRemoveCartLine, useUpdateCartLine } from '@/entities/cart';
 import { CartLineRow } from './CartLineRow';
 import styles from './CartLines.module.css';
 
@@ -13,8 +13,8 @@ type TCartLineProps = {
 };
 
 const CartLine = ({ cartId, line }: TCartLineProps) => {
-  const { updateQuantity } = useUpdateCartItem();
-  const removeLine = useRemoveCartItem();
+  const { updateQuantity } = useUpdateCartLine();
+  const removeLine = useRemoveCartLine();
 
   return (
     <CartLineRow

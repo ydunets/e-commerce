@@ -1,5 +1,5 @@
 @reference "../../../app.css";
 
 .list {
-  @apply m-0 list-none divide-y divide-dashed divide-line p-0;
+  @apply m-0 list-none divide-y divide-dashed divide-line-strong p-0;
 }

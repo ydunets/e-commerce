@@ -23,7 +23,7 @@ function CartPage() {
         aria-label="Shopping cart"
         className="px-3 py-12 md:px-4 md:py-16 lg:px-24 lg:py-24"
       >
-        <h1 className="text-3xl font-semibold text-ink md:text-4xl">
+        <h1 className="text-3xl font-semibold text-ink md:text-5xl">
           Shopping Cart
         </h1>
 

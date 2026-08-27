@@ -79,7 +79,7 @@ export const CartLineRow = ({
             Remove
           </button>
           <div className={styles.price}>
-            <PriceTag price={price} size="sm" showBadge={false} />
+            <PriceTag price={price} size="sm" showBadge={false} emphasized />
           </div>
         </div>
       </div>

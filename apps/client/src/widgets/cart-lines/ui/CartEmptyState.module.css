@@ -1,0 +1,33 @@
+@reference "../../../app.css";
+
+.root {
+  @apply flex flex-col gap-8 lg:grid lg:grid-cols-[5fr_7fr] lg:items-center;
+}
+
+.message {
+  @apply flex flex-col items-center justify-center gap-2 text-center;
+}
+
+.iconBadge {
+  @apply mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white text-brand shadow-card;
+}
+
+.icon {
+  @apply h-6 w-6;
+}
+
+.arrow {
+  @apply h-4 w-4;
+}
+
+.title {
+  @apply text-xl font-semibold text-ink;
+}
+
+.subtitle {
+  @apply mb-3 text-base text-muted;
+}
+
+.image {
+  @apply h-[180px] w-full rounded-lg object-cover md:h-[320px] lg:h-[432px];
+}

@@ -92,7 +92,7 @@ function SiteNavbar() {
         { label: 'About', href: '/about' },
       ]}
       brandHref="/"
-      cartHref="/"
+      cartHref="/cart"
       cartCount={cart?.totalUnits ?? 0}
     />
   );

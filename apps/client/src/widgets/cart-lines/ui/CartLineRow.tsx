@@ -21,11 +21,6 @@ export type TCartLineRowProps = {
 const LINE_IMAGE_WIDTH = 560;
 const LINE_IMAGE_HEIGHT = 400;
 
-const lineSpecs = (line: CartLineDto) => {
-  const color = colorLabel(line.color);
-  return line.size === null ? color : `${color} • ${sizeLabel(line.size)}`;
-};
-
 export const CartLineRow = ({
   line,
   onQuantityChange,
@@ -73,7 +68,10 @@ export const CartLineRow = ({
         >
           {line.name}
         </Link>
-        <p className={styles.specs}>{lineSpecs(line)}</p>
+        <p className={styles.specs}>
+          {colorLabel(line.color)}
+          {line.size !== null && ` • ${sizeLabel(line.size)}`}
+        </p>
 
         <div className={styles.controls}>
           <QuantityStepper

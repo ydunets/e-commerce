@@ -1,6 +1,12 @@
 import type { CartResponseDto } from '@e-commerce/contracts';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  type QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { isApiError } from '@/shared/api';
+import { type Debounced, debounce } from '@/shared/lib/debounce';
 import { addCartItem } from '../api/addCartItem';
 import { getCart } from '../api/getCart';
 import { removeCartItem } from '../api/removeCartItem';
@@ -85,7 +91,10 @@ export type UpdateCartLineInput = {
 // unmounting (navigation away, removal re-render), or the user's last clicks
 // silently never reach the server. A line's newest stamp invalidates any
 // older in-flight response so it cannot overwrite fresher optimistic state.
-const patchTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const linePatchers = new Map<
+  string,
+  Debounced<[QueryClient, UpdateCartLineInput, number]>
+>();
 const patchStamps = new Map<string, number>();
 
 function nextPatchStamp(sku: string): number {
@@ -94,9 +103,36 @@ function nextPatchStamp(sku: string): number {
   return stamp;
 }
 
+function sendLinePatch(
+  queryClient: QueryClient,
+  { cartId, sku, quantity }: UpdateCartLineInput,
+  stamp: number,
+): void {
+  updateCartItem(cartId, sku, { quantity })
+    .then((cart) => {
+      if (patchStamps.get(sku) === stamp) {
+        queryClient.setQueryData(CART_QUERY_KEY, cart);
+      }
+    })
+    .catch(() => {
+      if (patchStamps.get(sku) === stamp) {
+        queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+      }
+    });
+}
+
+function linePatcher(sku: string) {
+  const existing = linePatchers.get(sku);
+  if (existing) {
+    return existing;
+  }
+  const patcher = debounce(sendLinePatch, UPDATE_DEBOUNCE_MS);
+  linePatchers.set(sku, patcher);
+  return patcher;
+}
+
 function cancelPendingQuantityPatch(sku: string): void {
-  clearTimeout(patchTimers.get(sku));
-  patchTimers.delete(sku);
+  linePatchers.get(sku)?.cancel();
   nextPatchStamp(sku);
 }
 
@@ -108,30 +144,12 @@ function cancelPendingQuantityPatch(sku: string): void {
 export function useUpdateCartItem() {
   const queryClient = useQueryClient();
 
-  const updateQuantity = ({ cartId, sku, quantity }: UpdateCartLineInput) => {
-    const stamp = nextPatchStamp(sku);
+  const updateQuantity = (input: UpdateCartLineInput) => {
+    const stamp = nextPatchStamp(input.sku);
     queryClient.setQueryData<CartResponseDto | null>(CART_QUERY_KEY, (cart) =>
-      cart ? withLineQuantity(cart, sku, quantity) : cart,
+      cart ? withLineQuantity(cart, input.sku, input.quantity) : cart,
     );
-
-    clearTimeout(patchTimers.get(sku));
-    patchTimers.set(
-      sku,
-      setTimeout(() => {
-        patchTimers.delete(sku);
-        updateCartItem(cartId, sku, { quantity })
-          .then((cart) => {
-            if (patchStamps.get(sku) === stamp) {
-              queryClient.setQueryData(CART_QUERY_KEY, cart);
-            }
-          })
-          .catch(() => {
-            if (patchStamps.get(sku) === stamp) {
-              queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
-            }
-          });
-      }, UPDATE_DEBOUNCE_MS),
-    );
+    linePatcher(input.sku)(queryClient, input, stamp);
   };
 
   return { updateQuantity };

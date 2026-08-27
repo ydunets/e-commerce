@@ -1,10 +1,6 @@
 import type { CartResponseDto } from '@e-commerce/contracts';
-import {
-  type QueryClient,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 import { isApiError } from '@/shared/api';
 import { type Debounced, debounce } from '@/shared/lib/debounce';
 import { addCartItem } from '../api/addCartItem';
@@ -87,73 +83,73 @@ type UpdateCartLineInput = {
   quantity: number;
 };
 
-// Module scope, not component state: a pending PATCH must survive its row
-// unmounting (navigation away, removal re-render), or the user's last clicks
-// silently never reach the server. A line's newest stamp invalidates any
-// older in-flight response so it cannot overwrite fresher optimistic state.
-const linePatchers = new Map<
-  string,
-  Debounced<[QueryClient, UpdateCartLineInput, number]>
->();
-const patchStamps = new Map<string, number>();
-
-function nextPatchStamp(sku: string): number {
-  const stamp = (patchStamps.get(sku) ?? 0) + 1;
-  patchStamps.set(sku, stamp);
-  return stamp;
-}
-
-async function sendLinePatch(
-  queryClient: QueryClient,
-  { cartId, sku, quantity }: UpdateCartLineInput,
-  stamp: number,
-): Promise<void> {
-  try {
-    const cart = await updateCartItem(cartId, sku, { quantity });
-    if (patchStamps.get(sku) === stamp) {
-      queryClient.setQueryData(CART_QUERY_KEY, cart);
-    }
-  } catch {
-    if (patchStamps.get(sku) === stamp) {
-      await queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
-    }
-  }
-}
-
-function linePatcher(sku: string) {
-  const existing = linePatchers.get(sku);
-  if (existing) {
-    return existing;
-  }
-  const patcher = debounce(sendLinePatch, UPDATE_DEBOUNCE_MS);
-  linePatchers.set(sku, patcher);
-  return patcher;
-}
-
-function cancelPendingQuantityPatch(sku: string): void {
-  linePatchers.get(sku)?.cancel();
-  nextPatchStamp(sku);
-}
+// One scope for every cart mutation: TanStack Query queues mutations sharing
+// a scope id, so a settled response is always the newest server state and a
+// remove can never race the line's own in-flight quantity patch.
+const CART_MUTATION_SCOPE = { id: 'cart' } as const;
 
 /**
  * Debounced, optimistic quantity mutation: each call patches the cached cart
  * immediately, and one PATCH per line fires with the final absolute quantity
  * once the stepper has been idle for `UPDATE_DEBOUNCE_MS`. In-flight cart
- * refetches are cancelled so they cannot overwrite the optimistic value.
+ * refetches are cancelled so they cannot overwrite the optimistic value, and
+ * unmounting flushes pending patches so the last clicks reach the server.
  */
 export function useUpdateCartLine() {
   const queryClient = useQueryClient();
 
+  const mutation = useMutation({
+    scope: CART_MUTATION_SCOPE,
+    mutationFn: ({ cartId, sku, quantity }: UpdateCartLineInput) =>
+      updateCartItem(cartId, sku, { quantity }),
+    onSuccess: (cart) => {
+      queryClient.setQueryData(CART_QUERY_KEY, cart);
+    },
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+    },
+  });
+
+  const patchersRef = useRef(
+    new Map<string, Debounced<[UpdateCartLineInput]>>(),
+  );
+  const { mutate } = mutation;
+
+  useEffect(() => {
+    const patchers = patchersRef.current;
+    return () => {
+      for (const patcher of patchers.values()) {
+        patcher.flush();
+      }
+    };
+  }, []);
+
+  const linePatcher = (sku: string): Debounced<[UpdateCartLineInput]> => {
+    const existing = patchersRef.current.get(sku);
+    if (existing) {
+      return existing;
+    }
+    const patcher = debounce(
+      (input: UpdateCartLineInput) => mutate(input),
+      UPDATE_DEBOUNCE_MS,
+    );
+    patchersRef.current.set(sku, patcher);
+    return patcher;
+  };
+
   const updateQuantity = (input: UpdateCartLineInput) => {
-    const stamp = nextPatchStamp(input.sku);
     void queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
     queryClient.setQueryData<CartResponseDto | null>(CART_QUERY_KEY, (cart) =>
       cart ? withLineQuantity(cart, input.sku, input.quantity) : cart,
     );
-    linePatcher(input.sku)(queryClient, input, stamp);
+    linePatcher(input.sku)(input);
   };
 
-  return { updateQuantity };
+  const cancelPending = (sku: string) => {
+    patchersRef.current.get(sku)?.cancel();
+  };
+
+  return { updateQuantity, cancelPending };
 }
 
 type RemoveCartLineInput = {
@@ -165,11 +161,9 @@ export function useRemoveCartLine() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    scope: CART_MUTATION_SCOPE,
     mutationFn: ({ cartId, sku }: RemoveCartLineInput) =>
       removeCartItem(cartId, sku),
-    onMutate: ({ sku }) => {
-      cancelPendingQuantityPatch(sku);
-    },
     onSuccess: (cart) => {
       queryClient.setQueryData(CART_QUERY_KEY, cart);
     },

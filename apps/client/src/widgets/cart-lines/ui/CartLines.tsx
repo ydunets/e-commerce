@@ -10,7 +10,7 @@ export type TCartLinesProps = {
 };
 
 export const CartLines = ({ cart }: TCartLinesProps) => {
-  const { updateQuantity } = useUpdateCartLine();
+  const { updateQuantity, cancelPending } = useUpdateCartLine();
   const removeLine = useRemoveCartLine();
   const [removalCandidate, setRemovalCandidate] = useState<CartLineDto | null>(
     null,
@@ -25,6 +25,7 @@ export const CartLines = ({ cart }: TCartLinesProps) => {
     if (removalCandidate === null) {
       return;
     }
+    cancelPending(removalCandidate.sku);
     removeLine.mutate(
       { cartId: cart.id, sku: removalCandidate.sku },
       { onSuccess: () => setRemovalCandidate(null) },

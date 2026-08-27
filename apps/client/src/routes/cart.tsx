@@ -53,7 +53,7 @@ function CartContent({ cart, isError }: TCartContentProps) {
 
   if (cart && cart.lines.length > 0) {
     return (
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_384px]">
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_384px]">
         <CartLines cart={cart} />
       </div>
     );

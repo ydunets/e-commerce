@@ -16,7 +16,7 @@ import { clearCartId, readCartId, storeCartId } from './cartStorage';
 
 export const CART_QUERY_KEY = ['cart'] as const;
 
-export const UPDATE_DEBOUNCE_MS = 300;
+const UPDATE_DEBOUNCE_MS = 300;
 
 const NOT_FOUND = 404;
 
@@ -81,7 +81,7 @@ export function useAddToCart() {
   });
 }
 
-export type UpdateCartLineInput = {
+type UpdateCartLineInput = {
   cartId: string;
   sku: string;
   quantity: number;
@@ -103,10 +103,6 @@ function nextPatchStamp(sku: string): number {
   return stamp;
 }
 
-function patchIsCurrent(sku: string, stamp: number): boolean {
-  return patchStamps.get(sku) === stamp;
-}
-
 async function sendLinePatch(
   queryClient: QueryClient,
   { cartId, sku, quantity }: UpdateCartLineInput,
@@ -114,11 +110,11 @@ async function sendLinePatch(
 ): Promise<void> {
   try {
     const cart = await updateCartItem(cartId, sku, { quantity });
-    if (patchIsCurrent(sku, stamp)) {
+    if (patchStamps.get(sku) === stamp) {
       queryClient.setQueryData(CART_QUERY_KEY, cart);
     }
   } catch {
-    if (patchIsCurrent(sku, stamp)) {
+    if (patchStamps.get(sku) === stamp) {
       await queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
     }
   }
@@ -160,7 +156,7 @@ export function useUpdateCartLine() {
   return { updateQuantity };
 }
 
-export type RemoveCartLineInput = {
+type RemoveCartLineInput = {
   cartId: string;
   sku: string;
 };

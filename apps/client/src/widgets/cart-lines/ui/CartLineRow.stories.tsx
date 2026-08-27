@@ -19,7 +19,7 @@ const meta = {
   ],
   args: {
     onQuantityChange: () => {},
-    onRemove: () => {},
+    onRemoveRequest: () => {},
   },
 } satisfies Meta<typeof CartLineRow>;
 

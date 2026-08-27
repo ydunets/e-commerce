@@ -18,9 +18,6 @@ import {
 
 const INCREASE = { name: 'Increase quantity' } as const;
 const REMOVE = { name: 'Remove' } as const;
-const CONFIRM_DIALOG = { name: 'Confirm item removal' } as const;
-const YES = { name: 'Yes' } as const;
-const CANCEL = { name: 'Cancel' } as const;
 
 const NOOP = () => {};
 
@@ -28,7 +25,7 @@ function renderRow(overrides: Partial<TCartLineRowProps>) {
   const props: TCartLineRowProps = {
     line: discountedCartLineFixture,
     onQuantityChange: NOOP,
-    onRemove: NOOP,
+    onRemoveRequest: NOOP,
     ...overrides,
   };
   const rootRoute = createRootRoute({
@@ -100,24 +97,16 @@ test('reports the next quantity and disables increase at the stock maximum', asy
   expect(atMax).toBeDisabled();
 });
 
-test('removes only after the dialog is confirmed', async () => {
+test('the Remove link requests removal instead of deleting directly', async () => {
   const user = userEvent.setup();
-  let removed = 0;
+  let requests = 0;
   renderRow({
     line: discountedCartLineFixture,
-    onRemove: () => {
-      removed += 1;
+    onRemoveRequest: () => {
+      requests += 1;
     },
   });
 
   await user.click(await screen.findByRole('button', REMOVE));
-  const dialog = screen.getByRole('dialog', CONFIRM_DIALOG);
-  expect(dialog).toBeInTheDocument();
-
-  await user.click(screen.getByRole('button', CANCEL));
-  expect(removed).toBe(0);
-
-  await user.click(screen.getByRole('button', REMOVE));
-  await user.click(screen.getByRole('button', YES));
-  expect(removed).toBe(1);
+  expect(requests).toBe(1);
 });

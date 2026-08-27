@@ -1,38 +1,58 @@
 import type { CartLineDto, CartResponseDto } from '@e-commerce/contracts';
+import { useState } from 'react';
 import { useRemoveCartLine, useUpdateCartLine } from '@/entities/cart';
 import { CartLineRow } from './CartLineRow';
 import styles from './CartLines.module.css';
+import { RemoveLineDialog } from './RemoveLineDialog';
 
 export type TCartLinesProps = {
   cart: CartResponseDto;
 };
 
-type TCartLineProps = {
-  cartId: string;
-  line: CartLineDto;
-};
-
-const CartLine = ({ cartId, line }: TCartLineProps) => {
+export const CartLines = ({ cart }: TCartLinesProps) => {
   const { updateQuantity } = useUpdateCartLine();
   const removeLine = useRemoveCartLine();
+  const [removalCandidate, setRemovalCandidate] = useState<CartLineDto | null>(
+    null,
+  );
+
+  const requestRemoval = (line: CartLineDto) => {
+    removeLine.reset();
+    setRemovalCandidate(line);
+  };
+
+  const confirmRemoval = () => {
+    if (removalCandidate === null) {
+      return;
+    }
+    removeLine.mutate(
+      { cartId: cart.id, sku: removalCandidate.sku },
+      { onSuccess: () => setRemovalCandidate(null) },
+    );
+  };
 
   return (
-    <CartLineRow
-      line={line}
-      onQuantityChange={(quantity) =>
-        updateQuantity({ cartId, sku: line.sku, quantity })
-      }
-      onRemove={() => removeLine.mutate({ cartId, sku: line.sku })}
-      removing={removeLine.isPending}
-      removeFailed={removeLine.isError}
-    />
+    <>
+      <ul className={styles.list}>
+        {cart.lines.map((line) => (
+          <CartLineRow
+            key={line.sku}
+            line={line}
+            onQuantityChange={(quantity) =>
+              updateQuantity({ cartId: cart.id, sku: line.sku, quantity })
+            }
+            onRemoveRequest={() => requestRemoval(line)}
+          />
+        ))}
+      </ul>
+
+      <RemoveLineDialog
+        line={removalCandidate}
+        removing={removeLine.isPending}
+        removeFailed={removeLine.isError}
+        onCancel={() => setRemovalCandidate(null)}
+        onConfirm={confirmRemoval}
+      />
+    </>
   );
 };
-
-export const CartLines = ({ cart }: TCartLinesProps) => (
-  <ul className={styles.list}>
-    {cart.lines.map((line) => (
-      <CartLine key={line.sku} cartId={cart.id} line={line} />
-    ))}
-  </ul>
-);

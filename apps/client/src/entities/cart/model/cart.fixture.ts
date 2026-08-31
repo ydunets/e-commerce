@@ -1,4 +1,8 @@
-import type { CartLineDto, CartResponseDto } from '@e-commerce/contracts';
+import type {
+  AppliedCouponDto,
+  CartLineDto,
+  CartResponseDto,
+} from '@e-commerce/contracts';
 
 /** Discounted line — the sale price shown struck against the list price. */
 export const discountedCartLineFixture: CartLineDto = {
@@ -39,4 +43,18 @@ export const cartFixture: CartResponseDto = {
   lines: [discountedCartLineFixture, fullPriceCartLineFixture],
   coupons: [],
   totalUnits: 3,
+};
+
+/** Percentage coupon — 15% of the subtotal. */
+export const percentageCouponFixture: AppliedCouponDto = {
+  code: 'WELCOME15',
+  discount_type: 'percentage',
+  value: 15,
+};
+
+/** Fixed coupon — a flat $5 off. */
+export const fixedCouponFixture: AppliedCouponDto = {
+  code: 'GR8FRNTND24',
+  discount_type: 'fixed',
+  value: 5,
 };

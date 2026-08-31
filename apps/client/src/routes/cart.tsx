@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useCart } from '@/entities/cart';
 import { useHydrated } from '@/shared/lib/useHydrated';
 import { CartEmptyState, CartLines } from '@/widgets/cart-lines';
+import { OrderSummary } from '@/widgets/order-summary';
 
 const CONTENT_COLUMN = 'mx-auto max-w-[1440px] px-4';
 
@@ -55,6 +56,7 @@ function CartContent({ cart, isError }: TCartContentProps) {
     return (
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_384px]">
         <CartLines cart={cart} />
+        <OrderSummary cart={cart} />
       </div>
     );
   }

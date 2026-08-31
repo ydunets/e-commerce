@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { expect, userEvent, within } from 'storybook/test';
+import { jsonResponse, stubFetch } from '@/shared/lib/storybookFetch';
 import { NewsletterForm } from './NewsletterForm';
 
 const VALID_EMAIL = 'jane@example.com';
@@ -14,28 +15,6 @@ const INTERNAL_SERVER_ERROR = 'Internal Server Error';
 
 const SUBSCRIPTIONS_PATH = '/api/v1/newsletter/subscriptions';
 
-// Scoped to the subscribe endpoint only: a blanket `window.fetch` override
-// also breaks the dev server's own HMR fetches and triggers full reloads.
-function stubFetch(handler: typeof fetch) {
-  const original = window.fetch;
-  window.fetch = ((input, init) => {
-    const url = input instanceof Request ? input.url : String(input);
-    return url.includes(SUBSCRIPTIONS_PATH)
-      ? handler(input, init)
-      : original(input, init);
-  }) as typeof fetch;
-  return () => {
-    window.fetch = original;
-  };
-}
-
-function jsonResponse(body: unknown, status: number): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
-
 const meta = {
   title: 'Widgets/NewsletterForm',
   component: NewsletterForm,
@@ -46,7 +25,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Empty: Story = {
   beforeEach: () =>
-    stubFetch(() => {
+    stubFetch(SUBSCRIPTIONS_PATH, () => {
       throw new Error('the empty field must not reach the API');
     }),
   play: async ({ canvasElement }) => {
@@ -60,7 +39,7 @@ export const Empty: Story = {
 
 export const Malformed: Story = {
   beforeEach: () =>
-    stubFetch(() => {
+    stubFetch(SUBSCRIPTIONS_PATH, () => {
       throw new Error('a malformed email must not reach the API');
     }),
   play: async ({ canvasElement }) => {
@@ -76,7 +55,9 @@ export const Malformed: Story = {
 
 export const Success: Story = {
   beforeEach: () =>
-    stubFetch(async () => jsonResponse({ message: SUCCESS_MESSAGE }, 200)),
+    stubFetch(SUBSCRIPTIONS_PATH, async () =>
+      jsonResponse({ message: SUCCESS_MESSAGE }, 200),
+    ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const field = canvas.getByRole('textbox');
@@ -91,7 +72,7 @@ export const Success: Story = {
 
 export const Failure: Story = {
   beforeEach: () =>
-    stubFetch(async () =>
+    stubFetch(SUBSCRIPTIONS_PATH, async () =>
       jsonResponse(
         {
           statusCode: 500,

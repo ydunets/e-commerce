@@ -1,0 +1,25 @@
+@reference "../../../app.css";
+
+.root {
+  @apply flex flex-col gap-2 p-6;
+}
+
+.title {
+  @apply pr-8 text-lg font-semibold text-ink;
+}
+
+.body {
+  @apply text-sm text-muted;
+}
+
+.actions {
+  @apply mt-4 flex gap-3;
+}
+
+.action {
+  @apply flex-1;
+}
+
+.error {
+  @apply mt-2 text-sm text-danger;
+}

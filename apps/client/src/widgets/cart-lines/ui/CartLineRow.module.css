@@ -1,0 +1,46 @@
+@reference "../../../app.css";
+
+.root {
+  @apply flex flex-col gap-4 py-8 first:pt-0 md:flex-row md:gap-8;
+}
+
+.imageLink {
+  @apply block shrink-0 rounded-lg focus-visible:focus-ring md:w-[280px];
+}
+
+.image,
+.imageFallback {
+  @apply h-[180px] w-full rounded-lg object-cover md:h-[200px];
+}
+
+.imageFallback {
+  @apply bg-surface;
+}
+
+.details {
+  @apply flex flex-1 flex-col items-start gap-2 md:gap-4;
+}
+
+.nameLink {
+  @apply rounded-sm text-lg font-medium text-ink md:text-2xl focus-visible:focus-ring;
+}
+
+.specs {
+  @apply text-base font-medium text-muted;
+}
+
+.description {
+  @apply line-clamp-2 text-sm text-muted;
+}
+
+.controls {
+  @apply mt-auto flex w-full items-center gap-4 pt-4;
+}
+
+.remove {
+  @apply cursor-pointer rounded-sm text-sm font-medium text-muted transition-colors hover:text-ink focus-visible:focus-ring;
+}
+
+.price {
+  @apply ml-auto;
+}

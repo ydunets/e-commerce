@@ -9,17 +9,26 @@ export type TPriceTagProps = {
   price: Price;
   size?: TPriceTagSize;
   showBadge?: boolean;
+  /** Cart rows show the sale price in the ink color and medium weight. */
+  emphasized?: boolean;
 };
 
 export const PriceTag = ({
   price,
   size = 'lg',
   showBadge = true,
+  emphasized = false,
 }: TPriceTagProps) => {
   const hasDiscount = isDiscounted(price);
 
   return (
-    <div className={cx(styles.root, size === 'sm' && styles.sm)}>
+    <div
+      className={cx(
+        styles.root,
+        size === 'sm' && styles.sm,
+        emphasized && styles.emphasized,
+      )}
+    >
       <div className={styles.prices}>
         <span className={styles.sale}>${price.sale}</span>
         {hasDiscount && (

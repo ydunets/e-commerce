@@ -17,6 +17,7 @@ export default function cartMapper(): CartMapper {
       quantity: line.quantity,
       product_id: line.productId,
       name: line.name,
+      description: line.description,
       color: line.color,
       size: line.size,
       image_url: line.imageUrl,

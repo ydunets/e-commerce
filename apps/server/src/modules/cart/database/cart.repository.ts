@@ -14,6 +14,7 @@ interface CartRow {
   quantity: number | null;
   product_id: string | null;
   name: string | null;
+  description: string | null;
   color: string | null;
   size: string | null;
   image_url: string | null;
@@ -29,6 +30,7 @@ type LineRow = CartRow & {
   sku: string;
   product_id: string;
   name: string;
+  description: string;
   color: string;
   list_price: string;
   sale_price: string;
@@ -53,7 +55,7 @@ export default function cartRepository({ db }: Dependencies): CartRepository {
       const [rows, couponRows] = await Promise.all([
         db<CartRow[]>`
           SELECT c.cart_id, c.created_at, l.sku, l.quantity,
-            i.product_id, p.name, i.color, i.size, i.list_price,
+            i.product_id, p.name, p.description, i.color, i.size, i.list_price,
             i.discount_percentage, i.sale_price, i.stock, img.image_url
           FROM carts c
           LEFT JOIN cart_lines l ON l.cart_id = c.cart_id
@@ -88,6 +90,7 @@ export default function cartRepository({ db }: Dependencies): CartRepository {
             quantity: Number(row.quantity),
             productId: row.product_id,
             name: row.name,
+            description: row.description,
             color: row.color,
             size: row.size,
             imageUrl: row.image_url,

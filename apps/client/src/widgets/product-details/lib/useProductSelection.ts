@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { colorLabel, type Product } from '@/entities/product';
+import { colorLabel, type Product, sizeLabel } from '@/entities/product';
 import {
   findVariant,
   imagesForColor,
   isColorSoldOut,
-  sizeLabel,
   sizesForColor,
   variantStock,
 } from './product-display';

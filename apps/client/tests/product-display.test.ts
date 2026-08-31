@@ -3,6 +3,7 @@ import {
   colorLabel,
   type Product,
   type ProductVariant,
+  sizeLabel,
 } from '@/entities/product';
 import { productFixture } from '@/entities/product/model/product.fixture.ts';
 import {
@@ -10,7 +11,6 @@ import {
   findVariant,
   imagesForColor,
   isColorSoldOut,
-  sizeLabel,
   sizesForColor,
   variantStock,
 } from '@/widgets/product-details/lib/product-display.ts';

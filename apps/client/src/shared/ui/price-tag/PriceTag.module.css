@@ -26,3 +26,7 @@
 .sm .list {
   @apply text-xs text-muted;
 }
+
+.emphasized .sale {
+  @apply font-medium text-ink;
+}

@@ -5,12 +5,16 @@ import {
   useRef,
   useState,
 } from 'react';
+import { cx } from '@/shared/lib/cx';
 import styles from './Dialog.module.css';
+
+export type TDialogSize = 'lg' | 'sm';
 
 export type TDialogProps = PropsWithChildren<{
   open: boolean;
   onClose: () => void;
   label: string;
+  size?: TDialogSize;
 }>;
 
 const CloseIcon = () => (
@@ -28,7 +32,13 @@ const CloseIcon = () => (
   </svg>
 );
 
-export const Dialog = ({ open, onClose, label, children }: TDialogProps) => {
+export const Dialog = ({
+  open,
+  onClose,
+  label,
+  size = 'lg',
+  children,
+}: TDialogProps) => {
   const ref = useRef<HTMLDialogElement>(null);
   const [shown, setShown] = useState(false);
 
@@ -61,7 +71,7 @@ export const Dialog = ({ open, onClose, label, children }: TDialogProps) => {
     // biome-ignore lint/a11y/useKeyWithClickEvents: backdrop dismissal is mouse-only; Esc closes the dialog via the native close event.
     <dialog
       ref={ref}
-      className={styles.dialog}
+      className={cx(styles.dialog, size === 'sm' && styles.sm)}
       aria-label={label}
       onClose={handleNativeClose}
       onClick={handleClick}

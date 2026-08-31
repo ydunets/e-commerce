@@ -41,3 +41,19 @@ export function apiPost<T>(
     body: JSON.stringify(body),
   });
 }
+
+export function apiPatch<T>(
+  path: string,
+  body: unknown,
+  baseUrl = '',
+): Promise<T> {
+  return request<T>(path, baseUrl, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+export function apiDelete<T>(path: string, baseUrl = ''): Promise<T> {
+  return request<T>(path, baseUrl, { method: 'DELETE' });
+}

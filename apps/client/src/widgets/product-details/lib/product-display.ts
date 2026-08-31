@@ -1,19 +1,6 @@
 import { compareSizes } from '@e-commerce/contracts';
 import type { Product, ProductVariant } from '@/entities/product';
 
-const SIZE_LABELS: Record<string, string> = {
-  xs: 'XS',
-  sm: 'S',
-  md: 'M',
-  lg: 'L',
-  xl: 'XL',
-  xxl: 'XXL',
-};
-
-export function sizeLabel(size: string): string {
-  return SIZE_LABELS[size] ?? size.toUpperCase();
-}
-
 export function sizesForColor(product: Product, color: string): string[] {
   const sizes = product.variants
     .filter((variant) => variant.color === color)

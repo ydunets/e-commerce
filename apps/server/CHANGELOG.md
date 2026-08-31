@@ -1,3 +1,18 @@
+# [1.17.0](https://github.com/ydunets/e-commerce/compare/v1.16.0...v1.17.0) (2026-08-31)
+
+
+### Bug Fixes
+
+* **client:** align the cart line with the tablet frame ([64add9c](https://github.com/ydunets/e-commerce/commit/64add9c5ee4212fc7ff6c62097f33580af06028f))
+* **client:** reserve the summary column from xl only ([9987b23](https://github.com/ydunets/e-commerce/commit/9987b230b2a677d812394fa2b99c5a39e59308f2))
+
+
+### Features
+
+* **cart:** show the product description per line ([88662c8](https://github.com/ydunets/e-commerce/commit/88662c8844f5d5dfb6ad39c8fcb92187818424fb))
+* **client:** add cart line update and remove mutations ([f1c1dcb](https://github.com/ydunets/e-commerce/commit/f1c1dcb2a753a865dc69ebba5f4cf3065947126d)), closes [#60](https://github.com/ydunets/e-commerce/issues/60)
+* **client:** build the cart page with line flows ([f344822](https://github.com/ydunets/e-commerce/commit/f3448228a71ac62fbd2298d8f0dc19a1145bcbea)), closes [#60](https://github.com/ydunets/e-commerce/issues/60)
+
 # [1.16.0](https://github.com/ydunets/e-commerce/compare/v1.15.0...v1.16.0) (2026-08-26)
 
 

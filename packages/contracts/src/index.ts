@@ -3,6 +3,7 @@
 export type { ApiErrorResponse, ApiErrorSubError } from './api-error.ts';
 export type {
   AddCartItemBodyDto,
+  AppliedCouponDto,
   ApplyCouponBodyDto,
   CartLineDto,
   CartResponseDto,

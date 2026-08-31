@@ -1,0 +1,47 @@
+@reference "../../../app.css";
+
+.root {
+  @apply flex w-full flex-col gap-2;
+}
+
+.addCoupon {
+  @apply inline-flex cursor-pointer items-center gap-1.5 self-end rounded-sm text-base font-medium text-brand transition-colors;
+  @apply hover:text-brand-dark focus-visible:focus-ring;
+}
+
+.addCouponIcon {
+  @apply size-5;
+}
+
+.field {
+  @apply flex items-start gap-2;
+}
+
+.input {
+  @apply min-w-0 flex-1;
+}
+
+/* TextInput stacks a 20px label above a 4px gap, so the button drops by that
+   much to sit on the input row, and the error message that appears underneath
+   cannot shift it. */
+.apply {
+  @apply mt-6 w-20 shrink-0;
+}
+
+.tags {
+  @apply m-0 flex list-none flex-wrap gap-2 p-0;
+}
+
+.tag {
+  @apply inline-flex items-center gap-1 rounded-sm border border-line bg-surface-strong py-1 pr-1 pl-2 text-sm font-medium text-ink;
+}
+
+.tagRemove {
+  @apply cursor-pointer rounded-sm text-ink transition-colors;
+  @apply hover:text-brand focus-visible:focus-ring;
+  @apply disabled:cursor-not-allowed disabled:text-disabled;
+}
+
+.tagRemoveIcon {
+  @apply size-5;
+}

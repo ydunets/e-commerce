@@ -1,0 +1,45 @@
+@reference "../../../app.css";
+
+.root {
+  @apply flex flex-col gap-8 rounded-lg border border-line bg-white p-8;
+}
+
+.heading {
+  @apply text-2xl font-semibold text-ink;
+}
+
+.details {
+  @apply flex flex-col gap-4;
+}
+
+.rows {
+  @apply m-0 flex flex-col gap-4 p-0;
+}
+
+.row {
+  @apply flex items-center gap-2;
+}
+
+.label {
+  @apply m-0 flex-1 text-base text-muted;
+}
+
+.amount {
+  @apply m-0 text-lg font-semibold text-ink;
+}
+
+.separator {
+  @apply m-0 border-0 border-t border-dashed border-line-strong;
+}
+
+.footer {
+  @apply flex items-baseline gap-4 text-ink;
+}
+
+.totalLabel {
+  @apply text-2xl font-medium;
+}
+
+.totalAmount {
+  @apply flex-1 text-right text-4xl font-semibold;
+}

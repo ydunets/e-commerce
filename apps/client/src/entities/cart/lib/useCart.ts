@@ -4,8 +4,10 @@ import { useEffect, useRef } from 'react';
 import { isApiError } from '@/shared/api';
 import { type Debounced, debounce } from '@/shared/lib/debounce';
 import { addCartItem } from '../api/addCartItem';
+import { applyCoupon } from '../api/applyCoupon';
 import { getCart } from '../api/getCart';
 import { removeCartItem } from '../api/removeCartItem';
+import { removeCoupon } from '../api/removeCoupon';
 import { updateCartItem } from '../api/updateCartItem';
 import { withLineQuantity } from './cartCache';
 import { clearCartId, readCartId, storeCartId } from './cartStorage';
@@ -164,6 +166,38 @@ export function useRemoveCartLine() {
     scope: CART_MUTATION_SCOPE,
     mutationFn: ({ cartId, sku }: RemoveCartLineInput) =>
       removeCartItem(cartId, sku),
+    onSuccess: (cart) => {
+      queryClient.setQueryData(CART_QUERY_KEY, cart);
+    },
+  });
+}
+
+type CouponInput = {
+  cartId: string;
+  code: string;
+};
+
+// Coupon existence is the server's to answer, so neither mutation is
+// optimistic: the applied coupons only ever come from a settled response.
+export function useApplyCoupon() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    scope: CART_MUTATION_SCOPE,
+    mutationFn: ({ cartId, code }: CouponInput) =>
+      applyCoupon(cartId, { code }),
+    onSuccess: (cart) => {
+      queryClient.setQueryData(CART_QUERY_KEY, cart);
+    },
+  });
+}
+
+export function useRemoveCoupon() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    scope: CART_MUTATION_SCOPE,
+    mutationFn: ({ cartId, code }: CouponInput) => removeCoupon(cartId, code),
     onSuccess: (cart) => {
       queryClient.setQueryData(CART_QUERY_KEY, cart);
     },

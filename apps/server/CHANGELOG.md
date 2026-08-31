@@ -1,3 +1,11 @@
+# [1.18.0](https://github.com/ydunets/e-commerce/compare/v1.17.0...v1.18.0) (2026-08-31)
+
+
+### Features
+
+* **client:** add the coupon field and order summary ([dd46748](https://github.com/ydunets/e-commerce/commit/dd46748f68ff15addafcda4993b2d4cbe194afc9)), closes [#61](https://github.com/ydunets/e-commerce/issues/61)
+* **client:** implement hydration logic and add tests for useHydrated hook ([87761d3](https://github.com/ydunets/e-commerce/commit/87761d3f1cad2c512248e22731fc52a4e7f3ab47))
+
 # [1.17.0](https://github.com/ydunets/e-commerce/compare/v1.16.0...v1.17.0) (2026-08-31)
 
 

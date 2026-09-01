@@ -37,15 +37,40 @@ Neither `class-validator` nor `class-transformer` appears; both are optional pee
 
 ## Verified API surface
 
-Read from the published packages and from a spike on `prototype/nest-toolchain-spike`, not from documentation:
+Read from the published package sources, not from documentation. The three groups
+below differ in how strongly they are established, and the difference matters.
+
+**Proven in a running application** (the spike on `prototype/nest-toolchain-spike`,
+which used TypeBox behind a hand-written adapter):
+
+- SWC's `decoratorMetadata` emits `design:paramtypes` that Nest's resolver accepts,
+  across a two-level provider chain with no injection token.
+- `app.enableShutdownHooks()` is required, because shutdown hooks are disabled by
+  default and `onModuleDestroy` otherwise never fires on SIGTERM.
+- The build mechanics in traps 1, 2, 6, and 7 below.
+
+**Read from the published typings and sources**:
 
 - Route schemas attach as `@Query({ schema })`, `@Body({ schema })`, `@Param('id', { schema })`. The option is `ParameterDecoratorOptions.schema`.
 - Response schemas attach as `@ApiOkResponse({ standardSchema })`, converted with `schemaType: 'output'`.
 - The pipe calls `schema['~standard'].validate(value, options)` and expects `{ value }` or `{ issues: [{ message, path? }] }`. Issue paths are joined with dots into the 400 message.
 - `transform` already defaults to `true` in `StandardSchemaValidationPipe`.
-- `~standard.jsonSchema` is an object keyed `input` and `output`, each a function called as `convert({ target: 'openapi-3.0' })`. Zod 4.5.4 provides it, so no `standardSchemaConverter` is registered.
+- `ConfigModuleOptions.validationSchema` is typed as `StandardSchemaV1`, so a bare Zod schema goes where a Joi schema used to.
 - `SwaggerModule.setup(path, app, document, { jsonDocumentUrl: 'api-docs/json' })`. The UI requires `@fastify/static`.
-- Shutdown hooks are disabled by default, so `onModuleDestroy` never fires on SIGTERM without `app.enableShutdownHooks()`.
+
+**Verified against `zod@4.5.4` in isolation, but not yet inside a booted Nest application**:
+
+- `~standard.jsonSchema` is an object keyed `input` and `output`, each a function
+  called as `convert({ target: 'openapi-3.0' })`, which is exactly the shape Nest's
+  converter invokes. No `standardSchemaConverter` should therefore be needed.
+- `~standard.validate` coerces, so `z.coerce.number()` turns `'2'` into `2`.
+
+The gap in the third group is real. Nest's converter runs `normalizeConvertedSchema`
+after calling `jsonSchema[schemaType]`, stripping `$defs`, `definitions`, and
+`$schema` and rewriting `$ref`s into `#/components/schemas/`. Zod emits `$defs` and
+`$ref`s for nested or reused shapes where TypeBox emitted them inline, so T4's
+document check is a genuine gate. If the response schema comes back `undefined` or
+hollow, the cause is that conversion path rather than the controller.
 
 ## Traps, each reproduced rather than inferred
 
@@ -70,7 +95,7 @@ Read from the published packages and from a spike on `prototype/nest-toolchain-s
 
 - Goal: the application boots, validates its environment, and publishes a document.
 - Files: `src/main.ts`, `src/app.module.ts`, `src/config/env.schema.ts`.
-- Done-check: the app listens on 4001; a missing or malformed environment variable fails at startup with a Zod message; `GET /api-docs/json` responds.
+- Done-check: the app listens on 4001; a missing or malformed environment variable fails at startup with a Zod message; `GET /api-docs/json` responds and the UI at `/api-docs` renders, which is what `@fastify/static` is carried for.
 
 ### T3: Database provider (depends on T2)
 

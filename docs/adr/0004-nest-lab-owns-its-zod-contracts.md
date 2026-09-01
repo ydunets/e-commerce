@@ -4,7 +4,16 @@ Date: 2026-09-01
 
 ## Status
 
-Accepted
+Superseded. The goal changed from learning NestJS in a sandbox to rewriting
+`apps/server` onto NestJS with the Fastify adapter, which subsumes the lab and
+contradicts the central decision below: the rewrite cannot define its own
+contracts, because `packages/contracts` stays authoritative for the client.
+The replacing decisions are being charted on the wayfinder map, issue #68, and
+the records they produce will supersede this one by number.
+
+What survives the supersession is the toolchain reasoning in the Consequences
+section, all of which was reproduced rather than inferred and none of which
+depends on the lab framing.
 
 ## Context
 

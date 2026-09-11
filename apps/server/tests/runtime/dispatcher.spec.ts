@@ -27,6 +27,11 @@ it('preserves action prototypes and caller metadata without mutating the origina
       },
     },
     host,
+    {
+      async execute() {
+        throw stop;
+      },
+    },
   );
   const metadata = { correlationId: 'dispatcher-correlation', timestamp: 123 };
   const command = new SubscribeCommand({ email: 'jane@example.com' }, metadata);

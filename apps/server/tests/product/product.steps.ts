@@ -11,6 +11,17 @@ interface CatalogueContext {
   expectedIds: string[];
 }
 
+Then('product validation identifies {string}', function (this: ICustomWorld, path: string) {
+  const error = this.context.latestResponse!.json();
+  assert.equal(error.message, 'Validation error');
+  assert.equal(error.details, undefined);
+  assert.ok(
+    error.subErrors.some(
+      (issue: { path: string; message: string }) => issue.path === path && issue.message.length > 0,
+    ),
+  );
+});
+
 function catalogueContext(world: ICustomWorld): CatalogueContext {
   return world.context as unknown as CatalogueContext;
 }

@@ -1,7 +1,7 @@
-# Newsletter migration boundary
+# Nest migration boundary
 
-Newsletter subscriptions now pass through Nest on the existing Fastify instance.
-Cart, product, review and specification remain encapsulated legacy features.
+Newsletter subscriptions and product queries now pass through Nest on the existing Fastify instance.
+Cart, review and specification remain encapsulated legacy features.
 Both dependency systems receive the existing singleton Postgres pool. The shared
 Nest module is explicitly imported and is not global.
 
@@ -12,9 +12,40 @@ The dispatcher adds metadata without losing the prototype, then applies tracing
 and execution timing before invoking Nest CQRS. No event subscribers were added.
 
 Legacy Swagger observes both routing systems and health because it is registered
-before routes. Newsletter currently contributes route metadata, not a second
+before routes. Migrated features currently contribute route metadata, not a second
 request validator or response serializer. Complete OpenAPI generation moves in a
 later migration slice.
+
+## Temporary product query adapters
+
+Product details dispatch `GetReviewSummaryQuery` through the raw Nest query bus.
+The temporary handler in `server/migration` forwards to the captured legacy query
+bus. The review migration replaces that adapter with its real Nest handler for
+the same query class, and product then uses normal application dispatch.
+
+Legacy cart additions and updates retain the inventory action creator. A single
+legacy registration forwards to the Nest `GetInventoryStockQuery` handler. The
+cart migration removes this registration and the final legacy creator consumer.
+
+Both adapters preserve query payloads, metadata, results and thrown exceptions.
+Only legacy middleware owns their metadata enrichment, spans and timing. Product
+listing and detail queries use the application dispatcher normally, including a
+separate parent span around the nested review query.
+
+Startup captures the actual legacy bus inside its encapsulated scope after
+initialization. Product factories are excluded from all legacy autoloaders before
+the stock callback is registered. The review adapter receives its per-application
+reference after Nest initialization; both connections complete before the factory
+returns or accepts requests. An unconnected review adapter fails explicitly.
+
+No feature imports another feature's Nest module. The retained creators and query
+classes are contracts shared across the temporary boundary, not parallel business
+implementations. Live tracing verifies one span and one successful timing record
+per forwarded query, with matching request correlation and parentage in both
+directions. HTTP checks protect review aggregates, missing outcomes, pagination,
+and cart stock conflicts with details. The database cascade removes a cart line
+when its inventory row is deleted, so a later update retains the cart-line
+not-found outcome rather than reaching an inventory lookup for that deleted line.
 
 ## Telemetry compatibility
 

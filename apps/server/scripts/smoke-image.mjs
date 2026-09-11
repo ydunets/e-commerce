@@ -15,6 +15,7 @@ const DATABASE_NAME = 'image_smoke';
 const DATABASE_PORT = 5432;
 const SERVER_PORT = 3000;
 const STATUS_OK = 200;
+const STATUS_CONFLICT = 409;
 const STARTUP_TIMEOUT_MS = 30_000;
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 const POLL_INTERVAL_MS = 250;
@@ -157,6 +158,36 @@ try {
   );
   assert.equal(detail.product_id, products[0].product_id);
   assert.ok(detail.inventory.length > 0);
+  const reviewSummary = await readJson(
+    `${origin}/api/v1/products/${encodeURIComponent(detail.product_id)}/reviews/summary`,
+  );
+  assert.equal(detail.reviews, reviewSummary.total);
+  assert.equal(detail.rating, reviewSummary.average);
+  const inventory = detail.inventory.find((item) => item.stock > 0);
+  assert.ok(inventory);
+  const added = await fetch(`${origin}/api/v1/carts/items`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ sku: inventory.sku, quantity: 1 }),
+    signal: AbortSignal.timeout(STARTUP_TIMEOUT_MS),
+  });
+  assert.equal(added.status, STATUS_OK);
+  const cart = await added.json();
+  const conflict = await fetch(
+    `${origin}/api/v1/carts/${cart.id}/items/${encodeURIComponent(inventory.sku)}`,
+    {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ quantity: inventory.stock + 1 }),
+      signal: AbortSignal.timeout(STARTUP_TIMEOUT_MS),
+    },
+  );
+  assert.equal(conflict.status, STATUS_CONFLICT);
+  assert.deepEqual((await conflict.json()).details, {
+    sku: inventory.sku,
+    requested: inventory.stock + 1,
+    available: inventory.stock,
+  });
 
   const subscriberEmail = `image-${randomUUID()}@example.com`;
   for (const email of [subscriberEmail.toUpperCase(), subscriberEmail]) {

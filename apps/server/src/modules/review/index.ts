@@ -8,5 +8,5 @@ declare global {
   }
 }
 
-export { getReviewSummaryQuery } from '#src/modules/review/queries/get-review-summary/get-review-summary.handler';
+export { getReviewSummaryQuery } from '#src/modules/review/queries/get-review-summary/get-review-summary.query';
 export { reviewActionCreator } from '#src/modules/review/review.action-creator';

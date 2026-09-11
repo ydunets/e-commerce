@@ -1,52 +1,57 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { getReviewSummaryQuery } from '#src/modules/review/index';
-import makeFindProductQuery from './find-product.handler.js';
+import type { ProductRepository } from '#src/modules/product/database/product.repository.port';
+import { GetReviewSummaryQuery } from '#src/modules/review/queries/get-review-summary/get-review-summary.query';
+import { NotFoundException } from '#src/shared/exceptions/index';
+import { FindProductHandler } from './find-product.handler.js';
+import { FindProductQuery } from './find-product.query.js';
 
 const baseProduct = {
   id: 'test-cap',
   name: 'Test Cap',
   description: 'A cap.',
+  collection: 'urban',
   colors: ['brown'],
   sizes: ['sm'],
   variants: [],
   images: [],
   info: [],
 };
+const repository: ProductRepository = {
+  async findOneById(id) {
+    return id === 'test-cap' ? baseProduct : undefined;
+  },
+  async findMany() {
+    return [];
+  },
+  async findStockBySku() {
+    return undefined;
+  },
+};
 
-describe('findProductQuery handler', () => {
-  it('composes the review summary from the review module via the query bus', async () => {
-    const queryBus = {
-      execute: async (action: ReturnType<typeof getReviewSummaryQuery>) => {
-        assert.equal(action.type, 'review/get-summary');
-        assert.deepEqual(action.payload, { productId: 'test-cap' });
+describe('FindProductHandler', () => {
+  it('composes the review summary through the raw query bus', async () => {
+    const handler = new FindProductHandler(repository, {
+      async execute(query: GetReviewSummaryQuery) {
+        assert.ok(query instanceof GetReviewSummaryQuery);
+        assert.deepEqual(query.payload, { productId: 'test-cap' });
         return { total: 12, average: 4.25, distribution: { 1: 0, 2: 0, 3: 1, 4: 5, 5: 6 } };
       },
-    };
-    const productRepository = {
-      findOneById: async (id: string) => (id === 'test-cap' ? baseProduct : undefined),
-    };
-
-    const { handler } = makeFindProductQuery({ queryBus, productRepository } as never);
-    const result = await handler({ payload: { id: 'test-cap' } } as never);
-
+    });
+    const result = await handler.execute(new FindProductQuery({ id: 'test-cap' }));
     assert.deepEqual(result.reviews, { count: 12, average: 4.25 });
   });
 
-  it('throws NotFoundException when the product does not exist', async () => {
-    // The summary query runs concurrently with the product fetch, so it
-    // resolves even for a missing product; the handler must still 404.
-    const queryBus = {
-      execute: async () => ({
-        total: 0,
-        average: 0,
-        distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
-      }),
-    };
-    const productRepository = { findOneById: async () => undefined };
-
-    const { handler } = makeFindProductQuery({ queryBus, productRepository } as never);
-
-    await assert.rejects(() => handler({ payload: { id: 'missing' } } as never));
+  it('throws the established domain not-found error when the product does not exist', async () => {
+    const handler = new FindProductHandler(repository, {
+      async execute() {
+        return { total: 0, average: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } };
+      },
+    });
+    await assert.rejects(handler.execute(new FindProductQuery({ id: 'missing' })), (error) => {
+      assert.ok(error instanceof NotFoundException);
+      assert.equal(error.message, 'Product missing not found');
+      return true;
+    });
   });
 });

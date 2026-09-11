@@ -1,5 +1,6 @@
-import { Type } from 'typebox';
+import { z } from 'zod';
 
-export const findProductParamsSchema = Type.Object({
-  id: Type.String({ example: 'voyager-hoodie', description: 'Product identifier (slug)' }),
+export const findProductParamsSchema = z.object({
+  id: z.string().describe('Product identifier (slug)'),
 });
+export type FindProductParams = z.infer<typeof findProductParamsSchema>;

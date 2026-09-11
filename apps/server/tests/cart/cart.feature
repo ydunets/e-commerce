@@ -30,6 +30,7 @@ Feature: Shopping cart behaviour
     When I add 2 units of "char-cart-hoodie-black" to the cart
     Then I receive an error "Conflict" with status code 409
     And the response carries the error envelope
+    And the stock conflict describes "char-cart-hoodie-black" with requested 6 and available 5
 
   Scenario: Adding an out-of-stock SKU is rejected
     When I add 1 unit of "char-cart-soldout-tee" to a new cart
@@ -70,6 +71,14 @@ Feature: Shopping cart behaviour
     Given I add 1 unit of "char-cart-hoodie-black" to a new cart
     When I set the quantity of "char-cart-hoodie-black" to 9
     Then I receive an error "Conflict" with status code 409
+    And the stock conflict describes "char-cart-hoodie-black" with requested 9 and available 5
+
+  Scenario: Updating a line whose inventory was removed retains the not-found outcome
+    Given I add 1 unit of "char-cart-hoodie-black" to a new cart
+    And inventory item "char-cart-hoodie-black" is removed
+    When I set the quantity of "char-cart-hoodie-black" to 2
+    Then I receive an error "Not Found" with status code 404
+    And the response carries the error envelope
 
   Scenario: Updating a SKU that is not in the cart yields not found
     Given I add 1 unit of "char-cart-hoodie-black" to a new cart

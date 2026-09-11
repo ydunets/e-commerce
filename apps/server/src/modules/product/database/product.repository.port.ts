@@ -16,3 +16,5 @@ export interface ProductRepository {
   findMany(options: FindManyProductsOptions): Promise<ProductListItem[]>;
   findStockBySku(sku: string): Promise<InventoryStockLevel | undefined>;
 }
+
+export const PRODUCT_REPOSITORY = Symbol('ProductRepository');

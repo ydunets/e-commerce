@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { ProductEntity, ProductVariant } from './domain/product.types.js';
-import productMapper from './product.mapper.js';
+import { toProductResponse } from './product.mapper.js';
 
 const variant = (overrides: Partial<ProductVariant>): ProductVariant => ({
   sku: 'sku',
@@ -31,19 +31,19 @@ const entity: ProductEntity = {
   reviews: { count: 12, average: 4.25 },
 };
 
-describe('productMapper().toResponse()', () => {
+describe('toProductResponse()', () => {
   it('derives priceRange from variant sale prices', () => {
-    const response = productMapper().toResponse(entity);
+    const response = toProductResponse(entity);
     assert.deepEqual(response.priceRange, { highest: 95, lowest: 76 });
   });
 
   it('returns a zero priceRange when there are no variants', () => {
-    const response = productMapper().toResponse({ ...entity, variants: [] });
+    const response = toProductResponse({ ...entity, variants: [] });
     assert.deepEqual(response.priceRange, { highest: 0, lowest: 0 });
   });
 
   it('maps camelCase entity fields to the snake_case DTO shape', () => {
-    const response = productMapper().toResponse(entity);
+    const response = toProductResponse(entity);
     assert.deepEqual(response.inventory[0], {
       sku: 'green-sm',
       color: 'green',

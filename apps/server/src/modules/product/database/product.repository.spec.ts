@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import productRepository from './product.repository.js';
+import type { Database } from '#src/shared/db/tokens';
+import { PostgresProductRepository } from './product.repository.js';
 import type { FindManyProductsOptions } from './product.repository.port.js';
 
 const TABLES = ['products', 'product_inventory', 'product_images', 'product_info'] as const;
@@ -10,13 +11,13 @@ type Rows = Record<Table, unknown[]>;
 
 // The repository only issues tagged-template queries, so a fake tag that
 // serves canned rows per table pins its behaviour without a database.
-function fakeDb(rows: Partial<Rows>): Dependencies['db'] {
+function fakeDb(rows: Partial<Rows>): Database {
   return ((strings: TemplateStringsArray) => {
     const sql = strings.join('?');
     const table = TABLES.find((name) => sql.includes(`FROM ${name}`));
     if (!table) throw new Error(`Unexpected query: ${sql}`);
     return Promise.resolve(rows[table] ?? []);
-  }) as unknown as Dependencies['db'];
+  }) as unknown as Database;
 }
 
 const productRow = {
@@ -70,14 +71,11 @@ const rows: Partial<Rows> = {
   product_info: [{ title: 'Features', description: ['Warm', 'Light'] }],
 };
 
-const findTestProduct = () =>
-  productRepository({ db: fakeDb(rows) } as unknown as Dependencies).findOneById('test-cap');
+const findTestProduct = () => new PostgresProductRepository(fakeDb(rows)).findOneById('test-cap');
 
 describe('productRepository().findOneById()', () => {
   it('returns undefined when the product does not exist', async () => {
-    const repository = productRepository({
-      db: fakeDb({ products: [] }),
-    } as unknown as Dependencies);
+    const repository = new PostgresProductRepository(fakeDb({ products: [] }));
     assert.equal(await repository.findOneById('missing'), undefined);
   });
 
@@ -207,7 +205,7 @@ const listRows: Partial<Rows> = {
 };
 
 const listProducts = (options: FindManyProductsOptions = {}) =>
-  productRepository({ db: fakeDb(listRows) } as unknown as Dependencies).findMany(options);
+  new PostgresProductRepository(fakeDb(listRows)).findMany(options);
 
 describe('productRepository().findMany()', () => {
   it('orders products newest-first, ties broken by product id', async () => {

@@ -8,18 +8,11 @@ import { setTimeout } from 'node:timers/promises';
 import { HttpStatus } from '@nestjs/common';
 import { closeDbConnection, getDb } from '#src/shared/db/postgres';
 import { ERROR_CASES } from './fixtures/error-cases.js';
+import { type ExportedSpan, verifyQueryAdapters } from './query-adapter-traces.js';
 
 const DEADLINE_MS = 15_000;
 const POLL_MS = 25;
 const SUBSCRIPTIONS_PATH = '/api/v1/newsletter/subscriptions';
-
-interface Span {
-  name: string;
-  spanId: string;
-  parentSpanId?: string;
-  traceId: string;
-  attributes: { key: string; value: { stringValue?: string } }[];
-}
 
 async function waitUntil(check: () => boolean | Promise<boolean>, label: string) {
   const deadline = Date.now() + DEADLINE_MS;
@@ -33,12 +26,12 @@ async function waitUntil(check: () => boolean | Promise<boolean>, label: string)
 it('exports related HTTP, Fastify, Nest and action spans and drains an in-flight subscription before closing the pool', {
   timeout: 60_000,
 }, async () => {
-  const spans: Span[] = [];
+  const spans: ExportedSpan[] = [];
   const collector = createServer(async (request, response) => {
     const chunks: Buffer[] = [];
     for await (const chunk of request) chunks.push(Buffer.from(chunk));
     const payload = JSON.parse(Buffer.concat(chunks).toString()) as {
-      resourceSpans: { scopeSpans: { spans: Span[] }[] }[];
+      resourceSpans: { scopeSpans: { spans: ExportedSpan[] }[] }[];
     };
     spans.push(
       ...payload.resourceSpans.flatMap((resource) =>
@@ -132,7 +125,7 @@ it('exports related HTTP, Fastify, Nest and action spans and drains an in-flight
         correlationId,
       );
     }
-    const ancestors: Span[] = [];
+    const ancestors: ExportedSpan[] = [];
     let parent = command.parentSpanId;
     while (parent) {
       const span = spans.find((candidate) => candidate.spanId === parent);
@@ -202,6 +195,8 @@ it('exports related HTTP, Fastify, Nest and action spans and drains an in-flight
     );
 
     // Hold the actual INSERT in PostgreSQL, not a mocked handler or close hook.
+    assert.ok(origin);
+    await verifyQueryAdapters(origin, spans, () => diagnostics);
     let locked = false;
     const release = new Promise<void>((resolve) => {
       unlock = resolve;

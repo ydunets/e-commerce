@@ -20,7 +20,7 @@ export async function di(fastify: FastifyInstance) {
     [
       path.join(
         import.meta.dirname,
-        '../../modules/{cart,product,review,specification}/**/*.{repository,mapper,service,domain}.{js,ts}',
+        '../../modules/{cart,review,specification}/**/*.{repository,mapper,service,domain}.{js,ts}',
       ),
     ],
     {
@@ -37,7 +37,7 @@ export async function di(fastify: FastifyInstance) {
     [
       path.join(
         import.meta.dirname,
-        '../../modules/{cart,product,review,specification}/**/*.{handler,event-handler}.{js,ts}',
+        '../../modules/{cart,review,specification}/**/*.{handler,event-handler}.{js,ts}',
       ),
     ],
     {

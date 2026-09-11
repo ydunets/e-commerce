@@ -75,7 +75,8 @@
     "fastify-plugin": "5.1.0",
     "postgres": "3.4.9",
     "reflect-metadata": "0.2.2",
-    "typebox": "1.2.9"
+    "typebox": "1.2.9",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.0",

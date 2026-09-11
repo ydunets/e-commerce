@@ -42,7 +42,7 @@ importers:
         specifier: ^19.2.7
         version: 19.2.7(react@19.2.7)
       zod:
-        specifier: ^4.4.3
+        specifier: 4.4.3
         version: 4.4.3
     devDependencies:
       '@biomejs/biome':
@@ -198,6 +198,9 @@ importers:
       typebox:
         specifier: 1.2.9
         version: 1.2.9
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
     devDependencies:
       '@biomejs/biome':
         specifier: 2.5.0
@@ -301,9 +304,9 @@ importers:
 
   packages/contracts:
     dependencies:
-      typebox:
-        specifier: 1.2.9
-        version: 1.2.9
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
     devDependencies:
       typescript:
         specifier: 7.0.2

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "development": "./src/index.ts",
@@ -16,7 +17,7 @@
     "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput"
   },
   "dependencies": {
-    "typebox": "1.2.9"
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "typescript": "7.0.2"

@@ -1,62 +1,62 @@
-import { type Static, Type } from 'typebox';
+import { z } from 'zod';
 
 // Mirrors the GreatFrontend e-commerce product API shape (snake_case).
-export const inventoryItemDtoSchema = Type.Object({
-  sku: Type.String(),
-  color: Type.String(),
-  size: Type.Union([Type.String(), Type.Null()]),
-  list_price: Type.Number(),
-  discount_percentage: Type.Union([Type.Number(), Type.Null()]),
-  sale_price: Type.Number(),
-  sold: Type.Integer(),
-  stock: Type.Integer(),
+export const inventoryItemDtoSchema = z.object({
+  sku: z.string(),
+  color: z.string(),
+  size: z.union([z.string(), z.null()]),
+  list_price: z.number(),
+  discount_percentage: z.union([z.number(), z.null()]),
+  sale_price: z.number(),
+  sold: z.int(),
+  stock: z.int(),
 });
 
-const imageSchema = Type.Object({
-  color: Type.String(),
-  image_url: Type.String(),
+const imageSchema = z.object({
+  color: z.string(),
+  image_url: z.string(),
 });
 
-const infoSchema = Type.Object({
-  title: Type.String(),
-  description: Type.Array(Type.String()),
+const infoSchema = z.object({
+  title: z.string(),
+  description: z.array(z.string()),
 });
 
-const priceRangeSchema = Type.Object({
-  highest: Type.Number(),
-  lowest: Type.Number(),
+const priceRangeSchema = z.object({
+  highest: z.number(),
+  lowest: z.number(),
 });
 
-export const productResponseDtoSchema = Type.Object({
-  product_id: Type.String({ example: 'voyager-hoodie' }),
-  name: Type.String(),
-  description: Type.String(),
-  collection: Type.String({ example: 'urban' }),
-  colors: Type.Array(Type.String()),
-  sizes: Type.Array(Type.String()),
-  images: Type.Array(imageSchema),
-  info: Type.Array(infoSchema),
-  inventory: Type.Array(inventoryItemDtoSchema),
+export const productResponseDtoSchema = z.object({
+  product_id: z.string().meta({ example: 'voyager-hoodie' }),
+  name: z.string(),
+  description: z.string(),
+  collection: z.string().meta({ example: 'urban' }),
+  colors: z.array(z.string()),
+  sizes: z.array(z.string()),
+  images: z.array(imageSchema),
+  info: z.array(infoSchema),
+  inventory: z.array(inventoryItemDtoSchema),
   priceRange: priceRangeSchema,
-  rating: Type.Number(),
-  reviews: Type.Integer(),
+  rating: z.number(),
+  reviews: z.int(),
 });
 
-export const productListItemColorDtoSchema = Type.Object({
-  color: Type.String(),
-  image_url: Type.Union([Type.String(), Type.Null()]),
-  sale_price: Type.Number(),
-  list_price: Type.Number(),
-  out_of_stock: Type.Boolean(),
+export const productListItemColorDtoSchema = z.object({
+  color: z.string(),
+  image_url: z.union([z.string(), z.null()]),
+  sale_price: z.number(),
+  list_price: z.number(),
+  out_of_stock: z.boolean(),
 });
 
-export const productListItemDtoSchema = Type.Object({
-  product_id: Type.String({ example: 'voyager-hoodie' }),
-  name: Type.String(),
-  colors: Type.Array(productListItemColorDtoSchema),
+export const productListItemDtoSchema = z.object({
+  product_id: z.string().meta({ example: 'voyager-hoodie' }),
+  name: z.string(),
+  colors: z.array(productListItemColorDtoSchema),
 });
 
-export type InventoryItemDto = Static<typeof inventoryItemDtoSchema>;
-export type ProductResponseDto = Static<typeof productResponseDtoSchema>;
-export type ProductListItemColorDto = Static<typeof productListItemColorDtoSchema>;
-export type ProductListItemDto = Static<typeof productListItemDtoSchema>;
+export type InventoryItemDto = z.infer<typeof inventoryItemDtoSchema>;
+export type ProductResponseDto = z.infer<typeof productResponseDtoSchema>;
+export type ProductListItemColorDto = z.infer<typeof productListItemColorDtoSchema>;
+export type ProductListItemDto = z.infer<typeof productListItemDtoSchema>;

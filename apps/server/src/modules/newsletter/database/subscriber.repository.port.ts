@@ -1,5 +1,7 @@
 import type { SubscriberEntity } from '#src/modules/newsletter/domain/subscriber.types';
 
+export const SUBSCRIBER_REPOSITORY = Symbol('SubscriberRepository');
+
 export interface SubscriberRepository {
   /**
    * Inserts a subscriber. Throws `SubscriberAlreadyExistsException` when the

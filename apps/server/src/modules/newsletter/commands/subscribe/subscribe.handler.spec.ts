@@ -1,72 +1,78 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import type { SubscriberRepository } from '#src/modules/newsletter/database/subscriber.repository.port';
 import { SubscriberAlreadyExistsException } from '#src/modules/newsletter/domain/subscriber.errors';
-import makeSubscribe, { subscribeCommand, subscribedEvent } from './subscribe.handler.js';
+import type { SubscriberEntity } from '#src/modules/newsletter/domain/subscriber.types';
+import type { ApplicationAction } from '#src/shared/nest/dispatcher';
+import { SubscribeCommand, SubscribedEvent, SubscribeHandler } from './subscribe.handler.js';
 
-describe('subscribeCommand handler', () => {
-  it('inserts a new Subscriber and emits the subscribed event', async () => {
-    const inserted: unknown[] = [];
-    const subscriberRepository = {
-      insert: async (subscriber: unknown) => {
+describe('SubscribeHandler', () => {
+  it('publishes the normalized subscriber only after persistence succeeds', async () => {
+    const inserted: SubscriberEntity[] = [];
+    const emitted: ApplicationAction[] = [];
+    const repository: SubscriberRepository = {
+      insert: async (subscriber) => {
         inserted.push(subscriber);
       },
     };
-    const emitted: unknown[] = [];
-    const eventBus = { emit: (event: unknown) => void emitted.push(event) };
-
-    const { handler } = makeSubscribe({ eventBus, subscriberRepository } as never);
-
-    await handler({ payload: { email: 'Jane@Example.com' } } as never);
-
+    const events = {
+      publish: (event: ApplicationAction) => {
+        assert.equal(inserted.length, 1);
+        emitted.push(event);
+      },
+    };
+    await new SubscribeHandler(repository, events).execute(
+      new SubscribeCommand({ email: ' Jane@Example.com ' }),
+    );
     assert.equal(inserted.length, 1);
-    assert.equal((inserted[0] as { email: string }).email, 'jane@example.com');
+    assert.equal(inserted[0]!.email, 'jane@example.com');
     assert.equal(emitted.length, 1);
-    assert.equal((emitted[0] as { type: string }).type, subscribedEvent.type);
-    assert.equal((emitted[0] as { payload: { email: string } }).payload.email, 'jane@example.com');
+    assert.ok(emitted[0] instanceof SubscribedEvent);
+    assert.equal(emitted[0].payload.email, 'jane@example.com');
+    assert.equal(emitted[0].payload.subscriberId, inserted[0]!.id);
+    assert.equal(emitted[0].type, 'newsletter/subscribed');
   });
 
-  it('resolves successfully and does not emit again when the email is already subscribed', async () => {
-    let insertAttempts = 0;
-    const subscriberRepository = {
+  it('resolves duplicate subscriptions without publishing another event', async () => {
+    const repository: SubscriberRepository = {
       insert: async () => {
-        insertAttempts += 1;
         throw new SubscriberAlreadyExistsException('jane@example.com');
       },
     };
-    const emitted: unknown[] = [];
-    const eventBus = { emit: (event: unknown) => void emitted.push(event) };
-
-    const { handler } = makeSubscribe({ eventBus, subscriberRepository } as never);
-
-    await assert.doesNotReject(() => handler({ payload: { email: 'jane@example.com' } } as never));
-
-    assert.equal(insertAttempts, 1);
-    assert.equal(emitted.length, 0);
-  });
-
-  it('propagates unexpected repository failures', async () => {
-    const subscriberRepository = {
-      insert: async () => {
-        throw new Error('connection lost');
+    const emitted: ApplicationAction[] = [];
+    const events = {
+      publish: (event: ApplicationAction) => {
+        emitted.push(event);
       },
     };
-    const eventBus = { emit: () => undefined };
-
-    const { handler } = makeSubscribe({ eventBus, subscriberRepository } as never);
-
-    await assert.rejects(() => handler({ payload: { email: 'jane@example.com' } } as never), {
-      message: 'connection lost',
-    });
+    await assert.doesNotReject(() =>
+      new SubscribeHandler(repository, events).execute(
+        new SubscribeCommand({ email: 'jane@example.com' }),
+      ),
+    );
+    assert.deepEqual(emitted, []);
   });
 
-  it('registers itself on the command bus under its action type', () => {
-    const registered: string[] = [];
-    const commandBus = { register: (type: string) => void registered.push(type) };
-    const subscriberRepository = { insert: async () => undefined };
-    const eventBus = { emit: () => undefined };
-
-    makeSubscribe({ commandBus, eventBus, subscriberRepository } as never).init();
-
-    assert.deepEqual(registered, [subscribeCommand.type]);
+  it('propagates repository failure without publishing an event', async () => {
+    const failure = new Error('connection lost');
+    const repository: SubscriberRepository = {
+      insert: async () => {
+        throw failure;
+      },
+    };
+    const emitted: ApplicationAction[] = [];
+    const events = {
+      publish: (event: ApplicationAction) => {
+        emitted.push(event);
+      },
+    };
+    await assert.rejects(
+      () =>
+        new SubscribeHandler(repository, events).execute(
+          new SubscribeCommand({ email: 'jane@example.com' }),
+        ),
+      (error) => error === failure,
+    );
+    assert.deepEqual(emitted, []);
   });
 });

@@ -133,9 +133,15 @@ The preview server also proxies `/api/*`, so run the API alongside (`pnpm api`) 
 
 ### Compiled API execution
 
+Shared contracts use Zod 4.4.3. Legacy Fastify consumers temporarily convert them with `toLegacySchema`, selecting input JSON Schema for requests and output JSON Schema for responses. Keep metadata and examples on the authoritative contracts; `id` identifies a Zod component, whereas `$id` supplies the literal legacy JSON Schema identifier. Remove this adapter when its final legacy consumer migrates.
+
+The contracts package is side-effect-free. Its DTO types were checked against the previous TypeBox definitions during replacement, and a utility-only production bundle verified that `compareSizes` and `SIZE_RANK` do not retain Zod. `ReviewsPageResponseDto` remains a hand-written interface.
+
 SWC 0.8.1 with core 1.16.1 preserves the two source roots as `apps/server/dist/src` and `apps/server/dist/tests`. Every ordinary build clears `dist` before compiling, preventing stale handlers and specifications after renames. TypeScript 7.0.2 remains the strict no-emit checker. Relative imports use `.js`; extensionless internal aliases resolve source under the checker's `development` condition and compiled output by default. Do not pass that condition to a runtime process.
 
 `pnpm api` and package-level `pnpm start` or `pnpm dev` build contracts and the server before starting SWC and Node watchers. The lower-level `watch` command assumes those initial builds already exist. Development, unit tests, coverage and characterisation load an optional server `.env` before module preloads; explicit environment variables take precedence. Production requires platform-provided variables and does not require an environment file. All server runtime commands preload `reflect-metadata` and enable source maps; application commands additionally preload instrumentation.
+
+Configuration is parsed once by standalone Zod code, without file access or changes to unrelated environment variables. Missing required values prevent startup; diagnostics identify variables and problems without including supplied values or database credentials. Empty database strings remain accepted. `HOST` and `POSTGRES_SSLMODE` default only when absent. `PORT` retains the previous validator's numeric conversion, including whitespace, decimals and non-finite numeric strings, without adding integer or range restrictions; socket binding may still reject unsuitable ports.
 
 ```bash
 pnpm --filter @e-commerce/server test:unit
@@ -153,6 +159,8 @@ node apps/server/scripts/smoke-image.mjs e-commerce-server:local
 ```
 
 The smoke check creates its own Docker network and PostgreSQL 18 container, applies migrations and seeds with pinned DBMate 2.33.0, and starts the final server image using synthetic platform-style variables. It checks health, product listing and details, non-root execution, source-map presence, and exclusion of application source, tests and development tooling. It then sends SIGTERM and requires a successful exit within ten seconds. Owned containers, volumes and the network are removed afterwards; no existing database is reused.
+
+A separate negative startup probe supplies an invalid log level to the same production image and requires a nonzero exit with redacted diagnostics. A test-only Node preload rejects any attempt to listen, detecting transient binds that readiness polling could miss. The production image command is not replaced.
 
 The existing PR image matrix retains client, server and migrations. Its server job now loads and tests the final image without publishing it. Branch protection on `main` requires the GitHub Actions checks `validate`, `characterisation`, and `build (server, apps/server/Dockerfile, .)`, including for administrators, with the branch up to date before merging. The workflow also runs for documentation-only pull requests so required checks are never omitted by path filters. Bounded SIGTERM exit is not evidence of in-flight request draining, which remains a separate migration acceptance check.
 

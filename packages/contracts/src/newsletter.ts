@@ -1,9 +1,9 @@
-import { type Static, Type } from 'typebox';
+import { z } from 'zod';
 
-export const subscribeResponseDtoSchema = Type.Object({
-  message: Type.String({
+export const subscribeResponseDtoSchema = z.object({
+  message: z.string().meta({
     example: 'Subscription successful! Please check your email to confirm.',
   }),
 });
 
-export type SubscribeResponseDto = Static<typeof subscribeResponseDtoSchema>;
+export type SubscribeResponseDto = z.infer<typeof subscribeResponseDtoSchema>;

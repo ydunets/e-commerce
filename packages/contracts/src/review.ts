@@ -1,17 +1,17 @@
-import { type Static, Type } from 'typebox';
+import { z } from 'zod';
 
 // Mirrors the GreatFrontend e-commerce reviews API shape (snake_case).
-export const reviewResponseDtoSchema = Type.Object({
-  id: Type.Integer(),
-  user_id: Type.String({ example: 'natali-craig' }),
-  name: Type.String({ example: 'Natali Craig' }),
-  avatar_url: Type.Union([Type.String(), Type.Null()]),
-  rating: Type.Integer({ minimum: 1, maximum: 5 }),
-  content: Type.Union([Type.String(), Type.Null()]),
-  created_at: Type.String({ example: '2024-03-11' }),
+export const reviewResponseDtoSchema = z.object({
+  id: z.int(),
+  user_id: z.string().meta({ example: 'natali-craig' }),
+  name: z.string().meta({ example: 'Natali Craig' }),
+  avatar_url: z.union([z.string(), z.null()]),
+  rating: z.int().min(1).max(5),
+  content: z.union([z.string(), z.null()]),
+  created_at: z.string().meta({ example: '2024-03-11' }),
 });
 
-export type ReviewResponseDto = Static<typeof reviewResponseDtoSchema>;
+export type ReviewResponseDto = z.infer<typeof reviewResponseDtoSchema>;
 
 /** The paginated envelope `GET /products/:id/reviews` responds with. */
 export interface ReviewsPageResponseDto {

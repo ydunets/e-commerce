@@ -1,4 +1,4 @@
-import { type Static, Type } from 'typebox';
+import { z } from 'zod';
 
 // Collection-wide marketing content behind the product page specification tabs (snake_case).
 export const SPECIFICATION_ICONS = [
@@ -20,23 +20,23 @@ export const SPECIFICATION_ICONS = [
   'shapes-line',
 ] as const;
 
-export const specificationIconDtoSchema = Type.Enum(SPECIFICATION_ICONS);
+export const specificationIconDtoSchema = z.enum(SPECIFICATION_ICONS);
 
-export const specificationFeatureDtoSchema = Type.Object({
+export const specificationFeatureDtoSchema = z.object({
   icon: specificationIconDtoSchema,
-  label: Type.String(),
+  label: z.string(),
 });
 
-export const specificationResponseDtoSchema = Type.Object({
-  specification_id: Type.String({ example: 'sustainability' }),
-  label: Type.String(),
-  title: Type.String(),
-  description: Type.String(),
-  image_url: Type.String(),
-  image_alt: Type.String(),
-  features: Type.Array(specificationFeatureDtoSchema),
+export const specificationResponseDtoSchema = z.object({
+  specification_id: z.string().meta({ example: 'sustainability' }),
+  label: z.string(),
+  title: z.string(),
+  description: z.string(),
+  image_url: z.string(),
+  image_alt: z.string(),
+  features: z.array(specificationFeatureDtoSchema),
 });
 
-export type SpecificationIconDto = Static<typeof specificationIconDtoSchema>;
-export type SpecificationFeatureDto = Static<typeof specificationFeatureDtoSchema>;
-export type SpecificationResponseDto = Static<typeof specificationResponseDtoSchema>;
+export type SpecificationIconDto = z.infer<typeof specificationIconDtoSchema>;
+export type SpecificationFeatureDto = z.infer<typeof specificationFeatureDtoSchema>;
+export type SpecificationResponseDto = z.infer<typeof specificationResponseDtoSchema>;

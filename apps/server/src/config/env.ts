@@ -1,52 +1,6 @@
-import envSchema from 'env-schema';
-import { type Static, Type } from 'typebox';
+import { parseConfiguration } from './configuration.js';
 
-const NodeEnv = {
-  development: 'development',
-  production: 'production',
-  test: 'test',
-} as const;
+export { LogLevel } from './configuration.js';
 
-export const LogLevel = {
-  debug: 'debug',
-  info: 'info',
-  warn: 'warn',
-  error: 'error',
-} as const;
-export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel];
-
-const schema = Type.Object({
-  POSTGRES_URL: Type.String(),
-  POSTGRES_PASSWORD: Type.String(),
-  POSTGRES_USER: Type.String(),
-  POSTGRES_DB: Type.String(),
-  // Local Postgres runs without TLS; managed Postgres (e.g. Azure) requires it.
-  // postgres.js maps this URL sslmode to its `ssl` option automatically.
-  POSTGRES_SSLMODE: Type.String({ default: 'disable' }),
-  LOG_LEVEL: Type.Enum(LogLevel),
-  NODE_ENV: Type.Enum(NodeEnv),
-  HOST: Type.String({ default: 'localhost' }),
-  PORT: Type.Number({ default: 3000 }),
-});
-
-const env = envSchema<Static<typeof schema>>({
-  dotenv: true,
-  schema,
-});
-
-export default {
-  nodeEnv: env.NODE_ENV,
-  isDevelopment: env.NODE_ENV === NodeEnv.development,
-  isProduction: env.NODE_ENV === NodeEnv.production,
-  version: process.env.npm_package_version ?? '0.0.0',
-  log: {
-    level: env.LOG_LEVEL,
-  },
-  server: {
-    host: env.HOST,
-    port: env.PORT,
-  },
-  db: {
-    url: `postgres://${encodeURIComponent(env.POSTGRES_USER)}:${encodeURIComponent(env.POSTGRES_PASSWORD)}@${env.POSTGRES_URL}/${env.POSTGRES_DB}?sslmode=${env.POSTGRES_SSLMODE}`,
-  },
-};
+// One process-wide value, also available before a future Nest provider is initialized.
+export default parseConfiguration(process.env);

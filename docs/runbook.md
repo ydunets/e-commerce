@@ -70,7 +70,7 @@ pnpm check          # everything, all packages, concurrent (~3-4s):
                     #   storybook: static build
 ```
 
-Granular: `pnpm check:client`, `pnpm api:check`, `pnpm test`, or any `pnpm --filter <pkg> check:lint|check:types|check:test`. Server-only extras (run in `apps/server`): `pnpm test:e2e` (Cucumber, needs DB), `pnpm deps:validate` (architecture rules).
+Granular: `pnpm check:client`, `pnpm api:check`, `pnpm test`, or any `pnpm --filter <pkg> check:lint|check:types|check:test`. Server-only extras (run in `apps/server`): `pnpm test:characterisation` (Cucumber HTTP characterisation, needs DB), `pnpm deps:validate` (architecture rules).
 
 ## 6. End-to-end tests (Playwright, `apps/e2e`)
 

@@ -1,6 +1,6 @@
 ![Fastify Boilerplate Logo](doc/images/fastify_logo.png)
 
-[![Biome](https://img.shields.io/badge/Biome-60a5fa?logo=biome&logoColor=fff)](https://biomejs.dev/) [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/) [![MIT License](https://img.shields.io/github/license/marcoturi/fastify-boilerplate)](https://github.com/marcoturi/fastify-boilerplate/blob/main/LICENSE) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/marcoturi/fastify-boilerplate/codeql-analysis.yml) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/marcoturi/fastify-boilerplate/release.yml)
+[![Biome](https://img.shields.io/badge/Biome-60a5fa?logo=biome&logoColor=fff)](https://biomejs.dev/) [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/) [![MIT License](https://img.shields.io/github/license/marcoturi/fastify-boilerplate)](https://github.com/marcoturi/fastify-boilerplate/blob/main/LICENSE) ![PR Checks](https://img.shields.io/github/actions/workflow/status/ydunets/e-commerce/pr-checks.yml) ![Release and Deploy](https://img.shields.io/github/actions/workflow/status/ydunets/e-commerce/release-deploy.yml)
 
 A production-ready [Fastify 5](https://github.com/fastify/fastify) boilerplate built on Clean Architecture, CQRS, DDD, and functional programming. Designed as a starting point for real-world applications, the architecture is framework-agnostic at its core — the patterns and boundaries translate to any language or framework.
 
@@ -41,7 +41,7 @@ A production-ready [Fastify 5](https://github.com/fastify/fastify) boilerplate b
 | **Architecture** | [dependency-cruiser](https://github.com/sverweij/dependency-cruiser) validates layer boundaries at CI time |
 | **Release** | [Husky](https://github.com/typicode/husky) + [Commitlint](https://commitlint.js.org/) + [Semantic Release](https://github.com/semantic-release/semantic-release) |
 | **Client types** | REST (OpenAPI) and GraphQL types [auto-generated and published to npm](#client-types-package) on every release |
-| **Testing** | E2E with [Cucumber](https://cucumber.io/docs/installation/javascript/) (Gherkin), unit/integration with `node:test`, load tests with [k6](https://github.com/grafana/k6) |
+| **Testing** | HTTP characterisation with [Cucumber](https://cucumber.io/docs/installation/javascript/) (Gherkin), unit/integration with `node:test`, load tests with [k6](https://github.com/grafana/k6) |
 | **Docker** | Production-ready multi-stage [Dockerfile](Dockerfile) (Alpine, non-root, health check) + [Docker Compose](docker-compose.yml) |
 | **AI-Ready** | [AGENTS.md](AGENTS.md) — architecture rules and coding conventions for AI assistants |
 
@@ -108,7 +108,7 @@ The server starts at **http://localhost:3000** by default. See [API Endpoints](#
 | `pnpm test` | Run unit tests (alias for `test:unit`) |
 | `pnpm test:unit` | Run unit and integration tests with `node:test` |
 | `pnpm test:coverage` | Run unit tests with c8 coverage |
-| `pnpm test:e2e` | Run E2E tests with Cucumber (requires running Postgres) |
+| `pnpm test:characterisation` | Run HTTP characterisation tests with Cucumber (requires running Postgres) |
 
 ### Database
 
@@ -238,7 +238,7 @@ Example: [user.repository.ts](src/modules/user/database/user.repository.ts)
 │   └── seeds/                     → SQL seed files (DBMate)
 ├── tests/
 │   ├── <feature>/
-│   │   ├── <scenario>.feature     → Gherkin E2E scenarios
+│   │   ├── <scenario>.feature     → Gherkin characterisation scenarios
 │   │   └── <scenario>.k6.ts      → k6 load test scripts
 │   ├── shared/                    → Shared step definitions
 │   └── support/                   → Test server, hooks, custom world
@@ -316,20 +316,20 @@ pnpm test:unit           # run tests
 pnpm test:coverage       # run with c8 coverage
 ```
 
-### E2E tests
+### Characterisation tests
 
 Written in [Gherkin](https://cucumber.io/docs/gherkin/) and executed with [Cucumber.js](https://cucumber.io/docs/installation/javascript/). Scenarios live in `tests/<feature>/<scenario>.feature`, step definitions in `tests/<feature>/<feature>.steps.ts`.
 
 ```bash
 # Requires a running Postgres with migrations applied
-pnpm test:e2e
+pnpm test:characterisation
 ```
 
-The E2E test server is created via `buildApp()` (in `tests/support/server.ts`) — it boots a full Fastify instance without binding to a port, so tests run fast and don't conflict with a running dev server.
+The characterisation test server is created via `buildApp()` (in `tests/support/server.ts`). Scenarios exercise HTTP through `inject()` on a full Fastify instance without binding to a port. E2E refers to the Playwright browser suite in the workspace's `apps/e2e` package; see the [runbook](../../docs/runbook.md#6-end-to-end-tests-playwright-appse2e).
 
 ### Load tests
 
-[k6](https://github.com/grafana/k6) scripts live alongside their feature's E2E tests.
+[k6](https://github.com/grafana/k6) scripts live alongside their feature's characterisation tests.
 
 Example: [create-user.k6.ts](tests/user/create-user/create-user.k6.ts)
 
@@ -365,20 +365,13 @@ This starts the server, fetches the OpenAPI and GraphQL schemas, writes the type
 
 ## CI/CD Pipeline
 
-The project uses GitHub Actions with two workflows:
+The workspace uses the following GitHub Actions workflows:
 
-**[release.yml](.github/workflows/release.yml)** — runs on every push to `main`:
+1. **[PR Checks](../../.github/workflows/pr-checks.yml)** validates pull requests.
+2. **[Release and Deploy](../../.github/workflows/release-deploy.yml)** handles releases and Azure deployment.
+3. **[Scheduled CodeQL](../../.github/workflows/codeql.yml)** provides scheduled security scans through the **[reusable CodeQL analysis](../../.github/workflows/_codeql.yml)** also used by the other workflows.
 
-1. Install dependencies (`pnpm install --frozen-lockfile`)
-2. Code quality checks (`pnpm check`)
-3. Unit tests (`pnpm test`)
-4. E2E tests (`pnpm test:e2e`) against a Postgres service container
-5. Generate client types (`pnpm generate:types`)
-6. Publish release via semantic-release (changelog, GitHub release, npm client package)
-
-**[codeql-analysis.yml](.github/workflows/codeql-analysis.yml)** — runs on pushes and PRs to `main`:
-
-- GitHub CodeQL security analysis for JavaScript/TypeScript
+PR Checks runs the Cucumber characterisation suite against a PostgreSQL service container after migrations and seeds. It requires no local `.env` file and runs independently of the database-free workspace checks. Run `pnpm test:characterisation` locally against PostgreSQL. The release workflow does not run this suite.
 
 ## AI-Assisted Development
 
@@ -408,7 +401,7 @@ Contributions are welcome! This project uses [Conventional Commits](https://www.
 2. Create a branch: `git checkout -b your-feature`
 3. Make your changes
 4. Run `pnpm check` to validate lint, format, and types
-5. Run `pnpm test` (and `pnpm test:e2e` if your change touches API behavior)
+5. Run `pnpm test` (and `pnpm test:characterisation` if your change touches API behavior)
 6. Commit using [Conventional Commits](https://www.conventionalcommits.org/) format (e.g. `feat: add user roles`)
 7. Open a Pull Request
 

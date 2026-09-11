@@ -50,12 +50,16 @@ Feature: Shopping cart CRUD
     Then I receive an error "Not Found" with status code 404
     And the response carries the error envelope
 
-  Scenario: The cart read returns lines and computed total units without prices
+  Scenario: The cart read returns product details and current inventory prices
     Given I add 2 units of "cart-e2e-hoodie-black" to a new cart
     And I add 2 units of "cart-e2e-hoodie-white" to the cart
+    And inventory item "cart-e2e-hoodie-black" now has list price 40, discount 25 and sale price 30
     When I get the cart
     Then the cart has 2 lines and 4 total units
-    And the cart lines carry no prices
+    And the cart lines carry product details and current prices:
+      | sku                   | quantity | list_price | discount_percentage | sale_price | stock |
+      | cart-e2e-hoodie-white | 2        | 10         | null                | 10         | 2     |
+      | cart-e2e-hoodie-black | 2        | 40         | 25                  | 30         | 5     |
 
   Scenario: Updating a line's quantity
     Given I add 1 unit of "cart-e2e-hoodie-black" to a new cart

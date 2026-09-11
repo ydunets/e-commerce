@@ -1,8 +1,10 @@
 import assert from 'node:assert';
-import { After, Given, Then, When } from '@cucumber/cucumber';
+import { After, type DataTable, Given, Then, When } from '@cucumber/cucumber';
 import type { ICustomWorld } from '../support/custom-world.ts';
 
 const TEST_PRODUCT_ID = 'cart-e2e-product';
+const TEST_PRODUCT_NAME = 'Cart Test Product';
+const TEST_PRODUCT_DESCRIPTION = 'Fixture for cart e2e';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 interface CartTestContext {
@@ -37,13 +39,30 @@ Given(
   async function (this: ICustomWorld, sku: string, stock: number) {
     await this.db`
       INSERT INTO products (product_id, name, description, category, collection)
-      VALUES (${TEST_PRODUCT_ID}, 'Cart Test Product', 'Fixture for cart e2e', 'unisex', 'urban')
+      VALUES (${TEST_PRODUCT_ID}, ${TEST_PRODUCT_NAME}, ${TEST_PRODUCT_DESCRIPTION}, 'unisex', 'urban')
       ON CONFLICT (product_id) DO NOTHING
     `;
     await this.db`
       INSERT INTO product_inventory (sku, product_id, color, size, list_price, sale_price, stock)
       VALUES (${sku}, ${TEST_PRODUCT_ID}, 'black', NULL, 10, 10, ${stock})
       ON CONFLICT (sku) DO UPDATE SET stock = EXCLUDED.stock
+    `;
+  },
+);
+
+Given(
+  'inventory item {string} now has list price {int}, discount {int} and sale price {int}',
+  async function (
+    this: ICustomWorld,
+    sku: string,
+    listPrice: number,
+    discountPercentage: number,
+    salePrice: number,
+  ) {
+    await this.db`
+      UPDATE product_inventory
+      SET list_price = ${listPrice}, discount_percentage = ${discountPercentage}, sale_price = ${salePrice}
+      WHERE sku = ${sku}
     `;
   },
 );
@@ -127,13 +146,27 @@ Then(
   },
 );
 
-Then('the cart lines carry no prices', function (this: ICustomWorld) {
-  const lines = latestBody(this).lines as Record<string, unknown>[];
-  assert.ok(lines.length > 0, 'expected at least one line');
-  for (const line of lines) {
-    assert.deepStrictEqual(Object.keys(line).sort(), ['quantity', 'sku']);
-  }
-});
+Then(
+  'the cart lines carry product details and current prices:',
+  function (this: ICustomWorld, expectedLines: DataTable) {
+    const lines = expectedLines.hashes().map((line) => ({
+      sku: line.sku,
+      quantity: Number(line.quantity),
+      product_id: TEST_PRODUCT_ID,
+      name: TEST_PRODUCT_NAME,
+      description: TEST_PRODUCT_DESCRIPTION,
+      color: 'black',
+      size: null,
+      image_url: null,
+      list_price: Number(line.list_price),
+      discount_percentage:
+        line.discount_percentage === 'null' ? null : Number(line.discount_percentage),
+      sale_price: Number(line.sale_price),
+      stock: Number(line.stock),
+    }));
+    assert.deepStrictEqual(latestBody(this).lines, lines);
+  },
+);
 
 Then('the response carries the error envelope', function (this: ICustomWorld) {
   const body = latestBody(this);

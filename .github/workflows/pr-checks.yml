@@ -1,5 +1,5 @@
 # .github/workflows/pr-checks.yml
-# Runs on every PR to main: lint/types/tests, CodeQL, and a build-only check
+# Runs on every PR to main: lint/types/tests, characterisation, CodeQL, and a build-only check
 # of the Docker images (no push). Nothing here touches GHCR, releases, or
 # Azure; see release-deploy.yml for what runs after a merge to main.
 
@@ -40,10 +40,50 @@ jobs:
       actions: read
     uses: ./.github/workflows/_codeql.yml
 
-  # 3. Build the client, server, and migrations images to verify the
+  # 3. HTTP characterisation against an isolated database, parallel to the checks above.
+  characterisation:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: characterisation
+          POSTGRES_PASSWORD: characterisation
+          POSTGRES_DB: characterisation
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U characterisation -d characterisation"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+    env:
+      # Disposable CI credentials, shared by dbmate and the application.
+      DBMATE_DATABASE_URL: postgres://characterisation:characterisation@127.0.0.1:5432/characterisation?sslmode=disable
+      POSTGRES_URL: 127.0.0.1:5432
+      POSTGRES_USER: characterisation
+      POSTGRES_PASSWORD: characterisation
+      POSTGRES_DB: characterisation
+      POSTGRES_SSLMODE: disable
+      NODE_ENV: test
+      LOG_LEVEL: error
+      OTEL_SDK_DISABLED: 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup workspace
+        uses: ./.github/actions/setup
+      - name: Migrate database
+        run: pnpm --filter @e-commerce/server db:migrate
+      - name: Seed database
+        run: pnpm --filter @e-commerce/server db:seed
+      - name: Characterisation tests
+        run: pnpm --filter @e-commerce/server test:characterisation
+
+  # 4. Build the client, server, and migrations images to verify the
   #    Dockerfiles. No registry login, so this is safe to run for forks too.
   build:
-    needs: [validate, security]
+    needs: [validate, security, characterisation]
     runs-on: ubuntu-latest
     permissions:
       contents: read

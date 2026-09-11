@@ -9,7 +9,7 @@ merge to `main`. Shared setup lives in [`.github/actions`](../.github/actions).
 
 | Workflow | Trigger | What it does |
 |---|---|---|
-| [`pr-checks.yml`](../.github/workflows/pr-checks.yml) | PR → `main` | validate → security → build (images built, not pushed) |
+| [`pr-checks.yml`](../.github/workflows/pr-checks.yml) | PR → `main` | Parallel validate, security, and characterisation jobs gate build (images built, not pushed). |
 | [`release-deploy.yml`](../.github/workflows/release-deploy.yml) | push → `main`, manual dispatch | validate → security → build → release → deploy |
 | [`codeql.yml`](../.github/workflows/codeql.yml) | weekly cron | Scheduled CodeQL scan (shares [`_codeql.yml`](../.github/workflows/_codeql.yml) with both workflows above) |
 
@@ -31,9 +31,11 @@ flowchart LR
     direction LR
     PVALIDATE["validate<br/>pnpm check"]
     PSECURITY["security<br/>CodeQL"]
+    PCHARACTERISATION["characterisation<br/>Cucumber + PostgreSQL"]
     PBUILD["build<br/>client + server images<br/>(no push)"]
     PVALIDATE --> PBUILD
     PSECURITY --> PBUILD
+    PCHARACTERISATION --> PBUILD
   end
 
   subgraph RD["release-deploy.yml"]
@@ -67,19 +69,24 @@ flowchart LR
    [`_codeql.yml`](../.github/workflows/_codeql.yml). Runs in parallel with `validate`; results land
    in the **Security → Code scanning** tab. Excluded paths live in
    [`.github/codeql/codeql-config.yml`](../.github/codeql/codeql-config.yml).
-3. **build** — `needs: [validate, security]`. Matrix over `client` and `server`; each
+3. **characterisation** runs only in PR Checks, in parallel with `validate` and `security`.
+   It applies migrations and seeds to an isolated PostgreSQL service, then runs
+   `pnpm --filter @e-commerce/server test:characterisation`. Configuration comes from job
+   environment variables, not a local `.env` file. Shared-contract changes run this job too;
+   it has no additional path filter. Image builds wait for it to pass.
+4. **build** requires `validate` and `security`, plus `characterisation` in PR Checks. Matrix over `client` and `server`; each
    [Dockerfile](../apps/server/Dockerfile) builds from the **monorepo root** context and uses
    `pnpm fetch` + `pnpm deploy` for a lean, self-contained runtime. **In `pr-checks.yml`** the images
    are built only (verifies the Dockerfiles, safe for forks, no registry login). **In
    `release-deploy.yml`** they are pushed to `ghcr.io/<owner>/<repo>/{client,server}`, tagged
    `sha-<commit>` and `latest`, with `type=gha` layer caching.
-4. **release** — `needs: build`, **`release-deploy.yml` only**.
+5. **release** — `needs: build`, **`release-deploy.yml` only**.
    `pnpm --filter @e-commerce/server semantic-release` reads conventional commits and, when there is
    something to release, updates `apps/server/CHANGELOG.md`, commits it back with
    `chore(release): <version> [skip ci]` (the `[skip ci]` avoids a loop), and creates the git tag +
    GitHub Release. GitHub Releases only, no npm publish. Config:
    [`apps/server/.releaserc`](../apps/server/.releaserc).
-5. **deploy** — `needs: release`, **`release-deploy.yml` only**. `azure/login@v3` authenticates via
+6. **deploy** — `needs: release`, **`release-deploy.yml` only**. `azure/login@v3` authenticates via
    **OIDC** (no long-lived secrets), then `azure/cli@v3` rolls each Container App to `:latest`
    (server first, then client). Uses the `production` environment.
 
@@ -101,7 +108,7 @@ reusable [`_codeql.yml`](../.github/workflows/_codeql.yml) that `pr-checks.yml` 
 
 | Piece | Purpose |
 |---|---|
-| [`actions/setup`](../.github/actions/setup/action.yml) | Install pnpm, then Node (pnpm cache), then `pnpm install --frozen-lockfile`. Used by `validate` and `release` in both workflows. |
+| [`actions/setup`](../.github/actions/setup/action.yml) | Install pnpm, then Node (pnpm cache), then `pnpm install --frozen-lockfile`. Used by `validate`, PR characterisation, and `release`. |
 | [`_codeql.yml`](../.github/workflows/_codeql.yml) | Reusable CodeQL analysis, called by each workflow's `security` job. |
 
 **pnpm ordering matters:** `pnpm/action-setup` runs *before* `setup-node`, otherwise `cache: pnpm`
@@ -131,8 +138,8 @@ docker compose -f apps/server/docker-compose.yml build app       # same via comp
   straight to `main` using `GITHUB_TOKEN`. If branch protection that blocks direct pushes is added,
   the release push needs a bypass (or drop the `@semantic-release/git` plugin so it only tags +
   releases, no in-repo CHANGELOG commit).
-- **No DB/e2e gate yet.** The server's Cucumber e2e + `dbmate` migrations (need Postgres) and the
-  client's Playwright e2e are not wired into the pipeline.
+- **Characterisation gates PRs only.** The release workflow does not rerun the server's
+  database-backed suite. Playwright browser E2E tests are not wired into either workflow.
 - **Deploy uses `:latest`.** Fine for a single-environment setup; switch to image digests for fully
   immutable rollouts.
 

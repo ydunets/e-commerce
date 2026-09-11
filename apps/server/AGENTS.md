@@ -16,7 +16,7 @@ TypeScript strict mode, ESM-only, Node >= 24 (native TS execution, no build step
 | Validation after changes | `pnpm check` (runs `biome check && tsc --noEmit`) |
 | Auto-fix formatting | `pnpm format` |
 | Unit tests | `pnpm test:unit` (node:test) |
-| E2E tests | `pnpm test:e2e` (Cucumber + Gherkin) |
+| Characterisation tests | `pnpm test:characterisation` (Cucumber + Gherkin) |
 | Architecture validation | `pnpm deps:validate` (dependency-cruiser) |
 | DB migrations | `pnpm db:migrate` (DBMate) |
 
@@ -190,7 +190,8 @@ SQL parameterization rules:
 
 ### Testing
 - Unit/integration tests: `*.spec.ts` files next to source, using `node:test` with `describe`/`it`/`assert`
-- E2E tests: Cucumber features in `tests/`, step definitions in `tests/<feature>/`
+- Characterisation tests: Cucumber features in `tests/`, step definitions in `tests/<feature>/`, exercising HTTP through `inject()`
+- E2E tests: Playwright browser tests in the workspace's `apps/e2e` package
 - Load tests: k6 scripts in `tests/<feature>/`
 - Test server: use `buildApp()` from `tests/support/server.ts` — creates a Fastify instance without listening
 

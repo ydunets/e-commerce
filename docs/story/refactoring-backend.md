@@ -80,14 +80,14 @@ Ordered, independently shippable sub-tasks. Existing safety net: `product.reposi
 - **Goal**: handler executes `getReviewSummaryQuery` and merges `{ count: summary.total, average: summary.average }` into the entity; repo's inline summary becomes overwritten (still present, harmless, removed next task).
 - **Files**: `modules/review/index.ts` (re-export `getReviewSummaryQuery` as the module's public API); `modules/product/queries/find-product/find-product.handler.ts`; new `find-product.handler.spec.ts` with a fake `queryBus` and fake `productRepository` pinning the composed result.
 - **Depends on**: decision D1.
-- **Done-check**: new handler spec passes; `pnpm check`, `pnpm deps:validate`, and `pnpm test:e2e` green.
+- **Done-check**: new handler spec passes; `pnpm check`, `pnpm deps:validate`, and `pnpm test:characterisation` green.
 - **Catalog**: Move Method / Remove Duplication (phase 1: new path first).
 
 ## Task 4 (F1, step 2): Drop the review-summary SQL from the product repository
 - **Goal**: remove the `product_reviews` query at `product.repository.ts:91-94`; repository returns the product without `reviews`.
 - **Files**: `product.repository.ts`; `product.repository.port.ts` (return type becomes `Omit<ProductEntity, 'reviews'>`); `product.repository.spec.ts` **updated, not rewritten**: remove `product_reviews` from `TABLES`/rows and drop only the `reviews` assertion inside the "maps images, info, and the review summary" test; handler spec from Task 3 adjusts its fake repo shape.
 - **Depends on**: Task 3.
-- **Done-check**: `pnpm check` green; fake-db spec still passes with the two-line update; e2e green.
+- **Done-check**: `pnpm check` green; fake-db spec still passes with the two-line update; characterisation green.
 - **Catalog**: Remove Duplication (phase 2: delete old path).
 
 ## Task 5 (F3, step 1): Delete the user module and its GraphQL surface
@@ -95,7 +95,7 @@ Ordered, independently shippable sub-tasks. Existing safety net: `product.reposi
 - **Files**: `modules/user/` (all); `server/plugins/gql.ts` + its registration in `server/index.ts`; `tests/user/**` (cucumber + k6); `package.json` scripts (`db:seed:users`) and now-unused GraphQL deps.
 - **Precondition to verify in-task**: `gql.ts` has no consumer other than `find-users.resolver.ts` (assumption A1).
 - **Depends on**: nothing (independent of Tasks 1-4).
-- **Done-check**: `pnpm check`, `pnpm deps:validate`, `pnpm test:e2e` green; `/api/v1/products/:id` and review routes still respond (swagger lists no user routes).
+- **Done-check**: `pnpm check`, `pnpm deps:validate`, `pnpm test:characterisation` green; `/api/v1/products/:id` and review routes still respond (swagger lists no user routes).
 - **Catalog**: Remove Dead Code.
 
 ## Task 6 (F3, step 2): Remove the now-orphaned generic repository machinery
@@ -109,7 +109,7 @@ Ordered, independently shippable sub-tasks. Existing safety net: `product.reposi
 - **Goal**: single `ensureProductExists(reviewRepository, productId)` used by both review handlers.
 - **Files**: new `modules/review/queries/ensure-product-exists.ts` (application layer, beside the handlers); `find-product-reviews.handler.ts:21-23`; `get-review-summary.handler.ts:18-20`.
 - **Depends on**: Tasks 3-4 (avoids editing the same handlers concurrently).
-- **Done-check**: `pnpm check` green; e2e review scenarios (404 for missing product) green.
+- **Done-check**: `pnpm check` green; characterisation review scenarios (404 for missing product) green.
 - **Catalog**: Extract Function.
 
 ## Task 8 (F5): Align the documented mapper convention with reality

@@ -1,15 +1,21 @@
 import assert from 'node:assert';
 import { After, type DataTable, Given, Then, When } from '@cucumber/cucumber';
+import type { CartResponseDto, ValidateCartResponseDto } from '@e-commerce/contracts';
+import { assertKeys, STATUS_OK } from '../shared/http.ts';
 import type { ICustomWorld } from '../support/custom-world.ts';
 
-const TEST_PRODUCT_ID = 'cart-e2e-product';
+const TEST_PRODUCT_ID = 'char-cart-product';
 const TEST_PRODUCT_NAME = 'Cart Test Product';
-const TEST_PRODUCT_DESCRIPTION = 'Fixture for cart e2e';
+const TEST_PRODUCT_DESCRIPTION = 'Fixture for cart characterisation';
+const CARTS_URL = '/api/v1/carts';
+const TEST_PRODUCT_PREFIX = 'char-cart-';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 interface CartTestContext {
   cartId?: string;
   mintedCartIds: string[];
+  validatedCart?: CartResponseDto;
+  recordedCart?: CartResponseDto;
 }
 
 function cartContext(world: ICustomWorld): CartTestContext {
@@ -168,12 +174,89 @@ Then(
   },
 );
 
-Then('the response carries the error envelope', function (this: ICustomWorld) {
-  const body = latestBody(this);
-  assert.strictEqual(typeof body.statusCode, 'number');
-  assert.strictEqual(typeof body.error, 'string');
-  assert.strictEqual(typeof body.message, 'string');
-  assert.strictEqual(typeof body.correlationId, 'string');
+Given(
+  'inventory item {string} now has stock {int}',
+  async function (this: ICustomWorld, sku: string, stock: number) {
+    await this.db`UPDATE product_inventory SET stock = ${stock} WHERE sku = ${sku}`;
+  },
+);
+
+Given('the current cart identifier is {string}', function (this: ICustomWorld, cartId: string) {
+  cartContext(this).cartId = cartId;
+});
+
+When('I validate the cart stock', async function (this: ICustomWorld) {
+  this.context.latestResponse = await this.server.inject({
+    method: 'POST',
+    url: `${CARTS_URL}/${cartContext(this).cartId}/validate`,
+  });
+});
+
+function stockValidation(world: ICustomWorld): ValidateCartResponseDto {
+  assert.strictEqual(world.context.latestResponse!.statusCode, STATUS_OK);
+  const response = world.context.latestResponse!.json<ValidateCartResponseDto>();
+  assertKeys(response, ['cart', 'changes']);
+  assert.strictEqual(response.cart.id, cartContext(world).cartId);
+  cartContext(world).validatedCart = response.cart;
+  return response;
+}
+
+Then('stock validation reports:', function (this: ICustomWorld, expectedChanges: DataTable) {
+  const expected = expectedChanges.hashes().map((change) => ({
+    sku: change.sku,
+    name: TEST_PRODUCT_NAME,
+    previous_quantity: Number(change.previous_quantity),
+    quantity: Number(change.quantity),
+    stock: Number(change.stock),
+  }));
+  assert.deepStrictEqual(stockValidation(this).changes, expected);
+});
+
+Then('stock validation reports no changes', function (this: ICustomWorld) {
+  assert.deepStrictEqual(stockValidation(this).changes, []);
+});
+
+Then('the cart matches the stock validation response', function (this: ICustomWorld) {
+  assert.strictEqual(this.context.latestResponse!.statusCode, STATUS_OK);
+  assert.deepStrictEqual(latestBody(this), cartContext(this).validatedCart);
+});
+
+When('I apply coupon {string}', async function (this: ICustomWorld, code: string) {
+  this.context.latestResponse = await this.server.inject({
+    method: 'POST',
+    url: `${CARTS_URL}/${cartContext(this).cartId}/coupons`,
+    payload: { code },
+  });
+});
+
+When('I remove coupon {string}', async function (this: ICustomWorld, code: string) {
+  this.context.latestResponse = await this.server.inject({
+    method: 'DELETE',
+    url: `${CARTS_URL}/${cartContext(this).cartId}/coupons/${code}`,
+  });
+});
+
+Then('the cart coupons are:', function (this: ICustomWorld, expectedCoupons: DataTable) {
+  assert.strictEqual(this.context.latestResponse!.statusCode, STATUS_OK);
+  assert.strictEqual(latestBody(this).id, cartContext(this).cartId);
+  assert.deepStrictEqual(
+    latestBody(this).coupons,
+    expectedCoupons.hashes().map((coupon) => ({
+      code: coupon.code,
+      discount_type: coupon.discount_type,
+      value: Number(coupon.value),
+    })),
+  );
+});
+
+Given('I record the cart response', function (this: ICustomWorld) {
+  assert.strictEqual(this.context.latestResponse!.statusCode, STATUS_OK);
+  cartContext(this).recordedCart = this.context.latestResponse!.json<CartResponseDto>();
+});
+
+Then('the cart response is unchanged', function (this: ICustomWorld) {
+  assert.strictEqual(this.context.latestResponse!.statusCode, STATUS_OK);
+  assert.deepStrictEqual(latestBody(this), cartContext(this).recordedCart);
 });
 
 After({ tags: '@cart' }, async function (this: ICustomWorld) {
@@ -181,5 +264,5 @@ After({ tags: '@cart' }, async function (this: ICustomWorld) {
   if (mintedCartIds.length > 0) {
     await this.db`DELETE FROM carts WHERE cart_id = ANY(${mintedCartIds}::uuid[])`;
   }
-  await this.db`DELETE FROM products WHERE product_id = ${TEST_PRODUCT_ID}`;
+  await this.db`DELETE FROM products WHERE product_id LIKE ${`${TEST_PRODUCT_PREFIX}%`}`;
 });

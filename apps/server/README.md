@@ -246,7 +246,7 @@ Example: [user.repository.ts](src/modules/user/database/user.repository.ts)
 ├── scripts/                       → Type generation scripts
 └── src/
     ├── instrumentation.ts         → OpenTelemetry setup (loaded via --import)
-    ├── config/                    → Environment validation (env-schema + TypeBox)
+    ├── config/                    → Standalone environment validation (Zod)
     ├── modules/
     │   └── <feature>/
     │   │   ├── commands/

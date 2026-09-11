@@ -22,6 +22,7 @@ const COMMAND_TIMEOUT_MS = 180_000;
 const resources = `image-smoke-${randomUUID()}`;
 const database = `${resources}-db`;
 const server = `${resources}-server`;
+const invalidServer = `${resources}-invalid-server`;
 const databaseUrl = `postgres://${DATABASE_NAME}:${DATABASE_NAME}@${database}:${DATABASE_PORT}/${DATABASE_NAME}?sslmode=disable`;
 const migrations = fileURLToPath(new URL('../db', import.meta.url));
 const ownedContainers = [];
@@ -30,6 +31,13 @@ let networkCreated = false;
 async function docker(...args) {
   const { stdout } = await execute('docker', args, { timeout: COMMAND_TIMEOUT_MS });
   return stdout.trim();
+}
+
+async function containerLogs(container) {
+  const { stdout, stderr } = await execute('docker', ['logs', container], {
+    timeout: COMMAND_TIMEOUT_MS,
+  });
+  return stdout + stderr;
 }
 
 async function waitFor(label, check) {
@@ -177,14 +185,59 @@ try {
   const { stdout } = await execute('docker', ['wait', server], { timeout: remaining });
   assert.equal(stdout.trim(), '0', 'server must exit cleanly, not be killed after timeout');
   assert.ok(Date.now() - started < SHUTDOWN_TIMEOUT_MS);
+
+  // Observe attempts to listen, including a brief bind that polling could miss.
+  // The production command remains unchanged; this preload exists only in the negative probe.
+  const listenMarker = 'IMAGE_SMOKE_UNEXPECTED_LISTEN';
+  const listenGuard = `data:text/javascript,${encodeURIComponent(
+    `import { Server } from 'node:net'; Server.prototype.listen = function () { throw new Error('${listenMarker}'); };`,
+  )}`;
+  const invalidLogLevel = 'invalid-smoke-log-level';
+  const secret = 'smoke-password-must-not-appear';
+  ownedContainers.push(invalidServer);
+  await docker(
+    'run',
+    '-d',
+    '--name',
+    invalidServer,
+    '--network',
+    resources,
+    '-e',
+    'NODE_ENV=production',
+    '-e',
+    `LOG_LEVEL=${invalidLogLevel}`,
+    '-e',
+    'OTEL_SDK_DISABLED=true',
+    '-e',
+    `NODE_OPTIONS=--import=${listenGuard}`,
+    '-e',
+    `POSTGRES_URL=${database}:${DATABASE_PORT}`,
+    '-e',
+    `POSTGRES_USER=${DATABASE_NAME}`,
+    '-e',
+    `POSTGRES_PASSWORD=${secret}`,
+    '-e',
+    `POSTGRES_DB=${DATABASE_NAME}`,
+    image,
+  );
+  const rejected = await execute('docker', ['wait', invalidServer], {
+    timeout: STARTUP_TIMEOUT_MS,
+  });
+  assert.notEqual(rejected.stdout.trim(), '0', 'invalid configuration must fail startup');
+  const diagnostics = await containerLogs(invalidServer);
+  assert.match(diagnostics, /Invalid configuration:.*LOG_LEVEL/);
+  for (const forbidden of [invalidLogLevel, secret, listenMarker, databaseUrl]) {
+    assert.ok(
+      !diagnostics.includes(forbidden),
+      'startup diagnostics must be redacted and listening must not be attempted',
+    );
+  }
   process.stdout.write(
-    'Production image passed health, product reads, packaging and bounded SIGTERM exit.\n',
+    'Production image passed health, product reads, packaging, bounded SIGTERM exit and invalid-configuration rejection before listening.\n',
   );
 } catch (error) {
   if (ownedContainers.includes(server)) {
-    process.stderr.write(
-      `${await docker('logs', server).catch(() => 'Server logs unavailable')}\n`,
-    );
+    process.stderr.write(`${await containerLogs(server).catch(() => 'Server logs unavailable')}\n`);
   }
   throw error;
 } finally {

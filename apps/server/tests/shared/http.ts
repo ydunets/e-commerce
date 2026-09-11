@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import type { ICustomWorld } from '../support/custom-world.ts';
+import type { ICustomWorld } from '../support/custom-world.js';
 
 export const STATUS_OK = 200;
 export const PRODUCTS_URL = '/api/v1/products';

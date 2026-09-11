@@ -65,12 +65,14 @@
         "noUnusedPrivateClassMembers": "error",
         "noUnusedVariables": "error",
         "useIsNan": "error",
-        "useImportExtensions": "error",
+        "useImportExtensions": { "level": "error", "options": { "forceJsExtensions": true } },
         "useValidForDirection": "error",
         "useValidTypeof": "error",
         "useYield": "error"
       },
       "style": {
+        "useImportType": "off",
+        "noParameterProperties": "off",
         "noCommonJs": "error",
         "noInferrableTypes": "error",
         "noEnum": "error",
@@ -152,6 +154,7 @@
     }
   },
   "javascript": {
+    "parser": { "unsafeParameterDecoratorsEnabled": true },
     "formatter": {
       "jsxQuoteStyle": "double",
       "quoteProperties": "asNeeded",
@@ -172,13 +175,7 @@
   },
   "overrides": [
     {
-      "includes": [
-        "**/*.test.ts",
-        "**/*.spec.ts",
-        "**/test/**/*.ts",
-        "**/tests/**/*.ts",
-        "**/*.k6.ts"
-      ],
+      "includes": ["**/*.test.ts", "**/*.spec.ts", "**/test/**/*.ts", "**/tests/**/*.ts"],
       "linter": {
         "rules": {
           "style": { "noNonNullAssertion": "off" },

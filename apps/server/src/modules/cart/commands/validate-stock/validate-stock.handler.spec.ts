@@ -4,9 +4,9 @@ import type {
   CartEntity,
   EnrichedCartLine,
   StockChange,
-} from '#src/modules/cart/domain/cart.types.ts';
-import { NotFoundException } from '#src/shared/exceptions/index.ts';
-import makeValidateStock, { validateStockCommand } from './validate-stock.handler.ts';
+} from '#src/modules/cart/domain/cart.types';
+import { NotFoundException } from '#src/shared/exceptions/index';
+import makeValidateStock, { validateStockCommand } from './validate-stock.handler.js';
 
 function enrichedLine(sku: string, quantity: number, stock: number): EnrichedCartLine {
   return {

@@ -1,5 +1,5 @@
 import { Type } from 'typebox';
-import { paginatedQueryRequestProperties } from '#src/shared/api/paginated-query.request.dto.ts';
+import { paginatedQueryRequestProperties } from '#src/shared/api/paginated-query.request.dto';
 
 export const findProductReviewsParamsSchema = Type.Object({
   productId: Type.String({

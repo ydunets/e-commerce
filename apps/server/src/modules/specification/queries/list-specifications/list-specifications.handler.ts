@@ -1,6 +1,6 @@
-import type { SpecificationEntity } from '#src/modules/specification/domain/specification.types.ts';
-import { specificationActionCreator } from '#src/modules/specification/index.ts';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
+import type { SpecificationEntity } from '#src/modules/specification/domain/specification.types';
+import { specificationActionCreator } from '#src/modules/specification/index';
+import type { HandlerAction } from '#src/shared/cqrs/bus.types';
 
 export type ListSpecificationsResult = SpecificationEntity[];
 

@@ -1,10 +1,10 @@
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { reviewPaginatedResponseSchema } from '#src/modules/review/dtos/review.paginated.response.dto.ts';
-import { findProductReviewsQuery } from './find-product-reviews.handler.ts';
+import { reviewPaginatedResponseSchema } from '#src/modules/review/dtos/review.paginated.response.dto';
+import { findProductReviewsQuery } from './find-product-reviews.handler.js';
 import {
   findProductReviewsParamsSchema,
   findProductReviewsQuerySchema,
-} from './find-product-reviews.schema.ts';
+} from './find-product-reviews.schema.js';
 
 export default async function findProductReviews(fastify: FastifyRouteInstance) {
   fastify.withTypeProvider<TypeBoxTypeProvider>().route({

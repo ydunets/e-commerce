@@ -1,6 +1,6 @@
-import type { CartMapper } from '#src/modules/cart/cart.mapper.ts';
-import type { CartRepository } from '#src/modules/cart/database/cart.repository.port.ts';
-import { actionCreatorFactory } from '#src/shared/cqrs/action-creator.ts';
+import type { CartMapper } from '#src/modules/cart/cart.mapper';
+import type { CartRepository } from '#src/modules/cart/database/cart.repository.port';
+import { actionCreatorFactory } from '#src/shared/cqrs/action-creator';
 
 declare global {
   export interface Dependencies {

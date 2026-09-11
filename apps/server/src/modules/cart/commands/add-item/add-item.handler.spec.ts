@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { CartEntity, EnrichedCartLine } from '#src/modules/cart/domain/cart.types.ts';
-import { ConflictException, NotFoundException } from '#src/shared/exceptions/index.ts';
-import makeAddItem, { addItemCommand } from './add-item.handler.ts';
+import type { CartEntity, EnrichedCartLine } from '#src/modules/cart/domain/cart.types';
+import { ConflictException, NotFoundException } from '#src/shared/exceptions/index';
+import makeAddItem, { addItemCommand } from './add-item.handler.js';
 
 const SKU = 'voyager-hoodie-brown-s';
 

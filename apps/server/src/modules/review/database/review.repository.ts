@@ -1,10 +1,10 @@
 import type {
   ReviewFilters,
   ReviewRepository,
-} from '#src/modules/review/database/review.repository.port.ts';
-import type { ReviewEntity, ReviewSummary } from '#src/modules/review/domain/review.types.ts';
-import { joinConditions } from '#src/shared/db/postgres.ts';
-import type { Paginated, PaginatedQueryParams } from '#src/shared/db/repository.port.ts';
+} from '#src/modules/review/database/review.repository.port';
+import type { ReviewEntity, ReviewSummary } from '#src/modules/review/domain/review.types';
+import { joinConditions } from '#src/shared/db/postgres';
+import type { Paginated, PaginatedQueryParams } from '#src/shared/db/repository.port';
 
 // Row shape as returned by json_agg (snake_case, timestamp serialized to string).
 interface ReviewRow {

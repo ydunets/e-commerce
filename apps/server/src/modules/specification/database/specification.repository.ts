@@ -1,8 +1,8 @@
-import type { SpecificationRepository } from '#src/modules/specification/database/specification.repository.port.ts';
+import type { SpecificationRepository } from '#src/modules/specification/database/specification.repository.port';
 import type {
   SpecificationEntity,
   SpecificationFeature,
-} from '#src/modules/specification/domain/specification.types.ts';
+} from '#src/modules/specification/domain/specification.types';
 
 interface SpecificationRow {
   specification_id: string;

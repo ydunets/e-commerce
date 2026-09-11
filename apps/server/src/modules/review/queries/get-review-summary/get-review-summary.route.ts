@@ -1,7 +1,7 @@
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { reviewSummaryResponseDtoSchema } from '#src/modules/review/dtos/review-summary.response.dto.ts';
-import { getReviewSummaryQuery } from './get-review-summary.handler.ts';
-import { getReviewSummaryParamsSchema } from './get-review-summary.schema.ts';
+import { reviewSummaryResponseDtoSchema } from '#src/modules/review/dtos/review-summary.response.dto';
+import { getReviewSummaryQuery } from './get-review-summary.handler.js';
+import { getReviewSummaryParamsSchema } from './get-review-summary.schema.js';
 
 export default async function getReviewSummary(fastify: FastifyRouteInstance) {
   fastify.withTypeProvider<TypeBoxTypeProvider>().route({

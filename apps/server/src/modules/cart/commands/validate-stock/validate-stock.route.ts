@@ -1,7 +1,7 @@
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { validateCartResponseDtoSchema } from '#src/modules/cart/dtos/cart.response.dto.ts';
-import { validateStockCommand } from './validate-stock.handler.ts';
-import { cartParamsSchema } from './validate-stock.schema.ts';
+import { validateCartResponseDtoSchema } from '#src/modules/cart/dtos/cart.response.dto';
+import { validateStockCommand } from './validate-stock.handler.js';
+import { cartParamsSchema } from './validate-stock.schema.js';
 
 export default async function validateStock(fastify: FastifyRouteInstance) {
   fastify.withTypeProvider<TypeBoxTypeProvider>().route({

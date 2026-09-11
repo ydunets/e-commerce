@@ -1,5 +1,5 @@
-import type { SpecificationEntity } from '#src/modules/specification/domain/specification.types.ts';
-import type { SpecificationResponseDto } from '#src/modules/specification/dtos/specification.response.dto.ts';
+import type { SpecificationEntity } from '#src/modules/specification/domain/specification.types';
+import type { SpecificationResponseDto } from '#src/modules/specification/dtos/specification.response.dto';
 
 export interface SpecificationMapper {
   toResponse(entity: SpecificationEntity): SpecificationResponseDto;

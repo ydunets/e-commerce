@@ -1,9 +1,9 @@
-import { assertWithinStock } from '#src/modules/cart/domain/cart.stock.ts';
-import type { CartEntity } from '#src/modules/cart/domain/cart.types.ts';
-import { cartActionCreator } from '#src/modules/cart/index.ts';
-import { getInventoryStockQuery } from '#src/modules/product/index.ts';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
-import { NotFoundException } from '#src/shared/exceptions/index.ts';
+import { assertWithinStock } from '#src/modules/cart/domain/cart.stock';
+import type { CartEntity } from '#src/modules/cart/domain/cart.types';
+import { cartActionCreator } from '#src/modules/cart/index';
+import { getInventoryStockQuery } from '#src/modules/product/index';
+import type { HandlerAction } from '#src/shared/cqrs/bus.types';
+import { NotFoundException } from '#src/shared/exceptions/index';
 
 export type UpdateItemResult = CartEntity;
 

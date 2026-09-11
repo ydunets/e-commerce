@@ -1,8 +1,8 @@
-import type { ProductEntity, ProductListItem } from '#src/modules/product/domain/product.types.ts';
+import type { ProductEntity, ProductListItem } from '#src/modules/product/domain/product.types';
 import type {
   ProductListItemDto,
   ProductResponseDto,
-} from '#src/modules/product/dtos/product.response.dto.ts';
+} from '#src/modules/product/dtos/product.response.dto';
 
 export interface ProductMapper {
   toResponse(entity: ProductEntity): ProductResponseDto;

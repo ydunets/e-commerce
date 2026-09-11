@@ -1,5 +1,5 @@
-import type { Action, CommandHandler, CommandMiddleware } from '#src/shared/cqrs/bus.types.ts';
-import { composeMiddlewares } from '#src/shared/utils/compose-middlewares.ts';
+import type { Action, CommandHandler, CommandMiddleware } from '#src/shared/cqrs/bus.types';
+import { composeMiddlewares } from '#src/shared/utils/compose-middlewares';
 
 export interface RequestBus {
   register<P>(type: string, handler: (action: Action<P>) => Promise<unknown>): void;

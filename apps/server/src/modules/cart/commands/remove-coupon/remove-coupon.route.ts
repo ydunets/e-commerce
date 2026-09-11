@@ -1,7 +1,7 @@
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { cartResponseDtoSchema } from '#src/modules/cart/dtos/cart.response.dto.ts';
-import { removeCouponCommand } from './remove-coupon.handler.ts';
-import { cartCouponParamsSchema } from './remove-coupon.schema.ts';
+import { cartResponseDtoSchema } from '#src/modules/cart/dtos/cart.response.dto';
+import { removeCouponCommand } from './remove-coupon.handler.js';
+import { cartCouponParamsSchema } from './remove-coupon.schema.js';
 
 export default async function removeCoupon(fastify: FastifyRouteInstance) {
   fastify.withTypeProvider<TypeBoxTypeProvider>().route({

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import postgres from 'postgres';
-import { SubscriberAlreadyExistsException } from '#src/modules/newsletter/domain/subscriber.errors.ts';
-import subscriberRepository from './subscriber.repository.ts';
+import { SubscriberAlreadyExistsException } from '#src/modules/newsletter/domain/subscriber.errors';
+import subscriberRepository from './subscriber.repository.js';
 
 const subscriber = {
   id: 'sub-1',

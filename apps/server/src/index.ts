@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import Fastify from 'fastify';
-import { env } from '#src/config/index.ts';
-import server from '#src/server/index.ts';
-import { closeDbConnection } from '#src/shared/db/postgres.ts';
+import { env } from '#src/config/index';
+import server from '#src/server/index';
+import { closeDbConnection } from '#src/shared/db/postgres';
 
 async function init() {
   const fastify = Fastify({

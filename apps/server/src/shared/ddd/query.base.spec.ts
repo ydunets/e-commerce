@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { paginatedQueryBase } from './query.base.ts';
+import { paginatedQueryBase } from './query.base.js';
 
 describe('paginatedQueryBase()', () => {
   it('applies defaults when no pagination params are given', () => {

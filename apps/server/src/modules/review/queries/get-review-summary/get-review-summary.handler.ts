@@ -1,7 +1,7 @@
-import type { ReviewSummary } from '#src/modules/review/domain/review.types.ts';
-import { ensureProductExists } from '#src/modules/review/queries/ensure-product-exists.ts';
-import { reviewActionCreator } from '#src/modules/review/review.action-creator.ts';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
+import type { ReviewSummary } from '#src/modules/review/domain/review.types';
+import { ensureProductExists } from '#src/modules/review/queries/ensure-product-exists';
+import { reviewActionCreator } from '#src/modules/review/review.action-creator';
+import type { HandlerAction } from '#src/shared/cqrs/bus.types';
 
 export type GetReviewSummaryResult = ReviewSummary;
 

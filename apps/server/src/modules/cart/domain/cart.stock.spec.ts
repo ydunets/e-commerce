@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { ConflictException } from '#src/shared/exceptions/index.ts';
-import { assertWithinStock, reconcileCartStock } from './cart.stock.ts';
-import type { EnrichedCartLine } from './cart.types.ts';
+import { ConflictException } from '#src/shared/exceptions/index';
+import { assertWithinStock, reconcileCartStock } from './cart.stock.js';
+import type { EnrichedCartLine } from './cart.types.js';
 
 function enrichedLine(sku: string, quantity: number, stock: number): EnrichedCartLine {
   return {

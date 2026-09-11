@@ -1,2 +1,2 @@
-export { composeMiddlewares } from './compose-middlewares.ts';
-export { ajv } from './validator.util.ts';
+export { composeMiddlewares } from './compose-middlewares.js';
+export { ajv } from './validator.util.js';

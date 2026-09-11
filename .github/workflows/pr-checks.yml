@@ -1,6 +1,6 @@
 # .github/workflows/pr-checks.yml
-# Runs on every PR to main: lint/types/tests, characterisation, CodeQL, and a build-only check
-# of the Docker images (no push). Nothing here touches GHCR, releases, or
+# Runs on every PR to main: lint/types/tests, characterisation, CodeQL, image builds
+# and a final server image smoke check (no push). Nothing here publishes to GHCR, releases, or
 # Azure; see release-deploy.yml for what runs after a merge to main.
 
 name: PR Checks
@@ -8,9 +8,6 @@ name: PR Checks
 on:
   pull_request:
     branches: [main]
-    paths-ignore:
-      - 'docs/**'
-      - '**/*.md'
 
 # One run per PR; a new push cancels the previous run.
 concurrency:
@@ -84,6 +81,7 @@ jobs:
   #    Dockerfiles. No registry login, so this is safe to run for forks too.
   build:
     needs: [validate, security, characterisation]
+    if: ${{ always() && !cancelled() }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -103,6 +101,9 @@ jobs:
             dockerfile: apps/server/db/Dockerfile
             context: apps/server/db
     steps:
+      - name: Require successful prerequisites
+        if: needs.validate.result != 'success' || needs.security.result != 'success' || needs.characterisation.result != 'success'
+        run: exit 1
       - name: Checkout
         uses: actions/checkout@v7
       - name: Set up Docker Buildx
@@ -113,5 +114,16 @@ jobs:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: false
+          load: ${{ matrix.app == 'server' }}
+          tags: e-commerce-${{ matrix.app }}:pr-check
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Set up Node for image verification
+        if: matrix.app == 'server'
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.18.0'
+      - name: Verify final server image
+        if: matrix.app == 'server'
+        timeout-minutes: 10
+        run: node apps/server/scripts/smoke-image.mjs e-commerce-server:pr-check

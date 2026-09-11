@@ -1,5 +1,5 @@
 import { Type } from 'typebox';
-import { idDtoSchema } from '#src/shared/api/id.response.dto.ts';
+import { idDtoSchema } from '#src/shared/api/id.response.dto';
 
 export const baseResponseDtoSchema = Type.Intersect([
   idDtoSchema,

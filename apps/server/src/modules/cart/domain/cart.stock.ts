@@ -1,5 +1,5 @@
-import type { EnrichedCartLine, StockChange } from '#src/modules/cart/domain/cart.types.ts';
-import { ConflictException } from '#src/shared/exceptions/index.ts';
+import type { EnrichedCartLine, StockChange } from '#src/modules/cart/domain/cart.types';
+import { ConflictException } from '#src/shared/exceptions/index';
 
 export function assertWithinStock(sku: string, quantity: number, stock: number): void {
   if (quantity > stock) {

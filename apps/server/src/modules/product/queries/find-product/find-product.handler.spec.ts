@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { getReviewSummaryQuery } from '#src/modules/review/index.ts';
-import makeFindProductQuery from './find-product.handler.ts';
+import type { getReviewSummaryQuery } from '#src/modules/review/index';
+import makeFindProductQuery from './find-product.handler.js';
 
 const baseProduct = {
   id: 'test-cap',

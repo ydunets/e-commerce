@@ -22,7 +22,8 @@
 **/coverage
 **/test-results
 **/playwright-report
-apps/server/tests
+# Server test sources are required by the compilation stage; its deploy
+# allowlist excludes them from the final image.
 
 # Server dev-only bits (not needed at runtime; migrations run separately)
 apps/server/db

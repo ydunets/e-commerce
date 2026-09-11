@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { ProductEntity, ProductVariant } from './domain/product.types.ts';
-import productMapper from './product.mapper.ts';
+import type { ProductEntity, ProductVariant } from './domain/product.types.js';
+import productMapper from './product.mapper.js';
 
 const variant = (overrides: Partial<ProductVariant>): ProductVariant => ({
   sku: 'sku',

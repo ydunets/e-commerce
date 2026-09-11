@@ -1,6 +1,6 @@
-import type { SpecificationRepository } from '#src/modules/specification/database/specification.repository.port.ts';
-import type { SpecificationMapper } from '#src/modules/specification/specification.mapper.ts';
-import { actionCreatorFactory } from '#src/shared/cqrs/action-creator.ts';
+import type { SpecificationRepository } from '#src/modules/specification/database/specification.repository.port';
+import type { SpecificationMapper } from '#src/modules/specification/specification.mapper';
+import { actionCreatorFactory } from '#src/shared/cqrs/action-creator';
 
 declare global {
   export interface Dependencies {

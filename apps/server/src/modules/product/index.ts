@@ -1,5 +1,5 @@
-import type { ProductRepository } from '#src/modules/product/database/product.repository.port.ts';
-import type { ProductMapper } from '#src/modules/product/product.mapper.ts';
+import type { ProductRepository } from '#src/modules/product/database/product.repository.port';
+import type { ProductMapper } from '#src/modules/product/product.mapper';
 
 declare global {
   export interface Dependencies {
@@ -8,5 +8,5 @@ declare global {
   }
 }
 
-export { productActionCreator } from '#src/modules/product/product.action-creator.ts';
-export { getInventoryStockQuery } from '#src/modules/product/queries/get-inventory-stock/get-inventory-stock.handler.ts';
+export { productActionCreator } from '#src/modules/product/product.action-creator';
+export { getInventoryStockQuery } from '#src/modules/product/queries/get-inventory-stock/get-inventory-stock.handler';

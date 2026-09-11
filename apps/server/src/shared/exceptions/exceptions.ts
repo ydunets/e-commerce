@@ -1,4 +1,4 @@
-import { ExceptionBase } from './exception-base.ts';
+import { ExceptionBase } from './exception-base.js';
 
 const ExceptionError = {
   BAD_REQUEST: 'Bad Request',

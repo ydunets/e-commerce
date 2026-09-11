@@ -1,10 +1,10 @@
-import type { ReviewFilters } from '#src/modules/review/database/review.repository.port.ts';
-import type { ReviewEntity } from '#src/modules/review/domain/review.types.ts';
-import { ensureProductExists } from '#src/modules/review/queries/ensure-product-exists.ts';
-import { reviewActionCreator } from '#src/modules/review/review.action-creator.ts';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
-import type { Paginated, PaginatedQueryParams } from '#src/shared/db/repository.port.ts';
-import { paginatedQueryBase } from '#src/shared/ddd/query.base.ts';
+import type { ReviewFilters } from '#src/modules/review/database/review.repository.port';
+import type { ReviewEntity } from '#src/modules/review/domain/review.types';
+import { ensureProductExists } from '#src/modules/review/queries/ensure-product-exists';
+import { reviewActionCreator } from '#src/modules/review/review.action-creator';
+import type { HandlerAction } from '#src/shared/cqrs/bus.types';
+import type { Paginated, PaginatedQueryParams } from '#src/shared/db/repository.port';
+import { paginatedQueryBase } from '#src/shared/ddd/query.base';
 
 export type FindProductReviewsResult = Paginated<ReviewEntity>;
 

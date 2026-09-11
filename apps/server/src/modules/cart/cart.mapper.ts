@@ -1,8 +1,8 @@
-import type { CartEntity, StockChange } from '#src/modules/cart/domain/cart.types.ts';
+import type { CartEntity, StockChange } from '#src/modules/cart/domain/cart.types';
 import type {
   CartResponseDto,
   ValidateCartResponseDto,
-} from '#src/modules/cart/dtos/cart.response.dto.ts';
+} from '#src/modules/cart/dtos/cart.response.dto';
 
 export interface CartMapper {
   toResponse(cart: CartEntity): CartResponseDto;

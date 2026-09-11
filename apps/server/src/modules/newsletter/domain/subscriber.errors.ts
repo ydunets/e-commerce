@@ -1,4 +1,4 @@
-import { ConflictException } from '#src/shared/exceptions/index.ts';
+import { ConflictException } from '#src/shared/exceptions/index';
 
 /**
  * Raised by the repository on a unique-email conflict. The subscribe handler

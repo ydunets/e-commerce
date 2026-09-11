@@ -1,7 +1,7 @@
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { subscribeResponseDtoSchema } from '#src/modules/newsletter/dtos/subscribe.response.dto.ts';
-import { subscribeCommand } from './subscribe.handler.ts';
-import { subscribeBodySchema } from './subscribe.schema.ts';
+import { subscribeResponseDtoSchema } from '#src/modules/newsletter/dtos/subscribe.response.dto';
+import { subscribeCommand } from './subscribe.handler.js';
+import { subscribeBodySchema } from './subscribe.schema.js';
 
 export default async function subscribe(fastify: FastifyRouteInstance) {
   fastify.withTypeProvider<TypeBoxTypeProvider>().route({

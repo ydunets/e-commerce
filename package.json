@@ -12,9 +12,9 @@
   },
   "scripts": {
     "postinstall": "pnpm --filter @e-commerce/contracts build",
-    "dev": "pnpm --parallel --filter @e-commerce/contracts --filter @e-commerce/client --filter @e-commerce/server run dev",
-    "dev:client": "pnpm --parallel --filter @e-commerce/contracts --filter @e-commerce/client run dev",
-    "build": "pnpm --filter @e-commerce/client build",
+    "dev": "pnpm --filter @e-commerce/contracts build && pnpm --filter @e-commerce/server build && pnpm run --parallel '/^dev:watch:/'",
+    "dev:client": "pnpm --filter @e-commerce/contracts build && pnpm --parallel --filter @e-commerce/contracts --filter @e-commerce/client run dev",
+    "build": "pnpm --filter @e-commerce/contracts build && pnpm --parallel --filter @e-commerce/client --filter @e-commerce/server run build",
     "preview": "pnpm --filter @e-commerce/client preview",
     "test": "pnpm --filter @e-commerce/client test",
     "check": "pnpm -r --parallel --aggregate-output run check",
@@ -27,6 +27,9 @@
     "storybook": "pnpm --filter @e-commerce/storybook storybook",
     "build-storybook": "pnpm --filter @e-commerce/storybook build",
     "api": "pnpm --filter @e-commerce/server start",
-    "api:check": "pnpm --filter @e-commerce/server check"
+    "api:check": "pnpm --filter @e-commerce/server check",
+    "dev:watch:contracts": "pnpm --filter @e-commerce/contracts dev",
+    "dev:watch:client": "pnpm --filter @e-commerce/client dev",
+    "dev:watch:server": "pnpm --filter @e-commerce/server watch"
   }
 }

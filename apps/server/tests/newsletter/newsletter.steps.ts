@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { After, Then, When } from '@cucumber/cucumber';
-import { STATUS_OK } from '../shared/http.ts';
-import type { ICustomWorld } from '../support/custom-world.ts';
+import { STATUS_OK } from '../shared/http.js';
+import type { ICustomWorld } from '../support/custom-world.js';
 
 const SUBSCRIPTIONS_URL = '/api/v1/newsletter/subscriptions';
 const SUBSCRIBER_PREFIX = 'char-newsletter-';

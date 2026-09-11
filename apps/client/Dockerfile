@@ -9,7 +9,7 @@
 # Build locally from the repo root with:
 #   docker build -f apps/client/Dockerfile -t e-commerce-client .
 
-ARG NODE_VERSION=24.18
+ARG NODE_VERSION=24.18.0
 
 # ---- Base ----
 FROM node:${NODE_VERSION}-alpine AS base
@@ -21,9 +21,9 @@ WORKDIR /app
 # deploy a self-contained prod node_modules (express + runtime deps).
 FROM base AS build
 
-# `pnpm fetch` populates the store from the lockfile alone (manifests ignored),
-# so this layer is cached until the lockfile itself changes.
-COPY pnpm-lock.yaml ./
+# Supply the pinned package manager and build approvals before fetching the
+# lockfile dependencies. Source changes do not invalidate this cache layer.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
     pnpm fetch
 

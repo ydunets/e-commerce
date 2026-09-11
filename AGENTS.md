@@ -14,7 +14,7 @@ pnpm workspace. Packages live in `apps/`:
 
 - `pnpm dev` - Start the full stack: client SSR dev server (5173, proxies /api/*) + Fastify API (4000, needs Postgres)
 - `pnpm dev:client` - Client SSR dev server only (5173)
-- `pnpm build` - Build the client for production
+- `pnpm build` - Build contracts, then the client and compiled server for production
 - `pnpm preview` - Serve the client production build
 - `pnpm test` - Run client tests (rstest)
 - `pnpm check` - Run ALL checks in all packages concurrently (client biome+tsc+rstest, server biome+tsc+unit tests, storybook build). Use this to validate changes.

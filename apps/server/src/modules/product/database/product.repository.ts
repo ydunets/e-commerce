@@ -1,19 +1,19 @@
 import type {
   FindManyProductsOptions,
   ProductRepository,
-} from '#src/modules/product/database/product.repository.port.ts';
+} from '#src/modules/product/database/product.repository.port';
 import {
   byColorThenSize,
   distinctSizes,
   orderedColors,
-} from '#src/modules/product/domain/product.ordering.ts';
+} from '#src/modules/product/domain/product.ordering';
 import type {
   InventoryStockLevel,
   ProductColorVariant,
   ProductEntity,
   ProductListItem,
   ProductVariant,
-} from '#src/modules/product/domain/product.types.ts';
+} from '#src/modules/product/domain/product.types';
 
 interface ProductRow {
   product_id: string;

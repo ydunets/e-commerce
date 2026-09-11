@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { ProductVariant } from '#src/modules/product/domain/product.types.ts';
-import { byColorThenSize, distinctSizes, orderedColors } from './product.ordering.ts';
+import type { ProductVariant } from '#src/modules/product/domain/product.types';
+import { byColorThenSize, distinctSizes, orderedColors } from './product.ordering.js';
 
 const variant = (overrides: Partial<ProductVariant>): ProductVariant => ({
   sku: 'sku',

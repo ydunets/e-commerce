@@ -5,9 +5,9 @@ import type {
   ReviewResponseDto,
   ReviewsPageResponseDto,
 } from '@e-commerce/contracts';
-import type { ReviewSummaryResponseDto } from '#src/modules/review/dtos/review-summary.response.dto.ts';
-import { assertKeys, assertText, getJson, PRODUCTS_URL, STATUS_OK } from '../shared/http.ts';
-import type { ICustomWorld } from '../support/custom-world.ts';
+import type { ReviewSummaryResponseDto } from '#src/modules/review/dtos/review-summary.response.dto';
+import { assertKeys, assertText, getJson, PRODUCTS_URL, STATUS_OK } from '../shared/http.js';
+import type { ICustomWorld } from '../support/custom-world.js';
 
 const MAX_PAGE_SIZE = 100;
 const MINIMUM_REVIEW_COUNT = 4;

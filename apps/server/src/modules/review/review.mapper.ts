@@ -1,5 +1,5 @@
-import type { ReviewEntity } from '#src/modules/review/domain/review.types.ts';
-import type { ReviewResponseDto } from '#src/modules/review/dtos/review.response.dto.ts';
+import type { ReviewEntity } from '#src/modules/review/domain/review.types';
+import type { ReviewResponseDto } from '#src/modules/review/dtos/review.response.dto';
 
 export interface ReviewMapper {
   toResponse(entity: ReviewEntity): ReviewResponseDto;

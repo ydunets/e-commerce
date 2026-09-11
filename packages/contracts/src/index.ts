@@ -1,6 +1,6 @@
 // Types
 
-export type { ApiErrorResponse, ApiErrorSubError } from './api-error.ts';
+export type { ApiErrorResponse, ApiErrorSubError } from './api-error.js';
 export type {
   AddCartItemBodyDto,
   AppliedCouponDto,
@@ -9,24 +9,24 @@ export type {
   CartResponseDto,
   UpdateCartItemBodyDto,
   ValidateCartResponseDto,
-} from './cart.ts';
-export type { SubscribeResponseDto } from './newsletter.ts';
+} from './cart.js';
+export type { SubscribeResponseDto } from './newsletter.js';
 export type {
   InventoryItemDto,
   ProductListItemColorDto,
   ProductListItemDto,
   ProductResponseDto,
-} from './product.ts';
-export type { ReviewResponseDto, ReviewsPageResponseDto } from './review.ts';
+} from './product.js';
+export type { ReviewResponseDto, ReviewsPageResponseDto } from './review.js';
 export type {
   SpecificationFeatureDto,
   SpecificationIconDto,
   SpecificationResponseDto,
-} from './specification.ts';
+} from './specification.js';
 
 // Schemas
 
-export { apiErrorResponseSchema, apiErrorSubErrorSchema } from './api-error.ts';
+export { apiErrorResponseSchema, apiErrorSubErrorSchema } from './api-error.js';
 export {
   addCartItemBodySchema,
   applyCouponBodySchema,
@@ -37,22 +37,22 @@ export {
   cartResponseDtoSchema,
   updateCartItemBodySchema,
   validateCartResponseDtoSchema,
-} from './cart.ts';
-export { subscribeResponseDtoSchema } from './newsletter.ts';
+} from './cart.js';
+export { subscribeResponseDtoSchema } from './newsletter.js';
 export {
   inventoryItemDtoSchema,
   productListItemColorDtoSchema,
   productListItemDtoSchema,
   productResponseDtoSchema,
-} from './product.ts';
-export { reviewResponseDtoSchema } from './review.ts';
+} from './product.js';
+export { reviewResponseDtoSchema } from './review.js';
 export {
   specificationFeatureDtoSchema,
   specificationIconDtoSchema,
   specificationResponseDtoSchema,
-} from './specification.ts';
+} from './specification.js';
 
 // Constants and helpers
 
-export { compareSizes, SIZE_RANK } from './sizes.ts';
-export { SPECIFICATION_ICONS } from './specification.ts';
+export { compareSizes, SIZE_RANK } from './sizes.js';
+export { SPECIFICATION_ICONS } from './specification.js';

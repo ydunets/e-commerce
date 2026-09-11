@@ -371,7 +371,7 @@ The workspace uses the following GitHub Actions workflows:
 2. **[Release and Deploy](../../.github/workflows/release-deploy.yml)** handles releases and Azure deployment.
 3. **[Scheduled CodeQL](../../.github/workflows/codeql.yml)** provides scheduled security scans through the **[reusable CodeQL analysis](../../.github/workflows/_codeql.yml)** also used by the other workflows.
 
-The Cucumber characterisation suite does not currently run in CI, and these workflows do not provision a PostgreSQL service container for it. Run `pnpm test:characterisation` locally against PostgreSQL; adding the CI gate is tracked in [issue #82](https://github.com/ydunets/e-commerce/issues/82).
+PR Checks runs the Cucumber characterisation suite against a PostgreSQL service container after migrations and seeds. It requires no local `.env` file and runs independently of the database-free workspace checks. Run `pnpm test:characterisation` locally against PostgreSQL. The release workflow does not run this suite.
 
 ## AI-Assisted Development
 

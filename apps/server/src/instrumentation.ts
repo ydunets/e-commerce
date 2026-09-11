@@ -4,6 +4,7 @@
  * Registered instrumentations:
  *   - HTTP           — inbound/outbound HTTP request spans
  *   - @fastify/otel  — Fastify route + lifecycle hook spans (official Fastify plugin)
+ *   - Nest core     — application, controller and request handler spans
  *
  * CQRS tracing is handled by application-level middleware that uses
  * @opentelemetry/api directly (see src/shared/cqrs/otel-middleware.ts).
@@ -29,12 +30,14 @@ if (process.env.OTEL_SDK_DISABLED !== 'true') {
   const { NodeSDK } = await import('@opentelemetry/sdk-node');
   const { HttpInstrumentation } = await import('@opentelemetry/instrumentation-http');
   const { FastifyOtelInstrumentation } = await import('@fastify/otel');
+  const { Nest12Instrumentation } = await import('./shared/nest/instrumentation.js');
 
   const sdk = new NodeSDK({
     instrumentations: [
       new HttpInstrumentation(),
       // registerOnInitialization auto-registers the Fastify plugin on server creation
       new FastifyOtelInstrumentation({ registerOnInitialization: true }),
+      new Nest12Instrumentation(),
     ],
   });
 

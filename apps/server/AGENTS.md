@@ -4,7 +4,7 @@
 
 ## Project overview
 
-A production-ready Fastify 5 boilerplate using Clean Architecture, CQRS, DDD, and functional programming.
+A hybrid Nest 12 and Fastify 5 application using Clean Architecture, CQRS, and DDD.
 TypeScript strict mode and compiled ESM on Node 24.18.0. SWC emits application and test code; TypeScript performs strict no-emit checking.
 
 ## Quick reference
@@ -23,6 +23,24 @@ TypeScript strict mode and compiled ESM on Node 24.18.0. SWC emits application a
 Always run `pnpm check` after making changes. If formatting fails, run `pnpm format` first, then `pnpm check`.
 
 ## Architecture
+
+### Migration boundary
+
+Newsletter is the first Nest feature. Its controller, decorated command handler,
+symbol-token repository and plain mapper are registered through `NewsletterModule`.
+Import the non-global `SharedModule` explicitly for configuration, the existing
+singleton pool and `ApplicationDispatcher`. Preserve command prototypes when
+enriching metadata. Nest CQRS performs handler registration.
+
+Cart, product, review and specification retain the legacy conventions below.
+Their routes and error handler share one encapsulated Fastify scope, and only these
+features are eligible for Awilix autoloading. The initialized application factory
+returns `NestFastifyApplication`; retain its HTTP `inject()` seam in tests.
+
+Nest owns signal handling. Fastify drains requests and closes the singleton pool
+through its close hook. Keep the live tracing/draining regression and production
+image shutdown gate passing when changing this boundary. See `doc/nest-migration.md`
+for the telemetry compatibility constraint and verification commands.
 
 ### Layer boundaries (CRITICAL)
 
@@ -57,7 +75,7 @@ Known exception: the review module checks product existence with direct SQL agai
 `products` (`review.repository.productExists`) to avoid a bus round-trip on the hot
 path. New modules should default to bus queries for cross-module reads.
 
-## CQRS pattern
+## Legacy CQRS pattern
 
 This project uses three buses: `CommandBus`, `QueryBus`, and `EventBus`.
 
@@ -136,7 +154,7 @@ The event bus is a separate implementation in `src/shared/cqrs/event-bus.ts` wit
 for debug-level warnings when events have no subscribers. Note the different API: `on`/`emit` for events
 vs `register`/`execute` for commands and queries.
 
-## Dependency injection
+## Legacy dependency injection
 
 DI uses [Awilix](https://github.com/jeffijoe/awilix) with `@fastify/awilix`.
 
@@ -172,7 +190,7 @@ SQL parameterization rules:
 - Max line width: 100 characters
 - File naming: `kebab-case` only (enforced by Biome)
 - No enums — use `const` objects with derived types (e.g. `UserRoles`)
-- No classes for business logic — prefer factory functions and composition
+- Keep pure domain logic functional. Nest controllers, handlers and repository adapters use classes; legacy features retain factories.
 - No `any` — Biome's `noExplicitAny` is an error (relaxed only in test files)
 - No `console` — use the injected `logger` (Pino)
 
@@ -185,7 +203,7 @@ SQL parameterization rules:
 
 ### API
 - All REST routes are prefixed with `/api` (configured in `src/server/index.ts`)
-- Schemas use TypeBox (`Type.Object`, `Type.String`, etc.)
+- Nest request schemas use Zod through `StandardSchemaValidationPipe`. Legacy request schemas retain TypeBox; shared response contracts use Zod with the temporary legacy schema adapter.
 - Routes handle HTTP concerns only — no business logic in routes
 - GraphQL resolvers co-locate with their REST route counterparts
 
@@ -194,14 +212,17 @@ SQL parameterization rules:
 - Characterisation tests: Cucumber features in `tests/`, step definitions in `tests/<feature>/`, exercising HTTP through `inject()`
 - E2E tests: Playwright browser tests in the workspace's `apps/e2e` package
 - Load tests: k6 scripts in `tests/<feature>/`
-- Test server: use `buildApp()` from `tests/support/server.ts` — creates a Fastify instance without listening
+- Test server: use `buildApp()` from `tests/support/server.ts`, which initializes the hybrid application without listening.
 
 ### Exceptions
 - Domain errors extend `ExceptionBase` (in `src/shared/exceptions/`)
 - Built-in exceptions: `NotFoundException`, `ConflictException`, `DatabaseErrorException`, `ArgumentInvalidException`, `InternalServerErrorException`, `ProviderErrorException`
 - Always include a descriptive message: `throw new NotFoundException('User with id X not found')`
 
-## Adding a new module
+## Legacy module structure
+
+This describes unmigrated features. For an approved Nest migration slice, follow
+the newsletter feature structure and remove that feature from legacy autoloading.
 
 1. Create `src/modules/<name>/` with the vertical slice structure
 2. Create `src/modules/<name>/index.ts` with `actionCreatorFactory('<name>')` and `declare global` Dependencies

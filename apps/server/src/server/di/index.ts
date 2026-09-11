@@ -1,11 +1,12 @@
 import path from 'node:path';
-import { diContainer, fastifyAwilixPlugin } from '@fastify/awilix';
-import { asFunction, Lifetime } from 'awilix';
+import { fastifyAwilixPlugin } from '@fastify/awilix';
+import { asFunction, createContainer, Lifetime } from 'awilix';
 import type { FastifyInstance } from 'fastify';
 import { makeDependencies } from '#src/modules/index';
 import { formatName } from '#src/server/di/util';
 
 export async function di(fastify: FastifyInstance) {
+  const diContainer = createContainer<Dependencies>();
   diContainer.register({
     ...makeDependencies({
       logger: fastify.log,
@@ -19,7 +20,7 @@ export async function di(fastify: FastifyInstance) {
     [
       path.join(
         import.meta.dirname,
-        '../../modules/**/*.{repository,mapper,service,domain}.{js,ts}',
+        '../../modules/{cart,product,review,specification}/**/*.{repository,mapper,service,domain}.{js,ts}',
       ),
     ],
     {
@@ -33,7 +34,12 @@ export async function di(fastify: FastifyInstance) {
   );
 
   await diContainer.loadModules(
-    [path.join(import.meta.dirname, '../../modules/**/*.{handler,event-handler}.{js,ts}')],
+    [
+      path.join(
+        import.meta.dirname,
+        '../../modules/{cart,product,review,specification}/**/*.{handler,event-handler}.{js,ts}',
+      ),
+    ],
     {
       formatName,
       esModules: true,

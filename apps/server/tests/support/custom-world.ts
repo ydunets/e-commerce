@@ -1,6 +1,7 @@
 import { type IWorldOptions, setWorldConstructor, World } from '@cucumber/cucumber';
 import type * as messages from '@cucumber/messages';
-import type { FastifyInstance, LightMyRequestResponse } from 'fastify';
+import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import type { LightMyRequestResponse } from 'fastify';
 import type postgres from 'postgres';
 
 export interface TestContext {
@@ -14,7 +15,7 @@ export interface ICustomWorld extends World {
   testName?: string;
   startTime?: Date;
   db: ReturnType<typeof postgres>;
-  server: FastifyInstance;
+  server: NestFastifyApplication;
   context: TestContext;
 }
 
@@ -25,7 +26,7 @@ export class CustomWorld extends World implements ICustomWorld {
   }
 
   debug = false;
-  server = undefined as unknown as FastifyInstance;
+  server = undefined as unknown as NestFastifyApplication;
   db = undefined as unknown as ReturnType<typeof postgres>;
   context: TestContext = {};
 }

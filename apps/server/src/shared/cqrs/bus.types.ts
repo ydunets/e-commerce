@@ -2,6 +2,11 @@ import type { FastifyBaseLogger } from 'fastify';
 
 export type Meta = null | Record<string, unknown>;
 
+export interface TraceableAction {
+  readonly type: string;
+  readonly meta?: Meta;
+}
+
 /** Unique symbol used to brand Action objects, preventing plain-object misuse. */
 declare const ActionBrand: unique symbol;
 

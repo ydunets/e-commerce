@@ -1,6 +1,11 @@
 import type { FastifyBaseLogger } from 'fastify';
 import { getRequestId } from '#src/shared/app/app-request-context';
-import type { Action, CommandHandler, EventHandler } from '#src/shared/cqrs/bus.types';
+import type {
+  Action,
+  CommandHandler,
+  EventHandler,
+  TraceableAction,
+} from '#src/shared/cqrs/bus.types';
 
 /** Creates a new action with correlation ID and timestamp injected into meta.
  *  Does NOT mutate the original action. */
@@ -29,10 +34,10 @@ export async function decorateCommandWithMetadata(
 }
 
 export function makeTrackExecutionTime(logger: FastifyBaseLogger) {
-  return async function trackExecutionTime(
-    action: Action<unknown>,
-    handler: CommandHandler,
-  ): Promise<unknown> {
+  return async function trackExecutionTime<ActionType extends TraceableAction, Result>(
+    action: ActionType,
+    handler: (action: ActionType) => Promise<Result>,
+  ): Promise<Result> {
     const startTime = performance.now();
     const result = await handler(action);
     const endTime = performance.now();

@@ -1,7 +1,21 @@
 import assert from 'node:assert/strict';
 import { Then } from '@cucumber/cucumber';
+import env from '#src/config/env';
+import { DATABASE } from '#src/shared/db/tokens';
+import { CONFIGURATION } from '#src/shared/nest/shared.module';
 import { STATUS_OK } from '../shared/http.js';
 import type { ICustomWorld } from '../support/custom-world.js';
+
+Then('the legacy error identifies the invalid rating', function (this: ICustomWorld) {
+  const body = this.context.latestResponse!.json();
+  assert.equal(body.message, 'Validation error');
+  assert.equal(body.details, undefined);
+  assert.equal(body.subErrors[0].path, '/rating');
+  assert.equal(typeof body.subErrors[0].message, 'string');
+  assert.ok(body.subErrors[0].message.length > 0);
+  assert.equal(typeof body.correlationId, 'string');
+  assert.ok(body.correlationId.length > 0);
+});
 
 Then('the compiled API documents every existing business endpoint', function (this: ICustomWorld) {
   assert.ok(import.meta.url.endsWith('/dist/tests/runtime/runtime.steps.js'));
@@ -9,6 +23,10 @@ Then('the compiled API documents every existing business endpoint', function (th
   const document = this.context.latestResponse!.json<{
     paths: Record<string, Record<string, unknown>>;
   }>();
+  assert.ok(document.paths['/health']?.get);
+  assert.equal(this.server.get(DATABASE), this.db);
+  assert.equal(this.server.get(CONFIGURATION), env);
+  assert.ok(this.server.getHttpAdapter().getInstance().getSchema('ApiErrorResponse'));
   const endpoints = Object.entries(document.paths)
     .filter(([path]) => path.startsWith('/api/v1/'))
     .flatMap(([path, methods]) =>

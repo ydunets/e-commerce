@@ -1,5 +1,5 @@
 import { SpanKind, SpanStatusCode, trace } from '@opentelemetry/api';
-import type { Action, CommandHandler, EventHandler } from '#src/shared/cqrs/bus.types';
+import type { TraceableAction } from '#src/shared/cqrs/bus.types';
 
 const tracer = trace.getTracer('cqrs');
 
@@ -9,10 +9,10 @@ const tracer = trace.getTracer('cqrs');
  * When OTel is disabled the API returns noop spans — zero overhead.
  */
 export function makeTracingMiddleware(busType: 'command' | 'query') {
-  return async function traceAction(
-    action: Action<unknown>,
-    handler: CommandHandler,
-  ): Promise<unknown> {
+  return async function traceAction<Action extends TraceableAction, Result>(
+    action: Action,
+    handler: (action: Action) => Promise<Result>,
+  ): Promise<Result> {
     return tracer.startActiveSpan(
       action.type,
       {
@@ -46,7 +46,10 @@ export function makeTracingMiddleware(busType: 'command' | 'query') {
  * Event bus tracing middleware.
  * Events are fire-and-forget so the span is recorded synchronously.
  */
-export function traceEventMiddleware(action: Action<unknown>, handler: EventHandler): void {
+export function traceEventMiddleware<Action extends TraceableAction>(
+  action: Action,
+  handler: (action: Action) => void,
+): void {
   tracer.startActiveSpan(
     action.type,
     {

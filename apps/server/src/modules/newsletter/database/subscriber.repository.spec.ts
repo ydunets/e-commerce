@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import postgres from 'postgres';
 import { SubscriberAlreadyExistsException } from '#src/modules/newsletter/domain/subscriber.errors';
-import subscriberRepository from './subscriber.repository.js';
+import { PostgresSubscriberRepository } from './subscriber.repository.js';
 
 const subscriber = {
   id: 'sub-1',
@@ -31,7 +31,7 @@ describe('subscriberRepository().insert()', () => {
       return Promise.resolve([]);
     }) as unknown as Dependencies['db'];
 
-    await subscriberRepository({ db } as never).insert(subscriber);
+    await new PostgresSubscriberRepository(db).insert(subscriber);
 
     assert.match(queried, /INSERT INTO subscribers/);
   });
@@ -44,7 +44,7 @@ describe('subscriberRepository().insert()', () => {
     const db = fakeDb(() => Promise.reject(uniqueViolation));
 
     await assert.rejects(
-      () => subscriberRepository({ db } as never).insert(subscriber),
+      () => new PostgresSubscriberRepository(db).insert(subscriber),
       SubscriberAlreadyExistsException,
     );
   });
@@ -54,7 +54,7 @@ describe('subscriberRepository().insert()', () => {
     const db = fakeDb(() => Promise.reject(connectionError));
 
     await assert.rejects(
-      () => subscriberRepository({ db } as never).insert(subscriber),
+      () => new PostgresSubscriberRepository(db).insert(subscriber),
       (error: unknown) => error === connectionError,
     );
   });

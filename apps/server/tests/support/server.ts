@@ -17,6 +17,5 @@ export const buildApp = async () => {
     },
   });
 
-  await server(app);
-  return app;
+  return server(app);
 };

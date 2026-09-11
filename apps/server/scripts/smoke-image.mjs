@@ -158,6 +158,23 @@ try {
   assert.equal(detail.product_id, products[0].product_id);
   assert.ok(detail.inventory.length > 0);
 
+  const subscriberEmail = `image-${randomUUID()}@example.com`;
+  for (const email of [subscriberEmail.toUpperCase(), subscriberEmail]) {
+    const subscription = await fetch(`${origin}/api/v1/newsletter/subscriptions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email }),
+      signal: AbortSignal.timeout(STARTUP_TIMEOUT_MS),
+    });
+    assert.equal(subscription.status, STATUS_OK);
+    assert.deepEqual(await subscription.json(), {
+      message: 'Subscription successful! Please check your email to confirm.',
+    });
+  }
+  const documentation = await readJson(`${origin}/api-docs/json`);
+  assert.ok(documentation.paths['/api/v1/newsletter/subscriptions'].post);
+  assert.ok(documentation.paths['/health'].get);
+
   await docker(
     'exec',
     server,
@@ -233,7 +250,7 @@ try {
     );
   }
   process.stdout.write(
-    'Production image passed health, product reads, packaging, bounded SIGTERM exit and invalid-configuration rejection before listening.\n',
+    'Production image passed health, product reads, newsletter subscriptions, hybrid documentation, packaging, bounded SIGTERM exit and invalid-configuration rejection before listening.\n',
   );
 } catch (error) {
   if (ownedContainers.includes(server)) {

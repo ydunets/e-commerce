@@ -6,7 +6,7 @@ import {
   RawRequestDefaultExpression,
   RawServerDefault,
 } from 'fastify';
-import { Dependencies as InfrastructureDependencies } from '#src/modules/index.ts';
+import { Dependencies as InfrastructureDependencies } from '#src/modules/index';
 
 declare global {
   // Declare global DI container type

@@ -1,8 +1,8 @@
-import type { ProductEntity } from '#src/modules/product/domain/product.types.ts';
-import { productActionCreator } from '#src/modules/product/product.action-creator.ts';
-import { getReviewSummaryQuery } from '#src/modules/review/index.ts';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
-import { NotFoundException } from '#src/shared/exceptions/index.ts';
+import type { ProductEntity } from '#src/modules/product/domain/product.types';
+import { productActionCreator } from '#src/modules/product/product.action-creator';
+import { getReviewSummaryQuery } from '#src/modules/review/index';
+import type { HandlerAction } from '#src/shared/cqrs/bus.types';
+import { NotFoundException } from '#src/shared/exceptions/index';
 
 export type FindProductResult = ProductEntity;
 

@@ -1,7 +1,7 @@
-import { SubscriberAlreadyExistsException } from '#src/modules/newsletter/domain/subscriber.errors.ts';
-import { createSubscriber } from '#src/modules/newsletter/domain/subscriber.factory.ts';
-import { newsletterActionCreator } from '#src/modules/newsletter/index.ts';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
+import { SubscriberAlreadyExistsException } from '#src/modules/newsletter/domain/subscriber.errors';
+import { createSubscriber } from '#src/modules/newsletter/domain/subscriber.factory';
+import { newsletterActionCreator } from '#src/modules/newsletter/index';
+import type { HandlerAction } from '#src/shared/cqrs/bus.types';
 
 export type SubscribeResult = undefined;
 

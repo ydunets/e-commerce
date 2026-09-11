@@ -1,8 +1,8 @@
 import assert from 'node:assert';
 import { After, type DataTable, Given, Then, When } from '@cucumber/cucumber';
 import type { CartResponseDto, ValidateCartResponseDto } from '@e-commerce/contracts';
-import { assertKeys, STATUS_OK } from '../shared/http.ts';
-import type { ICustomWorld } from '../support/custom-world.ts';
+import { assertKeys, STATUS_OK } from '../shared/http.js';
+import type { ICustomWorld } from '../support/custom-world.js';
 
 const TEST_PRODUCT_ID = 'char-cart-product';
 const TEST_PRODUCT_NAME = 'Cart Test Product';

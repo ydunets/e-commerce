@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { Given, Then, When } from '@cucumber/cucumber';
 import type { ProductListItemDto, ProductResponseDto } from '@e-commerce/contracts';
-import type { ReviewSummaryResponseDto } from '#src/modules/review/dtos/review-summary.response.dto.ts';
-import { assertKeys, assertText, getJson, PRODUCTS_URL, STATUS_OK } from '../shared/http.ts';
-import type { ICustomWorld } from '../support/custom-world.ts';
+import type { ReviewSummaryResponseDto } from '#src/modules/review/dtos/review-summary.response.dto';
+import { assertKeys, assertText, getJson, PRODUCTS_URL, STATUS_OK } from '../shared/http.js';
+import type { ICustomWorld } from '../support/custom-world.js';
 
 interface CatalogueContext {
   catalogue: ProductListItemDto[];

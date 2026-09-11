@@ -1,7 +1,7 @@
 import { After, Before, type ITestCaseHookParameter, setDefaultTimeout } from '@cucumber/cucumber';
-import { getDb } from '#src/shared/db/postgres.ts';
-import type { ICustomWorld } from './custom-world.ts';
-import { buildApp } from './server.ts';
+import { getDb } from '#src/shared/db/postgres';
+import type { ICustomWorld } from './custom-world.js';
+import { buildApp } from './server.js';
 
 setDefaultTimeout(process.env.PWDEBUG ? -1 : 60 * 1000);
 

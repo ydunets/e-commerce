@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { FindManyProductsOptions } from './product.repository.port.ts';
-import productRepository from './product.repository.ts';
+import productRepository from './product.repository.js';
+import type { FindManyProductsOptions } from './product.repository.port.js';
 
 const TABLES = ['products', 'product_inventory', 'product_images', 'product_info'] as const;
 

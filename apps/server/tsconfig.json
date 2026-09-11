@@ -10,8 +10,8 @@
     "noEmit": true,
 
     "verbatimModuleSyntax": true,
-    "erasableSyntaxOnly": true,
-    "allowImportingTsExtensions": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
 
     "skipLibCheck": true,
     "resolveJsonModule": true,
@@ -25,6 +25,5 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true
   },
-  "include": ["src", "tests"],
-  "exclude": ["**/*.k6.ts"]
+  "include": ["src", "tests"]
 }

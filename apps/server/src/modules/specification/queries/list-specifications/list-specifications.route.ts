@@ -1,7 +1,7 @@
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { Type } from 'typebox';
-import { specificationResponseDtoSchema } from '#src/modules/specification/dtos/specification.response.dto.ts';
-import { listSpecificationsQuery } from './list-specifications.handler.ts';
+import { specificationResponseDtoSchema } from '#src/modules/specification/dtos/specification.response.dto';
+import { listSpecificationsQuery } from './list-specifications.handler.js';
 
 export default async function listSpecifications(fastify: FastifyRouteInstance) {
   fastify.withTypeProvider<TypeBoxTypeProvider>().route({

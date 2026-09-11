@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { CartCoupon, CartEntity } from '#src/modules/cart/domain/cart.types.ts';
-import { NotFoundException } from '#src/shared/exceptions/index.ts';
-import makeRemoveCoupon, { removeCouponCommand } from './remove-coupon.handler.ts';
+import type { CartCoupon, CartEntity } from '#src/modules/cart/domain/cart.types';
+import { NotFoundException } from '#src/shared/exceptions/index';
+import makeRemoveCoupon, { removeCouponCommand } from './remove-coupon.handler.js';
 
 const WELCOME: CartCoupon = { code: 'WELCOME15', discountType: 'percentage', value: 15 };
 const SAVE: CartCoupon = { code: 'SAVE20', discountType: 'fixed', value: 20 };

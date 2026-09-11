@@ -1,5 +1,5 @@
-import type { ReviewRepository } from '#src/modules/review/database/review.repository.port.ts';
-import { NotFoundException } from '#src/shared/exceptions/index.ts';
+import type { ReviewRepository } from '#src/modules/review/database/review.repository.port';
+import { NotFoundException } from '#src/shared/exceptions/index';
 
 export async function ensureProductExists(
   reviewRepository: ReviewRepository,

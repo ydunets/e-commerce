@@ -1,4 +1,4 @@
-import { getRequestId } from '#src/shared/app/app-request-context.ts';
+import { getRequestId } from '#src/shared/app/app-request-context';
 
 export interface SerializedException {
   message: string;

@@ -1,8 +1,8 @@
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { Type } from 'typebox';
-import { productListItemDtoSchema } from '#src/modules/product/dtos/product.response.dto.ts';
-import { listProductsQuery } from './list-products.handler.ts';
-import { listProductsQuerystringSchema } from './list-products.schema.ts';
+import { productListItemDtoSchema } from '#src/modules/product/dtos/product.response.dto';
+import { listProductsQuery } from './list-products.handler.js';
+import { listProductsQuerystringSchema } from './list-products.schema.js';
 
 export default async function listProducts(fastify: FastifyRouteInstance) {
   fastify.withTypeProvider<TypeBoxTypeProvider>().route({

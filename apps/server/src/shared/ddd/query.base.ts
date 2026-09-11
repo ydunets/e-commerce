@@ -1,4 +1,4 @@
-import type { OrderBy } from '#src/shared/db/repository.port.ts';
+import type { OrderBy } from '#src/shared/db/repository.port';
 
 interface PaginatedQueryParams {
   limit?: number;

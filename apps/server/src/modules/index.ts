@@ -1,8 +1,8 @@
 import { asValue } from 'awilix';
 import type { FastifyBaseLogger } from 'fastify';
 import type postgres from 'postgres';
-import type { CommandBus, EventBus, QueryBus } from '#src/shared/cqrs/bus.types.ts';
-import { getDb } from '#src/shared/db/postgres.ts';
+import type { CommandBus, EventBus, QueryBus } from '#src/shared/cqrs/bus.types';
+import { getDb } from '#src/shared/db/postgres';
 
 declare global {
   export interface Dependencies {

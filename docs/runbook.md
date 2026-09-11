@@ -6,8 +6,8 @@ Every way to run this monorepo, in order. All commands run from the repo root un
 
 | Requirement | Why | Check |
 |---|---|---|
-| Node >= 24 | pnpm 11 and the Fastify server (native TS execution) require it | `node -v` → `v24.x` (`nvm use 24.18`) |
-| corepack enabled | pnpm is pinned via `packageManager` in package.json; corepack fetches 11.10.0 automatically | `corepack enable` once, then `pnpm -v` → `11.10.0` |
+| Node 24.18.0 | Agreed compiled-server and CI baseline | `node -v` → `v24.18.0` (`nvm use 24.18.0`) |
+| corepack enabled | pnpm is pinned via `packageManager` in package.json; corepack fetches 11.18.0 automatically | `corepack enable` once, then `pnpm -v` → `11.18.0` |
 | Docker Desktop | Postgres for the API | `docker info` |
 
 Watch out: an interactive shell picks up nvm, but scripts/CI may resolve an old system Node. If pnpm fails with `node:sqlite` errors, your Node is too old.
@@ -40,9 +40,10 @@ Postgres listens on host port **5433** (not 5432 — that's taken by another pro
 pnpm dev
 ```
 
-Starts concurrently, output prefixed per package:
+Completes the initial contracts and server builds, then starts the watchers concurrently, with output prefixed per package:
+
 - **client** — SSR dev server with HMR at http://localhost:5173
-- **server** — Fastify API in watch mode at http://localhost:4000
+- **server**: SWC compilation and the compiled Fastify API in Node watch mode at http://localhost:4000.
 
 The client proxies `/api/*` to the API, so the browser only ever talks to :5173. Sanity check:
 
@@ -124,11 +125,36 @@ playwright show-trace <path-to-trace.zip>       # inspect a failure trace (recor
 ## 7. Production build
 
 ```bash
-pnpm build          # client → apps/client/dist (web) + apps/client/dist/server (SSR bundle)
+pnpm build          # contracts first, then client SSR and compiled server
 pnpm preview        # serve it on :3000 (use PORT=4173 here — 3000 is squatted)
 ```
 
 The preview server also proxies `/api/*`, so run the API alongside (`pnpm api`) for data routes. For the API in production mode: `pnpm --filter @e-commerce/server start:prod`.
+
+### Compiled API execution
+
+SWC 0.8.1 with core 1.16.1 preserves the two source roots as `apps/server/dist/src` and `apps/server/dist/tests`. Every ordinary build clears `dist` before compiling, preventing stale handlers and specifications after renames. TypeScript 7.0.2 remains the strict no-emit checker. Relative imports use `.js`; extensionless internal aliases resolve source under the checker's `development` condition and compiled output by default. Do not pass that condition to a runtime process.
+
+`pnpm api` and package-level `pnpm start` or `pnpm dev` build contracts and the server before starting SWC and Node watchers. The lower-level `watch` command assumes those initial builds already exist. Development, unit tests, coverage and characterisation load an optional server `.env` before module preloads; explicit environment variables take precedence. Production requires platform-provided variables and does not require an environment file. All server runtime commands preload `reflect-metadata` and enable source maps; application commands additionally preload instrumentation.
+
+```bash
+pnpm --filter @e-commerce/server test:unit
+pnpm --filter @e-commerce/server test:coverage
+pnpm --filter @e-commerce/server test:characterisation
+```
+
+The first two commands remain database-free. Characterisation requires an isolated migrated and seeded PostgreSQL database; its feature text stays under `tests`, while support and step definitions execute from `dist/tests`. Coverage is remapped to source TypeScript. Keep the retained legacy unit specifications until their corresponding migration increment removes the relevant implementation.
+
+### Final server image verification
+
+```bash
+docker build -f apps/server/Dockerfile -t e-commerce-server:local .
+node apps/server/scripts/smoke-image.mjs e-commerce-server:local
+```
+
+The smoke check creates its own Docker network and PostgreSQL 18 container, applies migrations and seeds with pinned DBMate 2.33.0, and starts the final server image using synthetic platform-style variables. It checks health, product listing and details, non-root execution, source-map presence, and exclusion of application source, tests and development tooling. It then sends SIGTERM and requires a successful exit within ten seconds. Owned containers, volumes and the network are removed afterwards; no existing database is reused.
+
+The existing PR image matrix retains client, server and migrations. Its server job now loads and tests the final image without publishing it. Branch protection on `main` requires the GitHub Actions checks `validate`, `characterisation`, and `build (server, apps/server/Dockerfile, .)`, including for administrators, with the branch up to date before merging. The workflow also runs for documentation-only pull requests so required checks are never omitted by path filters. Bounded SIGTERM exit is not evidence of in-flight request draining, which remains a separate migration acceptance check.
 
 ## 8. Stopping
 
@@ -147,4 +173,4 @@ The preview server also proxies `/api/*`, so run the API alongside (`pnpm api`) 
 | e2e: `browserType.launch: Executable doesn't exist` | Run the one-time `playwright install chromium` (section 6) |
 | e2e: `docker compose` fails in the API webServer startup | Docker Desktop not running, or `.env` missing in apps/server (section 3) |
 | e2e: click seems ignored / assertion never turns true | Test interacted before hydration — navigate with `gotoHydrated`, not `page.goto` |
-| e2e: hangs after `[WebServer] $ node --env-file=.env ...` then times out | Something DB-less already holds port 4000 (e.g. an old `pnpm dev` whose Postgres was stopped): reused servers skip DB provisioning. Kill the stale API (`pkill -f "watch src/index.ts"`) or bring the DB up, then rerun |
+| e2e: waits for API readiness and then times out | A stale API may already hold port 4000: reused servers skip DB provisioning. Stop that development session or restore its database, then rerun. |

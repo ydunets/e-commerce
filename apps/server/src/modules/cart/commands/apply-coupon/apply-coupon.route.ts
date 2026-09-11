@@ -1,7 +1,7 @@
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { cartResponseDtoSchema } from '#src/modules/cart/dtos/cart.response.dto.ts';
-import { applyCouponCommand } from './apply-coupon.handler.ts';
-import { applyCouponBodySchema, cartParamsSchema } from './apply-coupon.schema.ts';
+import { cartResponseDtoSchema } from '#src/modules/cart/dtos/cart.response.dto';
+import { applyCouponCommand } from './apply-coupon.handler.js';
+import { applyCouponBodySchema, cartParamsSchema } from './apply-coupon.schema.js';
 
 export default async function applyCoupon(fastify: FastifyRouteInstance) {
   fastify.withTypeProvider<TypeBoxTypeProvider>().route({

@@ -4,8 +4,8 @@ import type {
   EventBusOptions,
   EventHandler,
   EventMiddleware,
-} from '#src/shared/cqrs/bus.types.ts';
-import { composeMiddlewares } from '#src/shared/utils/compose-middlewares.ts';
+} from '#src/shared/cqrs/bus.types';
+import { composeMiddlewares } from '#src/shared/utils/compose-middlewares';
 
 export function eventBus({ logger }: EventBusOptions): EventBus {
   const handlers = new Map<string, EventHandler[]>();

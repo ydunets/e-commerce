@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { SubscriberAlreadyExistsException } from '#src/modules/newsletter/domain/subscriber.errors.ts';
-import makeSubscribe, { subscribeCommand, subscribedEvent } from './subscribe.handler.ts';
+import { SubscriberAlreadyExistsException } from '#src/modules/newsletter/domain/subscriber.errors';
+import makeSubscribe, { subscribeCommand, subscribedEvent } from './subscribe.handler.js';
 
 describe('subscribeCommand handler', () => {
   it('inserts a new Subscriber and emits the subscribed event', async () => {

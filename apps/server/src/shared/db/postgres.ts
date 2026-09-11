@@ -1,6 +1,6 @@
 import postgres from 'postgres';
-import { LogLevel } from '#src/config/env.ts';
-import { env } from '#src/config/index.ts';
+import { LogLevel } from '#src/config/env';
+import { env } from '#src/config/index';
 
 let sql: ReturnType<typeof postgres> | null = null;
 

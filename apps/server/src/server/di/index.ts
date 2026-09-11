@@ -2,8 +2,8 @@ import path from 'node:path';
 import { diContainer, fastifyAwilixPlugin } from '@fastify/awilix';
 import { asFunction, Lifetime } from 'awilix';
 import type { FastifyInstance } from 'fastify';
-import { makeDependencies } from '#src/modules/index.ts';
-import { formatName } from '#src/server/di/util.ts';
+import { makeDependencies } from '#src/modules/index';
+import { formatName } from '#src/server/di/util';
 
 export async function di(fastify: FastifyInstance) {
   diContainer.register({

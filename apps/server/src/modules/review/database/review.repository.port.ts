@@ -1,5 +1,5 @@
-import type { ReviewEntity, ReviewSummary } from '#src/modules/review/domain/review.types.ts';
-import type { Paginated, PaginatedQueryParams } from '#src/shared/db/repository.port.ts';
+import type { ReviewEntity, ReviewSummary } from '#src/modules/review/domain/review.types';
+import type { Paginated, PaginatedQueryParams } from '#src/shared/db/repository.port';
 
 export interface ReviewFilters {
   /** Optional star rating (1..5) to filter the list by. */

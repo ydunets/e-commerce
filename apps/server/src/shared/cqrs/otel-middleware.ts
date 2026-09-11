@@ -1,5 +1,5 @@
 import { SpanKind, SpanStatusCode, trace } from '@opentelemetry/api';
-import type { Action, CommandHandler, EventHandler } from '#src/shared/cqrs/bus.types.ts';
+import type { Action, CommandHandler, EventHandler } from '#src/shared/cqrs/bus.types';
 
 const tracer = trace.getTracer('cqrs');
 

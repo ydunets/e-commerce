@@ -1,12 +1,9 @@
 import { STATUS_CODES } from 'node:http';
 import type { FastifyError, FastifyInstance } from 'fastify';
 import fp from 'fastify-plugin';
-import {
-  type ApiErrorResponse,
-  apiErrorResponseSchema,
-} from '#src/shared/api/api-error.response.ts';
-import { getRequestId } from '#src/shared/app/app-request-context.ts';
-import { ExceptionBase } from '#src/shared/exceptions/index.ts';
+import { type ApiErrorResponse, apiErrorResponseSchema } from '#src/shared/api/api-error.response';
+import { getRequestId } from '#src/shared/app/app-request-context';
+import { ExceptionBase } from '#src/shared/exceptions/index';
 
 // The correlation id is stamped on by the handler, after the mapper has run.
 type FastifyErrorMapper = (error: FastifyError) => Omit<ApiErrorResponse, 'correlationId'>;

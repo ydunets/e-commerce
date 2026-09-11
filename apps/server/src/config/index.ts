@@ -1,1 +1,1 @@
-export { default as env } from './env.ts';
+export { default as env } from './env.js';

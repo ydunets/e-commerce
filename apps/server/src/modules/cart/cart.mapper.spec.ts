@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { EnrichedCartLine } from '#src/modules/cart/domain/cart.types.ts';
-import cartMapper from './cart.mapper.ts';
+import type { EnrichedCartLine } from '#src/modules/cart/domain/cart.types';
+import cartMapper from './cart.mapper.js';
 
 function enrichedLine(sku: string, quantity: number, stock = 10): EnrichedCartLine {
   return {

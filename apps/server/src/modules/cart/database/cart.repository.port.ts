@@ -1,4 +1,4 @@
-import type { CartCoupon, CartEntity, StockChange } from '#src/modules/cart/domain/cart.types.ts';
+import type { CartCoupon, CartEntity, StockChange } from '#src/modules/cart/domain/cart.types';
 
 export interface CartRepository {
   insert(cart: CartEntity): Promise<void>;

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { createSubscriber } from './subscriber.factory.ts';
+import { createSubscriber } from './subscriber.factory.js';
 
 describe('createSubscriber()', () => {
   it('trims and lowercases the email so re-subscribing with different casing hits the same row', () => {

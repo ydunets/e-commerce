@@ -1,5 +1,5 @@
 import { compareSizes } from '@e-commerce/contracts';
-import type { ProductVariant } from '#src/modules/product/domain/product.types.ts';
+import type { ProductVariant } from '#src/modules/product/domain/product.types';
 
 // Distinct colours ordered by where their first image appears (image ids are
 // seeded in source order), so the product's primary colour comes first.

@@ -5,7 +5,7 @@
 ## Project overview
 
 A production-ready Fastify 5 boilerplate using Clean Architecture, CQRS, DDD, and functional programming.
-TypeScript strict mode, ESM-only, Node >= 24 (native TS execution, no build step).
+TypeScript strict mode and compiled ESM on Node 24.18.0. SWC emits application and test code; TypeScript performs strict no-emit checking.
 
 ## Quick reference
 
@@ -178,9 +178,10 @@ SQL parameterization rules:
 
 ### TypeScript
 - `strict: true` with `noImplicitAny: true`
-- Path aliases: `#src/*` maps to `./src/*`, `#tests/*` maps to `./tests/*` (defined as Node [subpath imports](https://nodejs.org/api/packages.html#subpath-imports) in `package.json`, not in `tsconfig.json`)
-- Always include `.ts` extension in imports (ESM requirement)
-- Prefer `type` imports: `import type { Foo } from './bar.ts'`
+- Use extensionless `#src/*` and `#tests/*` aliases. The `development` condition resolves source for checking; runtime defaults resolve compiled JavaScript. Runtime commands must omit `--conditions=development`.
+- Use `.js` extensions for relative ESM imports, including in TypeScript source.
+- Use type-only imports for erased types, but retain runtime imports for constructor dependencies whose classes must appear in decorator metadata. Biome deliberately leaves this distinction to the author.
+- Build contracts before the server. Use the manifest's build, test and development commands to preserve output cleaning, metadata preload and watcher startup ordering. See `../../docs/runbook.md` for execution and image verification.
 
 ### API
 - All REST routes are prefixed with `/api` (configured in `src/server/index.ts`)
@@ -227,7 +228,7 @@ SQL parameterization rules:
 - Using `execute<ManualType>(action)` instead of letting the type be inferred from the action creator
 - Mutating `action.meta` in middleware instead of spreading
 - Using `ReturnType<typeof creator>` for handler params (incompatible with register — use `HandlerAction<typeof creator>`)
-- Forgetting `.ts` extensions in imports
+- Using source extensions or development resolution in runtime imports
 - Using `npm` or `yarn` instead of `pnpm`
 - Using `console.log` instead of the injected Pino `logger`
 - Adding `enum` types (use const objects + derived types)

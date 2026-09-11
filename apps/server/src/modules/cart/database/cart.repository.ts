@@ -1,11 +1,11 @@
-import type { CartRepository } from '#src/modules/cart/database/cart.repository.port.ts';
+import type { CartRepository } from '#src/modules/cart/database/cart.repository.port';
 import type {
   CartCoupon,
   CartDiscountType,
   CartEntity,
   StockChange,
-} from '#src/modules/cart/domain/cart.types.ts';
-import { withTransaction } from '#src/shared/db/postgres.ts';
+} from '#src/modules/cart/domain/cart.types';
+import { withTransaction } from '#src/shared/db/postgres';
 
 interface CartRow {
   cart_id: string;

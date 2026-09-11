@@ -1,6 +1,6 @@
 import type { FastifyBaseLogger } from 'fastify';
-import { getRequestId } from '#src/shared/app/app-request-context.ts';
-import type { Action, CommandHandler, EventHandler } from '#src/shared/cqrs/bus.types.ts';
+import { getRequestId } from '#src/shared/app/app-request-context';
+import type { Action, CommandHandler, EventHandler } from '#src/shared/cqrs/bus.types';
 
 /** Creates a new action with correlation ID and timestamp injected into meta.
  *  Does NOT mutate the original action. */

@@ -2,7 +2,7 @@ import type {
   InventoryStockLevel,
   ProductEntity,
   ProductListItem,
-} from '#src/modules/product/domain/product.types.ts';
+} from '#src/modules/product/domain/product.types';
 
 export interface FindManyProductsOptions {
   limit?: number;

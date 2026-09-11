@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import newsletterMapper from './newsletter.mapper.ts';
+import newsletterMapper from './newsletter.mapper.js';
 
 describe('newsletterMapper().toSubscribeResponse()', () => {
   it('returns the verbatim success copy the client surfaces as a toast', () => {

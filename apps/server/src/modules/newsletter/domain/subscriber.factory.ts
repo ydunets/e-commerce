@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { SubscriberEntity } from '#src/modules/newsletter/domain/subscriber.types.ts';
+import type { SubscriberEntity } from '#src/modules/newsletter/domain/subscriber.types';
 
 export function createSubscriber(email: string): SubscriberEntity {
   const now = new Date();

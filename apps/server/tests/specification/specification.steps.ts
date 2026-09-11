@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { Then } from '@cucumber/cucumber';
 import { SPECIFICATION_ICONS, type SpecificationResponseDto } from '@e-commerce/contracts';
-import { assertKeys, assertText, STATUS_OK } from '../shared/http.ts';
-import type { ICustomWorld } from '../support/custom-world.ts';
+import { assertKeys, assertText, STATUS_OK } from '../shared/http.js';
+import type { ICustomWorld } from '../support/custom-world.js';
 
 Then(
   'the seeded specification content is returned in display order',

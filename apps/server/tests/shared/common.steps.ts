@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { Then, When } from '@cucumber/cucumber';
-import type { ICustomWorld } from '../support/custom-world.ts';
-import { assertText } from './http.ts';
+import type { ICustomWorld } from '../support/custom-world.js';
+import { assertText } from './http.js';
 
 When('I request {string}', async function (this: ICustomWorld, url: string) {
   this.context.latestResponse = await this.server.inject({ method: 'GET', url });

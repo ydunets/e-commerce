@@ -275,7 +275,7 @@ module.exports = {
     },
     enhancedResolveOptions: {
       exportsFields: ['exports'],
-      conditionNames: ['import', 'require', 'node', 'default', 'types'],
+      conditionNames: ['development', 'import', 'require', 'node', 'default', 'types'],
       mainFields: ['main', 'types', 'typings'],
     },
     reporterOptions: {

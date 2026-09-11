@@ -1,4 +1,4 @@
-import type { SubscribeResponseDto } from '#src/modules/newsletter/dtos/subscribe.response.dto.ts';
+import type { SubscribeResponseDto } from '#src/modules/newsletter/dtos/subscribe.response.dto';
 
 export interface NewsletterMapper {
   toSubscribeResponse(): SubscribeResponseDto;

@@ -9,7 +9,9 @@ SERVER_URL="http://127.0.0.1:3000"
 MAX_WAIT=30  # seconds
 
 # ── Start the server in the background ──────────────────────────────────────
-node --import ./src/instrumentation.ts ./src/index.ts &
+pnpm --filter @e-commerce/contracts build
+pnpm build
+node --env-file-if-exists=.env --enable-source-maps --import reflect-metadata --import ./dist/src/instrumentation.js ./dist/src/index.js &
 SERVER_PID=$!
 trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import specificationRepository from './specification.repository.ts';
+import specificationRepository from './specification.repository.js';
 
 const TABLES = ['specifications', 'specification_features'] as const;
 

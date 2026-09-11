@@ -5,8 +5,8 @@ import Helmet from '@fastify/helmet';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import UnderPressure from '@fastify/under-pressure';
 import type { FastifyInstance } from 'fastify';
-import env from '#src/config/env.ts';
-import { di } from '#src/server/di/index.ts';
+import env from '#src/config/env';
+import { di } from '#src/server/di/index';
 
 export default async function createServer(fastify: FastifyInstance) {
   // Set sensible default security headers
@@ -40,7 +40,7 @@ export default async function createServer(fastify: FastifyInstance) {
     options: {
       prefix: '/api',
     },
-    matchFilter: (path) => /\.(route|resolver)\.ts$/.test(path),
+    matchFilter: (path) => /\.(route|resolver)\.js$/.test(path),
   });
 
   await fastify.register(UnderPressure, {

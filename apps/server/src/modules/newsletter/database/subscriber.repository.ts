@@ -1,7 +1,7 @@
 import postgres from 'postgres';
-import type { SubscriberRepository } from '#src/modules/newsletter/database/subscriber.repository.port.ts';
-import { SubscriberAlreadyExistsException } from '#src/modules/newsletter/domain/subscriber.errors.ts';
-import type { SubscriberEntity } from '#src/modules/newsletter/domain/subscriber.types.ts';
+import type { SubscriberRepository } from '#src/modules/newsletter/database/subscriber.repository.port';
+import { SubscriberAlreadyExistsException } from '#src/modules/newsletter/domain/subscriber.errors';
+import type { SubscriberEntity } from '#src/modules/newsletter/domain/subscriber.types';
 
 const POSTGRES_UNIQUE_VIOLATION = '23505';
 

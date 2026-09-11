@@ -1,6 +1,6 @@
-import type { InventoryStockLevel } from '#src/modules/product/domain/product.types.ts';
-import { productActionCreator } from '#src/modules/product/product.action-creator.ts';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types.ts';
+import type { InventoryStockLevel } from '#src/modules/product/domain/product.types';
+import { productActionCreator } from '#src/modules/product/product.action-creator';
+import type { HandlerAction } from '#src/shared/cqrs/bus.types';
 
 export type GetInventoryStockResult = InventoryStockLevel | undefined;
 

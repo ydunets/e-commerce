@@ -1,4 +1,4 @@
-import type { SubscriberEntity } from '#src/modules/newsletter/domain/subscriber.types.ts';
+import type { SubscriberEntity } from '#src/modules/newsletter/domain/subscriber.types';
 
 export interface SubscriberRepository {
   /**

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import makeListSpecificationsQuery, {
   listSpecificationsQuery,
-} from './list-specifications.handler.ts';
+} from './list-specifications.handler.js';
 
 describe('listSpecificationsQuery handler', () => {
   it('passes the repository result through unchanged', async () => {

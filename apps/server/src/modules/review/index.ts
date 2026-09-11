@@ -1,5 +1,5 @@
-import type { ReviewRepository } from '#src/modules/review/database/review.repository.port.ts';
-import type { ReviewMapper } from '#src/modules/review/review.mapper.ts';
+import type { ReviewRepository } from '#src/modules/review/database/review.repository.port';
+import type { ReviewMapper } from '#src/modules/review/review.mapper';
 
 declare global {
   export interface Dependencies {
@@ -8,5 +8,5 @@ declare global {
   }
 }
 
-export { getReviewSummaryQuery } from '#src/modules/review/queries/get-review-summary/get-review-summary.handler.ts';
-export { reviewActionCreator } from '#src/modules/review/review.action-creator.ts';
+export { getReviewSummaryQuery } from '#src/modules/review/queries/get-review-summary/get-review-summary.handler';
+export { reviewActionCreator } from '#src/modules/review/review.action-creator';

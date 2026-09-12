@@ -1,14 +1,9 @@
-import type { ReviewSummary } from '#src/modules/review/domain/review.types';
 import { ensureProductExists } from '#src/modules/review/queries/ensure-product-exists';
-import { reviewActionCreator } from '#src/modules/review/review.action-creator';
 import type { HandlerAction } from '#src/shared/cqrs/bus.types';
 
-export type GetReviewSummaryResult = ReviewSummary;
+import { type GetReviewSummaryResult, getReviewSummaryQuery } from './get-review-summary.query.js';
 
-export const getReviewSummaryQuery = reviewActionCreator<
-  { productId: string },
-  GetReviewSummaryResult
->('get-summary');
+export { getReviewSummaryQuery } from './get-review-summary.query.js';
 
 export default function makeGetReviewSummaryQuery({ queryBus, reviewRepository }: Dependencies) {
   return {

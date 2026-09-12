@@ -1,25 +1,15 @@
-import type { InventoryStockLevel } from '#src/modules/product/domain/product.types';
-import { productActionCreator } from '#src/modules/product/product.action-creator';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types';
+import { Inject } from '@nestjs/common';
+import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import {
+  PRODUCT_REPOSITORY,
+  type ProductRepository,
+} from '#src/modules/product/database/product.repository.port';
+import { GetInventoryStockQuery } from './get-inventory-stock.query.js';
 
-export type GetInventoryStockResult = InventoryStockLevel | undefined;
-
-// Bus-only query (no route): lets other modules read a SKU's stock level
-// without importing product internals.
-export const getInventoryStockQuery = productActionCreator<
-  { sku: string },
-  GetInventoryStockResult
->('get-inventory-stock');
-
-export default function makeGetInventoryStockQuery({ queryBus, productRepository }: Dependencies) {
-  return {
-    async handler({
-      payload,
-    }: HandlerAction<typeof getInventoryStockQuery>): Promise<GetInventoryStockResult> {
-      return productRepository.findStockBySku(payload.sku);
-    },
-    init() {
-      queryBus.register(getInventoryStockQuery.type, this.handler);
-    },
-  };
+@QueryHandler(GetInventoryStockQuery)
+export class GetInventoryStockHandler implements IQueryHandler<GetInventoryStockQuery> {
+  constructor(@Inject(PRODUCT_REPOSITORY) private readonly repository: ProductRepository) {}
+  execute(query: GetInventoryStockQuery) {
+    return this.repository.findStockBySku(query.payload.sku);
+  }
 }

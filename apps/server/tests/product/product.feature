@@ -35,3 +35,21 @@ Feature: Product catalogue reads
     When I request "/api/v1/products/char-product-missing"
     Then I receive an error "Not Found" with status code 404
     And the response carries the error envelope
+
+  Scenario Outline: Invalid pagination retains named validation paths
+    When I request "/api/v1/products?<query>"
+    Then I receive an error "Bad Request" with status code 400
+    And product validation identifies "<path>"
+
+    Examples:
+      | query           | path    |
+      | limit=          | /limit  |
+      | offset=         | /offset |
+      | offset=-1       | /offset |
+      | offset=1.5      | /offset |
+      | limit=2&limit=3 | /limit  |
+
+  Scenario: Numeric query conversion preserves the accepted whitespace offset
+    Given the full catalogue is recorded
+    When I request "/api/v1/products?limit=2&offset=%20"
+    Then the catalogue contains 2 products starting at offset 0

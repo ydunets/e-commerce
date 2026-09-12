@@ -1,23 +1,15 @@
-import type { FindManyProductsOptions } from '#src/modules/product/database/product.repository.port';
-import type { ProductListItem } from '#src/modules/product/domain/product.types';
-import { productActionCreator } from '#src/modules/product/product.action-creator';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types';
+import { Inject } from '@nestjs/common';
+import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import {
+  PRODUCT_REPOSITORY,
+  type ProductRepository,
+} from '#src/modules/product/database/product.repository.port';
+import { ListProductsQuery } from './list-products.query.js';
 
-export type ListProductsResult = ProductListItem[];
-
-export const listProductsQuery = productActionCreator<FindManyProductsOptions, ListProductsResult>(
-  'list',
-);
-
-export default function makeListProductsQuery({ queryBus, productRepository }: Dependencies) {
-  return {
-    async handler({
-      payload,
-    }: HandlerAction<typeof listProductsQuery>): Promise<ListProductsResult> {
-      return productRepository.findMany(payload);
-    },
-    init() {
-      queryBus.register(listProductsQuery.type, this.handler);
-    },
-  };
+@QueryHandler(ListProductsQuery)
+export class ListProductsHandler implements IQueryHandler<ListProductsQuery> {
+  constructor(@Inject(PRODUCT_REPOSITORY) private readonly repository: ProductRepository) {}
+  execute(query: ListProductsQuery) {
+    return this.repository.findMany(query.payload);
+  }
 }

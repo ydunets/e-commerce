@@ -11,6 +11,18 @@ const CARTS_URL = '/api/v1/carts';
 const TEST_PRODUCT_PREFIX = 'char-cart-';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
+Given('inventory item {string} is removed', async function (this: ICustomWorld, sku: string) {
+  assert.ok(sku.startsWith(TEST_PRODUCT_PREFIX));
+  await this.db`DELETE FROM product_inventory WHERE sku = ${sku}`;
+});
+
+Then(
+  'the stock conflict describes {string} with requested {int} and available {int}',
+  function (this: ICustomWorld, sku: string, requested: number, available: number) {
+    assert.deepStrictEqual(latestBody(this).details, { sku, requested, available });
+  },
+);
+
 interface CartTestContext {
   cartId?: string;
   mintedCartIds: string[];

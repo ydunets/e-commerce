@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
-import { Command, CommandBus, EventBus } from '@nestjs/cqrs';
+import { Command, CommandBus, EventBus, Query, QueryBus } from '@nestjs/cqrs';
 import type { FastifyInstance } from 'fastify';
 import { getRequestId } from '#src/shared/app/app-request-context';
 import type { TraceableAction } from '#src/shared/cqrs/bus.types';
@@ -25,6 +25,7 @@ export class ApplicationDispatcher {
     @Inject(CommandBus) private readonly commands: Pick<CommandBus, 'execute'>,
     @Inject(EventBus) private readonly events: Pick<EventBus, 'publish'>,
     private readonly adapterHost: HttpAdapterHost,
+    @Inject(QueryBus) private readonly queries: Pick<QueryBus, 'execute'>,
   ) {}
 
   execute<Result>(command: Command<Result> & ApplicationAction): Promise<Result> {
@@ -48,5 +49,12 @@ export class ApplicationDispatcher {
           );
       }
     });
+  }
+
+  query<Result>(query: Query<Result> & ApplicationAction): Promise<Result> {
+    const logger = this.adapterHost.httpAdapter.getInstance<FastifyInstance>().log;
+    return makeTracingMiddleware('query')(withMetadata(query), (action) =>
+      makeTrackExecutionTime(logger)(action, (enriched) => this.queries.execute(enriched)),
+    );
   }
 }

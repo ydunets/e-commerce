@@ -17,6 +17,6 @@ export const CONFIGURATION = Symbol('Configuration');
     ApplicationDispatcher,
     { provide: APP_FILTER, useClass: ApiExceptionFilter },
   ],
-  exports: [CONFIGURATION, DATABASE, ApplicationDispatcher],
+  exports: [CONFIGURATION, DATABASE, ApplicationDispatcher, CqrsModule],
 })
 export class SharedModule {}

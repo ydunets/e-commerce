@@ -1,14 +1,3 @@
-# .github/workflows/release-deploy.yml
-# Runs after a merge to main (or manual dispatch): re-validates, then builds +
-# pushes the images, cuts a release, and deploys to Azure. Nothing here runs
-# on a PR; see pr-checks.yml for what gates a merge.
-#
-#   validate ─┐
-#             ├─▶ build ─▶ release ─▶ deploy (DB migrate, then roll images)
-#   security ─┘
-#
-# Nothing deploys unless tests, security, and the image build all pass first.
-
 name: Release & Deploy
 
 on:
@@ -17,20 +6,19 @@ on:
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
-  # Manual full run to prod (rebuild + push + release + deploy).
   workflow_dispatch:
 
-# One run per ref; never cancel a run mid-deploy.
+# Serialize production releases, including manual dispatches; never cancel a rollout.
 concurrency:
-  group: release-deploy-${{ github.ref }}
+  group: release-deploy-production
   cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
-  # 1. Lint + types + unit tests across the whole workspace.
   validate:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,22 +28,19 @@ jobs:
       - name: Check
         run: pnpm check
 
-  # 2. CodeQL security scan (runs in parallel with validate).
   security:
     permissions:
-      security-events: write # upload results to the Security tab
+      security-events: write
       contents: read
       actions: read
     uses: ./.github/workflows/_codeql.yml
 
-  # 3. Build and push the client, server, and migrations images to GHCR.
-  #    Gated on both tests and security passing.
   build:
     needs: [validate, security]
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write # push to GHCR
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -90,7 +75,9 @@ jobs:
           tags: |
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=build-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.context }}
@@ -100,13 +87,28 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Set up Node for digest records
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.18.0'
+      - name: Record immutable build identity
+        env:
+          IMAGE_APP: ${{ matrix.app }}
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: node scripts/deploy/cli.mjs record
+      - name: Retain build identity
+        uses: actions/upload-artifact@v7
+        with:
+          name: image-${{ matrix.app }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: deployment/images/${{ matrix.app }}.json
+          if-no-files-found: error
+          retention-days: 90
 
-  # 4. Cut a versioned GitHub Release from conventional commits.
   release:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: write # push the CHANGELOG/tag commit + create the release
+      contents: write
       issues: write
       pull-requests: write
     steps:
@@ -119,79 +121,67 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HUSKY: '0'
         run: pnpm --filter @e-commerce/server semantic-release
 
-  # 5. Apply DB migrations, then roll both Azure Container Apps to the
-  #    freshly pushed images. Schema lands before the code that needs it.
   deploy:
     needs: release
     runs-on: ubuntu-latest
+    timeout-minutes: 150
     environment: production
     permissions:
-      id-token: write # OIDC token for azure/login
+      id-token: write
       contents: read
+      packages: write # retain the verified predecessor images under recovery tags
+    env:
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_SERVER_APP: ${{ vars.AZURE_SERVER_APP }}
+      AZURE_CLIENT_APP: ${{ vars.AZURE_CLIENT_APP }}
+      PREDECESSOR_IMAGES: ${{ vars.PREDECESSOR_IMAGES }}
     steps:
+      - name: Checkout the exact built source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+      - name: Set up Node for rollout verification
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.18.0'
+      - name: Download this attempt's immutable build identities
+        uses: actions/download-artifact@v8
+        with:
+          pattern: image-*-${{ github.run_id }}-${{ github.run_attempt }}
+          path: deployment/images
+          merge-multiple: true
+      - name: Set up Docker Buildx for recovery retention
+        uses: docker/setup-buildx-action@v4
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Azure login (OIDC)
         uses: azure/login@v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      # Migrations run inside Azure as a Container Apps Job: point the job at
-      # this commit's image (immutable sha tag, same commit the build stage
-      # pushed) and run it to completion. The DB password never leaves Azure
-      # and no firewall changes are needed. A failure here fails this step and
-      # therefore blocks the image rollout below. dbmate tracks applied files
-      # in schema_migrations, so re-runs are no-ops.
-      # Poll ceiling (90 x 15s) deliberately exceeds the job's worst case of
-      # replica-timeout 600s x (1 + retry limit 1).
-      - name: Run migrations via Container Apps Job
-        run: |
-          az containerapp job update \
-            --name ecommerce-db-migrate \
-            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-            --image ghcr.io/${{ github.repository }}/migrations:sha-${GITHUB_SHA::7} \
-            --output none
-          EXEC=$(az containerapp job start \
-            --name ecommerce-db-migrate \
-            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-            --query name -o tsv)
-          echo "Started job execution: $EXEC"
-          for i in $(seq 1 90); do
-            sleep 15
-            STATUS=$(az containerapp job execution show \
-              --name ecommerce-db-migrate \
-              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-              --job-execution-name "$EXEC" \
-              --query properties.status -o tsv)
-            echo "[poll $i] $STATUS"
-            case "$STATUS" in
-              Succeeded) exit 0 ;;
-              Failed|Stopped)
-                echo "::error::Migration job execution $EXEC ended as $STATUS." \
-                  "Logs: Container Apps > ecommerce-db-migrate > Execution history." >&2
-                exit 1 ;;
-            esac
-          done
-          echo "::error::Migration job execution $EXEC still $STATUS after poll ceiling" >&2
-          exit 1
-      # Server first: the client proxies /api to it.
-      - name: Deploy server
-        uses: azure/cli@v3
+      - name: Capture and retain verified predecessors
+        run: node scripts/deploy/cli.mjs prepare
+      - name: Persist recovery evidence before any Azure update
+        uses: actions/upload-artifact@v7
         with:
-          azcliversion: latest
-          inlineScript: |
-            az containerapp update \
-              --name ${{ vars.AZURE_SERVER_APP }} \
-              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-              --image ghcr.io/${{ github.repository }}/server:latest
-      - name: Deploy client
-        uses: azure/cli@v3
+          name: predecessors-${{ github.run_id }}-${{ github.run_attempt }}
+          path: deployment/predecessors.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Migrate and verify rollout with recovery
+        run: node scripts/deploy/cli.mjs deploy
+      - name: Retain deployment and recovery outcome
+        if: always()
+        uses: actions/upload-artifact@v7
         with:
-          azcliversion: latest
-          inlineScript: |
-            az containerapp update \
-              --name ${{ vars.AZURE_CLIENT_APP }} \
-              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-              --image ghcr.io/${{ github.repository }}/client:latest
+          name: deployment-${{ github.run_id }}-${{ github.run_attempt }}
+          path: deployment/*.json
+          if-no-files-found: warn
+          retention-days: 90

@@ -81,9 +81,9 @@ flowchart LR
    `release-deploy.yml`** they are pushed to `ghcr.io/<owner>/<repo>/{client,server,migrations}`, with existing tags and `type=gha` caching retained. The migrations image uses its database directory as context. Exact build digests and source/run identities are retained as artifacts, with unique build tags for image retention.
 5. **release** — `needs: build`, **`release-deploy.yml` only**.
    `pnpm --filter @e-commerce/server semantic-release` reads conventional commits and, when there is
-   something to release, updates `apps/server/CHANGELOG.md`, commits it back with
-   `chore(release): <version> [skip ci]` (the `[skip ci]` avoids a loop), and creates the git tag +
-   GitHub Release. GitHub Releases only, no npm publish. Config:
+   something to release, creates a Git tag and publishes generated notes in a GitHub Release.
+   It does not create a commit, update the repository changelog or rewrite package versions.
+   GitHub Releases only, no npm publish. Config:
    [`apps/server/.releaserc`](../apps/server/.releaserc).
 6. **deploy** authenticates through OIDC in the `production` environment. It persists verified predecessor identities, runs migrations by digest, then gates the intended server and client revisions on readiness and read-only HTTP checks. Failed rollout recovery is verified, but the release remains failed. See [deployment and recovery](deployment-recovery.md) for the first tagged-image transition, retained artifacts, probes and operator procedures. Production runs are serialised and restricted to `main`.
 
@@ -131,10 +131,10 @@ docker compose -f apps/server/docker-compose.yml build app       # same via comp
 
 ## Current state and limitations
 
-- **`main` is unprotected (by design, for now).** The `release` stage pushes the CHANGELOG/tag commit
-  straight to `main` using `GITHUB_TOKEN`. If branch protection that blocks direct pushes is added,
-  the release push needs a bypass (or drop the `@semantic-release/git` plugin so it only tags +
-  releases, no in-repo CHANGELOG commit).
+- **`main` remains protected.** Releases publish tags and GitHub release notes without generating
+  commits that would require a new set of branch checks. The historical repository changelog is
+  retained; future changelog edits must pass through a PR. Azure deployment remains enabled after
+  a successful release, subject to its existing gates and production environment policy.
 - **Characterisation gates PRs only.** The release workflow does not rerun the server's
   database-backed suite. Playwright browser E2E tests are not wired into either workflow.
 - **Live rollout verification remains distinct from tests.** `pnpm check` includes deterministic deployment checks. Actual production revision mode, probe configuration and recovery must be verified during an authorised rollout; implementation does not imply that deployment occurred.

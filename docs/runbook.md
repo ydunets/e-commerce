@@ -164,6 +164,10 @@ A separate negative startup probe supplies an invalid log level to the same prod
 
 The existing PR image matrix retains client, server and migrations. Its server job now loads and tests the final image without publishing it. Branch protection on `main` requires the GitHub Actions checks `validate`, `characterisation`, and `build (server, apps/server/Dockerfile, .)`, including for administrators, with the branch up to date before merging. The workflow also runs for documentation-only pull requests so required checks are never omitted by path filters. Bounded SIGTERM exit and in-flight request draining are distinct gates; the latter runs in the live characterisation regression. Application migration does not complete the digest-based deployment and recovery work in issue #98.
 
+### Production release and recovery
+
+For production approval, digest records, the first transition from tagged images, readiness gates or failed-release recovery, follow [Immutable deployment and recovery](deployment-recovery.md). Run `pnpm check:deployment` for its deterministic tests, which also execute within `pnpm check`. These tests do not deploy or verify live Azure configuration.
+
 ## 8. Stopping
 
 - `Ctrl+C` stops whatever `pnpm dev` / `pnpm api` started.

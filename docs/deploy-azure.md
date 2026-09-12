@@ -1,6 +1,6 @@
 # Deploy to Azure Container Apps
 
-How the storefront is deployed to Azure: the **client** (SSR) and **server** (Fastify API) run as
+How the storefront is deployed to Azure: the **client** (SSR) and **server** (Nest/Fastify API) run as
 two Azure Container Apps pulling images from GHCR, backed by a managed **PostgreSQL Flexible
 Server**. GitHub Actions publishes the images and rolls the apps via OIDC (no long-lived secrets).
 
@@ -26,7 +26,7 @@ So plan for **compute ≈ $0**, **DB ≈ free for 12 months, then ~$13/month**.
 
 ## Prerequisites
 
-- Azure CLI (`az`) logged in (`az login`), and you are **Owner** of the subscription (confirmed).
+- Azure CLI (`az`) authenticated to the intended subscription with the permissions needed for provisioning. Verify access; this guide is not evidence of the current login's permissions.
   Run `az upgrade` first: an outdated CLI rejects newer flags (e.g. `--database-name`,
   `--public-network-access`) with "unrecognized arguments".
 - The images exist in GHCR. They are published by the [`release-deploy.yml`](../.github/workflows/release-deploy.yml)
@@ -118,11 +118,12 @@ Container Apps must be able to pull the images. Pick one:
 
 The server gets **external ingress** for now (the client proxies to its public URL, which avoids
 internal-DNS setup). The DB password is stored as a Container Apps **secret**, not plain env.
+Before provisioning either app, set `SERVER_IMAGE` and `CLIENT_IMAGE` to the respective `image` values from trusted build artifacts. Both must be full `ghcr.io/...@sha256:...` references.
 
 ```bash
 az containerapp create \
   -n ecommerce-server -g $RG --environment $ENV \
-  --image ghcr.io/$REPO/server:latest \
+  --image "$SERVER_IMAGE" \
   --target-port 3000 --ingress external \
   --min-replicas 0 --max-replicas 2 \
   --secrets pg-password="$PG_PASS" \
@@ -145,7 +146,7 @@ curl -s "https://$SERVER_FQDN/health"     # expect {"status":"ok"}
 ```bash
 az containerapp create \
   -n ecommerce-client -g $RG --environment $ENV \
-  --image ghcr.io/$REPO/client:latest \
+  --image "$CLIENT_IMAGE" \
   --target-port 3000 --ingress external \
   --min-replicas 0 --max-replicas 2 \
   --env-vars API_URL=https://$SERVER_FQDN
@@ -189,8 +190,8 @@ Notes:
 - The image at create time is Microsoft's public quickstart placeholder: Container Apps validates
   the image manifest at create, and the `migrations` package may not exist in GHCR yet at
   provision time. Every deploy runs
-  `az containerapp job update --image ghcr.io/$REPO/migrations:sha-<commit>` before starting the
-  job, so executions always run the immutable tag of the commit being deployed.
+  `az containerapp job update` with the migration image's recorded digest before starting the
+  job, then verifies the specific execution's image and successful completion.
 - To run migrations manually (replaces the old laptop-based Step 3 flow for prod):
 
   ```bash
@@ -254,12 +255,10 @@ required reviewer so deploys wait for approval.
 On every push to `main`, [`release-deploy.yml`](../.github/workflows/release-deploy.yml) runs as a
 gated sequence (validate → security → build → release → deploy):
 
-1. The **build** stage pushes the `client`, `server`, and `migrations` images to GHCR (tags
-   `sha-<commit>` and `latest`).
-2. The **deploy** stage (after release) logs in via OIDC, points the `ecommerce-db-migrate` job at
-   `migrations:sha-<commit>` and runs it to completion (migrations + seeds execute inside Azure; a
-   failure blocks the rollout), then rolls each Container App to `:latest` (server first, then
-   client). Nothing deploys unless tests, security, the build, and the migration job all passed.
+1. The build stage publishes the existing three-image matrix and records each digest with its source commit, workflow run and attempt. Semantic-release continues to create versioned GitHub Releases.
+2. Deployment captures and retains both predecessor images before Azure updates. It runs migrations by digest, verifies the intended server revision and read-only product checks, then verifies client page delivery and its API proxy. A failed tier is restored and verified without marking the release successful.
+
+For approval prerequisites, the first transition from `latest`, probe configuration, artifact retention and recovery procedures, follow [Immutable deployment and recovery](deployment-recovery.md). Live platform configuration remains unverified until checked with an authorised production identity.
 
 See [ci-cd.md](ci-cd.md) for the full pipeline.
 
@@ -290,7 +289,6 @@ See [ci-cd.md](ci-cd.md) for the full pipeline.
   from `az containerapp show`), so the API is not publicly reachable.
 - **Least-privilege role:** scope the deploy service principal to the two Container Apps instead of
   the whole resource group.
-- **Deploy by digest** instead of `:latest` for fully immutable rollouts.
 - **Managed identity for DB:** replace the Postgres password with Entra/managed-identity auth.
 
 ## Ad-hoc DB access (debugging only)

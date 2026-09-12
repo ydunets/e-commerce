@@ -1,35 +1,34 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import makeListSpecificationsQuery, {
-  listSpecificationsQuery,
-} from './list-specifications.handler.js';
+import type { SpecificationRepository } from '#src/modules/specification/database/specification.repository.port';
+import type { SpecificationEntity } from '#src/modules/specification/domain/specification.types';
+import { ListSpecificationsHandler } from './list-specifications.handler.js';
+import { ListSpecificationsQuery } from './list-specifications.query.js';
 
-describe('listSpecificationsQuery handler', () => {
+describe('ListSpecificationsHandler', () => {
   it('passes the repository result through unchanged', async () => {
-    const specifications = [{ id: 'sustainability' }];
-    const specificationRepository = { findAll: async () => specifications };
+    const specifications: SpecificationEntity[] = [
+      {
+        id: 'sustainability',
+        label: 'Sustainability',
+        title: 'Eco-Friendly Choice',
+        description: 'Care for the planet.',
+        imageUrl: '/images/specifications/sustainability.jpg',
+        imageAlt: 'Yellow cashmere sweater',
+        features: [{ icon: 'recycle-line', label: 'Recycled Materials' }],
+      },
+    ];
+    const repository: SpecificationRepository = { findAll: async () => specifications };
+    const handler = new ListSpecificationsHandler(repository);
 
-    const { handler } = makeListSpecificationsQuery({ specificationRepository } as never);
-    const result = await handler({ payload: undefined } as never);
-
+    const result = await handler.execute(new ListSpecificationsQuery());
     assert.equal(result, specifications);
   });
 
   it('returns an empty list when no specifications exist', async () => {
-    const specificationRepository = { findAll: async () => [] };
+    const repository: SpecificationRepository = { findAll: async () => [] };
+    const handler = new ListSpecificationsHandler(repository);
 
-    const { handler } = makeListSpecificationsQuery({ specificationRepository } as never);
-
-    assert.deepEqual(await handler({ payload: undefined } as never), []);
-  });
-
-  it('registers itself on the query bus under its action type', () => {
-    const registered: string[] = [];
-    const queryBus = { register: (type: string) => void registered.push(type) };
-    const specificationRepository = { findAll: async () => [] };
-
-    makeListSpecificationsQuery({ queryBus, specificationRepository } as never).init();
-
-    assert.deepEqual(registered, [listSpecificationsQuery.type]);
+    assert.deepEqual(await handler.execute(new ListSpecificationsQuery()), []);
   });
 });

@@ -1,25 +1,21 @@
-import type { SpecificationEntity } from '#src/modules/specification/domain/specification.types';
-import { specificationActionCreator } from '#src/modules/specification/index';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types';
+import { Inject } from '@nestjs/common';
+import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import {
+  SPECIFICATION_REPOSITORY,
+  type SpecificationRepository,
+} from '#src/modules/specification/database/specification.repository.port';
+import {
+  ListSpecificationsQuery,
+  type ListSpecificationsResult,
+} from './list-specifications.query.js';
 
-export type ListSpecificationsResult = SpecificationEntity[];
+@QueryHandler(ListSpecificationsQuery)
+export class ListSpecificationsHandler implements IQueryHandler<ListSpecificationsQuery> {
+  constructor(
+    @Inject(SPECIFICATION_REPOSITORY) private readonly repository: SpecificationRepository,
+  ) {}
 
-export const listSpecificationsQuery = specificationActionCreator<void, ListSpecificationsResult>(
-  'list-all',
-);
-
-export default function makeListSpecificationsQuery({
-  queryBus,
-  specificationRepository,
-}: Dependencies) {
-  return {
-    async handler(
-      _query: HandlerAction<typeof listSpecificationsQuery>,
-    ): Promise<ListSpecificationsResult> {
-      return specificationRepository.findAll();
-    },
-    init() {
-      queryBus.register(listSpecificationsQuery.type, this.handler);
-    },
-  };
+  execute(_query: ListSpecificationsQuery): Promise<ListSpecificationsResult> {
+    return this.repository.findAll();
+  }
 }

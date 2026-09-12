@@ -64,7 +64,7 @@ export default async function createServer(
       dirNameRoutePrefix: false,
       options: { prefix: '/api' },
       ignoreFilter: (file) =>
-        ['newsletter', 'product', 'review'].some((feature) =>
+        ['newsletter', 'product', 'review', 'specification'].some((feature) =>
           file.includes(`${path.sep}${feature}${path.sep}`),
         ),
       matchFilter: (file) => /\.(route|resolver)\.js$/.test(file),

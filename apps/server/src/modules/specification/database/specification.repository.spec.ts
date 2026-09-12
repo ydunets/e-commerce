@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import specificationRepository from './specification.repository.js';
+import type { Database } from '#src/shared/db/tokens';
+import { PostgresSpecificationRepository } from './specification.repository.js';
 
 const TABLES = ['specifications', 'specification_features'] as const;
 
@@ -9,13 +10,13 @@ type Rows = Record<Table, unknown[]>;
 
 // The repository only issues tagged-template queries, so a fake tag that
 // serves canned rows per table pins its behaviour without a database.
-function fakeDb(rows: Partial<Rows>): Dependencies['db'] {
+function fakeDb(rows: Partial<Rows>): Database {
   return ((strings: TemplateStringsArray) => {
     const sql = strings.join('?');
     const table = TABLES.find((name) => sql.includes(`FROM ${name}`));
     if (!table) throw new Error(`Unexpected query: ${sql}`);
     return Promise.resolve(rows[table] ?? []);
-  }) as unknown as Dependencies['db'];
+  }) as unknown as Database;
 }
 
 // Rows arrive deliberately shuffled so the sort_order-based ordering is pinned.
@@ -57,14 +58,11 @@ const rows: Partial<Rows> = {
   ],
 };
 
-const findAllSpecifications = () =>
-  specificationRepository({ db: fakeDb(rows) } as unknown as Dependencies).findAll();
+const findAllSpecifications = () => new PostgresSpecificationRepository(fakeDb(rows)).findAll();
 
-describe('specificationRepository().findAll()', () => {
+describe('PostgresSpecificationRepository.findAll()', () => {
   it('returns an empty list when no specifications exist', async () => {
-    const repository = specificationRepository({
-      db: fakeDb({ specifications: [] }),
-    } as unknown as Dependencies);
+    const repository = new PostgresSpecificationRepository(fakeDb({ specifications: [] }));
     assert.deepEqual(await repository.findAll(), []);
   });
 

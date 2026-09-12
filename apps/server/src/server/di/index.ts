@@ -20,7 +20,7 @@ export async function di(fastify: FastifyInstance) {
     [
       path.join(
         import.meta.dirname,
-        '../../modules/{cart,specification}/**/*.{repository,mapper,service,domain}.{js,ts}',
+        '../../modules/cart/**/*.{repository,mapper,service,domain}.{js,ts}',
       ),
     ],
     {
@@ -34,12 +34,7 @@ export async function di(fastify: FastifyInstance) {
   );
 
   await diContainer.loadModules(
-    [
-      path.join(
-        import.meta.dirname,
-        '../../modules/{cart,specification}/**/*.{handler,event-handler}.{js,ts}',
-      ),
-    ],
+    [path.join(import.meta.dirname, '../../modules/cart/**/*.{handler,event-handler}.{js,ts}')],
     {
       formatName,
       esModules: true,

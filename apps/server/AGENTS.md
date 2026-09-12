@@ -26,15 +26,14 @@ Always run `pnpm check` after making changes. If formatting fails, run `pnpm for
 
 ### Migration boundary
 
-Newsletter, product and review are Nest features. Their controllers, decorated handlers,
+Newsletter, product, review and specification are Nest features. Their controllers, decorated handlers,
 symbol-token repositories and plain mappers are registered through feature modules.
 Import the non-global `SharedModule` explicitly for configuration, the existing
 singleton pool and `ApplicationDispatcher`. Preserve command prototypes when
 enriching metadata. Nest CQRS performs handler registration.
 
-Cart and specification retain the legacy conventions below.
-Their routes and error handler share one encapsulated Fastify scope, and only these
-features are eligible for Awilix autoloading. The initialized application factory
+Cart retains the legacy conventions below. Its routes and error handler share one
+encapsulated Fastify scope, and only cart is eligible for Awilix autoloading. The initialized application factory
 returns `NestFastifyApplication`; retain its HTTP `inject()` seam in tests.
 
 Product details dispatch review-summary queries through ApplicationDispatcher;

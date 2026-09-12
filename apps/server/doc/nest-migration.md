@@ -1,7 +1,7 @@
 # Nest migration boundary
 
-Newsletter subscriptions, product queries and reviews now pass through Nest on the existing Fastify instance.
-Cart and specification remain encapsulated legacy features.
+Newsletter subscriptions, products, reviews and specifications now pass through
+Nest on the existing Fastify instance. Cart is the only remaining legacy feature.
 Both dependency systems receive the existing singleton Postgres pool. The shared
 Nest module is explicitly imported and is not global.
 
@@ -48,6 +48,16 @@ validation paths, and cart stock conflicts with details. The database cascade
 removes a cart line when its inventory row is deleted, so a later update retains
 the cart-line not-found outcome rather than reaching an inventory lookup for that
 deleted line.
+
+## Specification catalogue
+
+The specification controller dispatches a typed Nest query to feature-local
+providers. The repository preserves the existing SQL and display-order mapping;
+the plain response mapper preserves the stable seeded identifiers and shape.
+Specification factories and routes are excluded from every legacy loader.
+The cart inventory adapter and intermediate Swagger generator remain unchanged.
+The production image gate reads product details, both review routes and the
+specification catalogue together, and checks their documentation paths.
 
 ## Telemetry compatibility
 

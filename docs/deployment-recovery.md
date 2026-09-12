@@ -32,6 +32,16 @@ Azure's revision template can contain a tag rather than the digest actually pull
 
 Provide the equivalent `client` entry when its predecessor is tagged. The workflow validates app, revision and digest format, but the operator is responsible for the evidence's authenticity. Once both apps run digest references, this variable is unnecessary and can be removed. Stale evidence cannot satisfy a different revision. The workflow rechecks predecessors after artifact upload and before migrations.
 
+### Manual bootstrap when historical evidence is unavailable
+
+Obtain explicit approval for an initial deployment without automatic rollback for any unverified tagged predecessor. In GitHub Actions, select **Release & Deploy**, choose **Run workflow** on `main`, and enable `bootstrap_without_verified_rollback`. Leave this input disabled for ordinary releases. A push cannot enable this exception, and a bootstrap is rejected when both predecessors already have verified digests.
+
+The predecessor receipt records the initiating actor, the affected roles, their original revisions and tag references, and `image: null` for each unavailable rollback image. The workflow never resolves today's tag to manufacture historical evidence. Invalid supplied evidence still fails validation. Verified predecessors continue to receive recovery retention tags and automatic recovery. The receipt must be uploaded before migration or application updates.
+
+Migration, revision, readiness and read-only HTTP gates remain mandatory. If an affected tier fails and its predecessor digest is unknown, deployment stops with `recovery.status: unavailable`; the operator must inspect current traffic, revision logs and the saved receipt before deciding on recovery. A server failure prevents the client update. A client failure leaves the verified server deployed. Do not restore a mutable tag or reverse database migrations automatically.
+
+After both tiers pass verification with immutable images, use ordinary releases without the bootstrap input or predecessor evidence. If only one tier completed the transition, a separately approved manual bootstrap can address the remaining tagged tier. Rerun the entire workflow so build identities belong to the new attempt.
+
 ## Authorised rollout gates
 
 Production runs are serialised, restricted to `main`, and subject to the existing `production` environment approval policy. Do not edit app configuration or run parallel manual deployments during a rollout.

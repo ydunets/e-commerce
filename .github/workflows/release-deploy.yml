@@ -7,6 +7,12 @@ on:
       - 'docs/**'
       - '**/*.md'
   workflow_dispatch:
+    inputs:
+      bootstrap_without_verified_rollback:
+        description: 'First digest deployment: acknowledge no automatic rollback for unverified tagged predecessors'
+        type: boolean
+        required: false
+        default: false
 
 # Serialize production releases, including manual dispatches; never cancel a rollout.
 concurrency:
@@ -137,6 +143,7 @@ jobs:
       AZURE_SERVER_APP: ${{ vars.AZURE_SERVER_APP }}
       AZURE_CLIENT_APP: ${{ vars.AZURE_CLIENT_APP }}
       PREDECESSOR_IMAGES: ${{ vars.PREDECESSOR_IMAGES }}
+      BOOTSTRAP_WITHOUT_VERIFIED_ROLLBACK: ${{ github.event_name == 'workflow_dispatch' && inputs.bootstrap_without_verified_rollback }}
     steps:
       - name: Checkout the exact built source
         uses: actions/checkout@v7
@@ -166,7 +173,7 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      - name: Capture and retain verified predecessors
+      - name: Capture predecessors and record any bootstrap limitation
         run: node scripts/deploy/cli.mjs prepare
       - name: Persist recovery evidence before any Azure update
         uses: actions/upload-artifact@v7

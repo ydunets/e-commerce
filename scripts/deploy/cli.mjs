@@ -23,11 +23,13 @@ try {
     assert.equal(env.GITHUB_REF, 'refs/heads/main', 'Production deployment is restricted to main');
     const records = await Promise.all(IMAGE_APPS.map((app) => readJson(`${OUTPUT}/images/${app}.json`)));
     const images = releaseImages(records, identity);
-    const config = { ...identity, group: env.AZURE_RESOURCE_GROUP, apps: { server: env.AZURE_SERVER_APP, client: env.AZURE_CLIENT_APP }, evidence: JSON.parse(env.PREDECESSOR_IMAGES || '{}') };
+    const config = { ...identity, group: env.AZURE_RESOURCE_GROUP, apps: { server: env.AZURE_SERVER_APP, client: env.AZURE_CLIENT_APP }, evidence: JSON.parse(env.PREDECESSOR_IMAGES || '{}'), bootstrap: env.BOOTSTRAP_WITHOUT_VERIFIED_ROLLBACK === 'true', event: env.GITHUB_EVENT_NAME, actor: env.GITHUB_ACTOR };
     assert.ok(config.group && config.apps.server && config.apps.client, 'Production Azure variables are required');
     const platform = azurePlatform(config);
     if (command === 'prepare') {
-      await save(PREDECESSORS, await prepare(config, images, platform));
+      const receipt = await prepare(config, images, platform);
+      await save(PREDECESSORS, receipt);
+      if (receipt.bootstrap) console.warn(`Bootstrap acknowledged by ${receipt.bootstrap.actor}: automatic rollback unavailable for ${receipt.bootstrap.withoutRollback.join(', ')}`);
     } else {
       const receipt = await readJson(PREDECESSORS);
       assert.deepEqual(receipt.identity, identity, 'Predecessor receipt belongs to another release');

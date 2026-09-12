@@ -29,7 +29,14 @@ async function predecessor(config, role, platform) {
   return { app, revision };
 }
 
+function authorizeBootstrap(config) {
+  assert.equal(config.bootstrap, true, 'Bootstrap requires explicit acknowledgement of unavailable rollback');
+  assert.equal(config.event, 'workflow_dispatch', 'Bootstrap requires a manual workflow dispatch');
+  assert.ok(config.actor?.trim(), 'Bootstrap requires an identified operator');
+}
+
 export async function prepare(config, images, platform) {
+  if (config.bootstrap) authorizeBootstrap(config);
   const previous = {};
   for (const role of ROLES) {
     const { app, revision } = await predecessor(config, role, platform);
@@ -38,16 +45,24 @@ export async function prepare(config, images, platform) {
     let evidence;
     if (!reference.includes('@')) {
       evidence = config.evidence?.[role];
-      assert.ok(evidence?.app === app.name && evidence?.revision === revision.name &&
-        evidence?.evidence?.trim() && evidence?.verifiedBy?.trim(),
-      `${role}: verified predecessor evidence is required for this tagged revision; never resolve today's latest`);
-      image = evidence.image;
+      if (config.bootstrap && evidence === undefined) {
+        image = null;
+      } else {
+        assert.ok(evidence?.app === app.name && evidence?.revision === revision.name &&
+          evidence?.evidence?.trim() && evidence?.verifiedBy?.trim(),
+        `${role}: verified predecessor evidence is required for this tagged revision; never resolve today's latest`);
+        image = immutableImage(evidence.image, config.repository, role);
+      }
     }
-    immutableImage(image, config.repository, role);
+    if (image !== null) immutableImage(image, config.repository, role);
     previous[role] = { app: app.name, revision: revision.name, reference, image, evidence };
   }
-  for (const role of ROLES) await platform.retain(previous[role].image, role);
-  return { identity: { repository: config.repository, commit: config.commit, run: config.run, attempt: config.attempt }, images, previous, status: 'prepared', outcomes: {} };
+  const bootstrap = config.bootstrap ? { actor: config.actor, withoutRollback: ROLES.filter((role) => previous[role].image === null) } : undefined;
+  if (bootstrap) assert.ok(bootstrap.withoutRollback.length, 'Bootstrap is unnecessary; use a normal release');
+  for (const role of ROLES) {
+    if (previous[role].image !== null) await platform.retain(previous[role].image, role);
+  }
+  return { identity: { repository: config.repository, commit: config.commit, run: config.run, attempt: config.attempt }, images, previous, bootstrap, status: 'prepared', outcomes: {} };
 }
 
 async function updateAndVerify(config, role, previous, image, suffix, platform) {
@@ -95,6 +110,14 @@ async function updateAndVerify(config, role, previous, image, suffix, platform) 
 
 export async function deploy(config, receipt, platform) {
   receipt.status = 'failed';
+  const withoutRollback = ROLES.filter((role) => receipt.previous[role].image === null);
+  if (config.bootstrap || receipt.bootstrap || withoutRollback.length) {
+    authorizeBootstrap(config);
+    assert.deepEqual(receipt.bootstrap, { actor: config.actor, withoutRollback }, 'Bootstrap receipt does not match manual approval');
+  }
+  for (const role of ROLES) {
+    if (!withoutRollback.includes(role)) immutableImage(receipt.previous[role].image, config.repository, role);
+  }
   for (const role of ROLES) {
     const { app, revision } = await predecessor(config, role, platform);
     const saved = receipt.previous[role];
@@ -108,6 +131,10 @@ export async function deploy(config, receipt, platform) {
     } catch (error) {
       const outcome = { status: 'failed', error: error.message, recovery: undefined };
       receipt.outcomes[role] = outcome;
+      if (receipt.previous[role].image === null) {
+        outcome.recovery = { status: 'unavailable', revision: receipt.previous[role].revision };
+        throw new Error(`${role}: automatic recovery unavailable after bootstrap; manual intervention required for ${receipt.previous[role].app}. Inspect the saved predecessor revision ${receipt.previous[role].revision} and current traffic. Original failure: ${error.message}`);
+      }
       try {
         outcome.recovery = await updateAndVerify(config, role, receipt.previous[role], receipt.previous[role].image, `recover${config.run}-${config.attempt}`, platform);
       } catch (recoveryError) {

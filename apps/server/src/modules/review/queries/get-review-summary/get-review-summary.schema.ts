@@ -1,8 +1,10 @@
-import { Type } from 'typebox';
+import { z } from 'zod';
 
-export const getReviewSummaryParamsSchema = Type.Object({
-  productId: Type.String({
+export const getReviewSummaryParamsSchema = z.object({
+  productId: z.string().meta({
     example: 'autumnal-knitwear',
     description: 'Product identifier (slug)',
   }),
 });
+
+export type ReviewParams = z.infer<typeof getReviewSummaryParamsSchema>;

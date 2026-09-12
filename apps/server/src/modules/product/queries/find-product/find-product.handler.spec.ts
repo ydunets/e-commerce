@@ -30,21 +30,23 @@ const repository: ProductRepository = {
 };
 
 describe('FindProductHandler', () => {
-  it('composes the review summary through the raw query bus', async () => {
+  it('composes the review summary through the application dispatcher', async () => {
+    const metadata = { correlationId: 'product-reviews', timestamp: 123 };
     const handler = new FindProductHandler(repository, {
-      async execute(query: GetReviewSummaryQuery) {
+      async query(query: GetReviewSummaryQuery) {
         assert.ok(query instanceof GetReviewSummaryQuery);
         assert.deepEqual(query.payload, { productId: 'test-cap' });
+        assert.equal(query.meta, metadata);
         return { total: 12, average: 4.25, distribution: { 1: 0, 2: 0, 3: 1, 4: 5, 5: 6 } };
       },
     });
-    const result = await handler.execute(new FindProductQuery({ id: 'test-cap' }));
+    const result = await handler.execute(new FindProductQuery({ id: 'test-cap' }, metadata));
     assert.deepEqual(result.reviews, { count: 12, average: 4.25 });
   });
 
   it('throws the established domain not-found error when the product does not exist', async () => {
     const handler = new FindProductHandler(repository, {
-      async execute() {
+      async query() {
         return { total: 0, average: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } };
       },
     });

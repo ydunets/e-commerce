@@ -163,6 +163,13 @@ try {
   );
   assert.equal(detail.reviews, reviewSummary.total);
   assert.equal(detail.rating, reviewSummary.average);
+  const reviews = await readJson(
+    `${origin}/api/v1/products/${encodeURIComponent(detail.product_id)}/reviews?limit=2`,
+  );
+  assert.equal(reviews.count, reviewSummary.total);
+  assert.equal(reviews.limit, 2);
+  assert.equal(reviews.page, 0);
+  assert.equal(reviews.data.length, Math.min(2, reviewSummary.total));
   const inventory = detail.inventory.find((item) => item.stock > 0);
   assert.ok(inventory);
   const added = await fetch(`${origin}/api/v1/carts/items`, {

@@ -26,22 +26,23 @@ Always run `pnpm check` after making changes. If formatting fails, run `pnpm for
 
 ### Migration boundary
 
-Newsletter and product are Nest features. Their controllers, decorated handlers,
+Newsletter, product and review are Nest features. Their controllers, decorated handlers,
 symbol-token repositories and plain mappers are registered through feature modules.
 Import the non-global `SharedModule` explicitly for configuration, the existing
 singleton pool and `ApplicationDispatcher`. Preserve command prototypes when
 enriching metadata. Nest CQRS performs handler registration.
 
-Cart, review and specification retain the legacy conventions below.
+Cart and specification retain the legacy conventions below.
 Their routes and error handler share one encapsulated Fastify scope, and only these
 features are eligible for Awilix autoloading. The initialized application factory
 returns `NestFastifyApplication`; retain its HTTP `inject()` seam in tests.
 
-Product details call the raw Nest query bus for the temporary review-summary
-adapter. Legacy cart stock queries forward to the raw Nest inventory query handler.
-Legacy middleware owns instrumentation on both bridges. Startup captures the
-actual legacy bus and connects both adapters before returning the application.
-Review removes its adapter when it migrates; cart removes the stock adapter.
+Product details dispatch review-summary queries through ApplicationDispatcher;
+the real review handler is the only Nest registration for that query. Legacy cart
+stock queries still forward to the raw Nest inventory query handler. Legacy
+middleware owns instrumentation on that bridge. Startup captures the actual legacy
+bus and connects the inventory adapter before returning the application.
+Cart removes the stock adapter when it migrates.
 
 Nest owns signal handling. Fastify drains requests and closes the singleton pool
 through its close hook. Keep the live tracing/draining regression and production

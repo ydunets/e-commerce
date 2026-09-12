@@ -16,7 +16,6 @@ import { closeDbConnection, getDb } from '#src/shared/db/postgres';
 import { createValidationPipe } from '#src/shared/nest/validation';
 import { AppModule } from './app.module.js';
 import { connectInventoryQuery } from './migration/inventory-query.adapter.js';
-import { LegacyReviewSummaryHandler } from './migration/legacy-review-summary.handler.js';
 import cqrs from './plugins/cqrs.js';
 import errorHandler from './plugins/error-handler.js';
 import requestContext from './plugins/request-context.js';
@@ -65,7 +64,7 @@ export default async function createServer(
       dirNameRoutePrefix: false,
       options: { prefix: '/api' },
       ignoreFilter: (file) =>
-        ['newsletter', 'product'].some((feature) =>
+        ['newsletter', 'product', 'review'].some((feature) =>
           file.includes(`${path.sep}${feature}${path.sep}`),
         ),
       matchFilter: (file) => /\.(route|resolver)\.js$/.test(file),
@@ -94,7 +93,6 @@ export default async function createServer(
   app.useGlobalPipes(createValidationPipe());
   await app.init();
   if (!legacyQueries) throw new Error('Legacy query bus was not initialized');
-  app.get(LegacyReviewSummaryHandler).connect(legacyQueries);
   connectInventoryQuery(legacyQueries, app.get(QueryBus));
   await fastify.ready();
   return app;

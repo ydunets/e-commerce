@@ -16,6 +16,7 @@ const DATABASE_PORT = 5432;
 const SERVER_PORT = 3000;
 const STATUS_OK = 200;
 const STATUS_CONFLICT = 409;
+const SPECIFICATIONS_PATH = '/api/v1/specifications';
 const STARTUP_TIMEOUT_MS = 30_000;
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 const POLL_INTERVAL_MS = 250;
@@ -163,6 +164,19 @@ try {
   );
   assert.equal(detail.reviews, reviewSummary.total);
   assert.equal(detail.rating, reviewSummary.average);
+  const reviews = await readJson(
+    `${origin}/api/v1/products/${encodeURIComponent(detail.product_id)}/reviews?limit=2`,
+  );
+  assert.equal(reviews.count, reviewSummary.total);
+  assert.equal(reviews.limit, 2);
+  assert.equal(reviews.page, 0);
+  assert.equal(reviews.data.length, Math.min(2, reviewSummary.total));
+  const specifications = await readJson(`${origin}${SPECIFICATIONS_PATH}`);
+  assert.deepEqual(
+    specifications.map((specification) => specification.specification_id),
+    ['sustainability', 'comfort', 'durability', 'versatility'],
+  );
+  assert.ok(specifications.every((specification) => specification.features.length > 0));
   const inventory = detail.inventory.find((item) => item.stock > 0);
   assert.ok(inventory);
   const added = await fetch(`${origin}/api/v1/carts/items`, {
@@ -205,6 +219,15 @@ try {
   const documentation = await readJson(`${origin}/api-docs/json`);
   assert.ok(documentation.paths['/api/v1/newsletter/subscriptions'].post);
   assert.ok(documentation.paths['/health'].get);
+  for (const path of [
+    '/api/v1/products',
+    '/api/v1/products/{id}',
+    '/api/v1/products/{productId}/reviews',
+    '/api/v1/products/{productId}/reviews/summary',
+    SPECIFICATIONS_PATH,
+  ]) {
+    assert.ok(documentation.paths[path].get, path);
+  }
 
   await docker(
     'exec',
@@ -281,7 +304,7 @@ try {
     );
   }
   process.stdout.write(
-    'Production image passed health, product reads, newsletter subscriptions, hybrid documentation, packaging, bounded SIGTERM exit and invalid-configuration rejection before listening.\n',
+    'Production image passed health, product/review/specification reads, newsletter subscriptions, hybrid documentation, packaging, bounded SIGTERM exit and invalid-configuration rejection before listening.\n',
   );
 } catch (error) {
   if (ownedContainers.includes(server)) {

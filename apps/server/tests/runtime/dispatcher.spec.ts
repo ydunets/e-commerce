@@ -6,12 +6,14 @@ import {
   SubscribeCommand,
   SubscribedEvent,
 } from '#src/modules/newsletter/commands/subscribe/subscribe.handler';
+import { GetReviewSummaryQuery } from '#src/modules/review/queries/get-review-summary/get-review-summary.query';
 import { ApplicationDispatcher } from '#src/shared/nest/dispatcher';
 
 it('preserves action prototypes and caller metadata without mutating the original', async () => {
   const stop = new Error('bus reached');
   let dispatched: unknown;
   let published: unknown;
+  let queried: unknown;
   const host = new HttpAdapterHost();
   host.httpAdapter = new FastifyAdapter();
   const dispatcher = new ApplicationDispatcher(
@@ -28,7 +30,8 @@ it('preserves action prototypes and caller metadata without mutating the origina
     },
     host,
     {
-      async execute() {
+      async execute(query: unknown) {
+        queried = query;
         throw stop;
       },
     },
@@ -40,6 +43,12 @@ it('preserves action prototypes and caller metadata without mutating the origina
   assert.notEqual(dispatched, command);
   assert.deepEqual(dispatched.meta, metadata);
   assert.equal(command.meta, metadata);
+  const query = new GetReviewSummaryQuery({ productId: 'test-cap' }, metadata);
+  await assert.rejects(dispatcher.query(query), (error) => error === stop);
+  assert.ok(queried instanceof GetReviewSummaryQuery);
+  assert.notEqual(queried, query);
+  assert.deepEqual(queried.meta, metadata);
+  assert.equal(query.meta, metadata);
   const event = new SubscribedEvent({ subscriberId: 'subscriber', email: 'jane@example.com' });
   dispatcher.publish(event);
   assert.ok(published instanceof SubscribedEvent);

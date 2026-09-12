@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { Given, Then, When } from '@cucumber/cucumber';
+import { randomUUID } from 'node:crypto';
+import { After, Given, Then, When } from '@cucumber/cucumber';
 import type {
   ProductListItemDto,
   ReviewResponseDto,
@@ -13,16 +14,54 @@ const MAX_PAGE_SIZE = 100;
 const MINIMUM_REVIEW_COUNT = 4;
 const RATINGS = [1, 2, 3, 4, 5] as const;
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const OWNED_PRODUCT_PREFIX = 'char-review-';
 
 interface ReviewContext {
   reviewsUrl: string;
   reviews: ReviewResponseDto[];
   selectedRating: number;
+  ownedProductId?: string;
 }
 
 function reviewContext(world: ICustomWorld): ReviewContext {
   return world.context as unknown as ReviewContext;
 }
+
+Given('an isolated product without reviews', async function (this: ICustomWorld) {
+  const productId = `${OWNED_PRODUCT_PREFIX}${randomUUID()}`;
+  reviewContext(this).ownedProductId = productId;
+  const rows = await this.db`
+    INSERT INTO products (product_id, name, description, category, collection)
+    SELECT ${productId}, name, description, category, collection FROM products
+    ORDER BY product_id LIMIT 1
+    RETURNING product_id
+  `;
+  assert.equal(rows.length, 1);
+  Object.assign(reviewContext(this), {
+    reviewsUrl: `${PRODUCTS_URL}/${productId}/reviews`,
+    reviews: [],
+  });
+});
+
+After({ tags: '@review' }, async function (this: ICustomWorld) {
+  const productId = reviewContext(this).ownedProductId;
+  if (!productId) return;
+  assert.ok(productId.startsWith(OWNED_PRODUCT_PREFIX));
+  await this.db`DELETE FROM products WHERE product_id = ${productId}`;
+});
+
+Then(
+  'the review page uses limit {int} and page {float} starting at offset {int}',
+  function (this: ICustomWorld, limit: number, page: number, offset: number) {
+    assert.equal(this.context.latestResponse!.statusCode, STATUS_OK);
+    assert.deepEqual(this.context.latestResponse!.json(), {
+      count: reviewContext(this).reviews.length,
+      page,
+      limit,
+      data: reviewContext(this).reviews.slice(offset, offset + limit),
+    });
+  },
+);
 
 Given(
   'a seeded product with several reviews of different ratings',
@@ -138,6 +177,6 @@ Then(
       );
     }
     const publishedRatingTotal = reviews.reduce((total, review) => total + review.rating, 0);
-    assert.equal(summary.average, publishedRatingTotal / reviews.length);
+    assert.equal(summary.average, reviews.length === 0 ? 0 : publishedRatingTotal / reviews.length);
   },
 );

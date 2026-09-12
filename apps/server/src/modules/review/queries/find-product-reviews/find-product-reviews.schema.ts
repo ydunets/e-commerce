@@ -1,26 +1,22 @@
-import { Type } from 'typebox';
+import { z } from 'zod';
 import { paginatedQueryRequestProperties } from '#src/shared/api/paginated-query.request.dto';
+import { numericQueryValue } from '#src/shared/api/query-value';
 
-export const findProductReviewsParamsSchema = Type.Object({
-  productId: Type.String({
-    example: 'autumnal-knitwear',
-    description: 'Product identifier (slug)',
-  }),
+export { getReviewSummaryParamsSchema as findProductReviewsParamsSchema } from '../get-review-summary/get-review-summary.schema.js';
+
+const MIN_RATING = 1;
+const MAX_RATING = 5;
+
+// Like the legacy validator, the object schema strips unknown query keys.
+export const findProductReviewsQuerySchema = z.object({
+  ...paginatedQueryRequestProperties,
+  rating: z.preprocess(
+    numericQueryValue,
+    z.int().min(MIN_RATING).max(MAX_RATING).optional().meta({
+      example: 5,
+      description: 'Filter reviews by star rating',
+    }),
+  ),
 });
 
-// additionalProperties: false + Fastify's removeAdditional strip unknown query
-// keys so they can never reach the action payload (and the SQL) unvalidated.
-export const findProductReviewsQuerySchema = Type.Object(
-  {
-    ...paginatedQueryRequestProperties,
-    rating: Type.Optional(
-      Type.Integer({
-        minimum: 1,
-        maximum: 5,
-        example: 5,
-        description: 'Filter reviews by star rating',
-      }),
-    ),
-  },
-  { additionalProperties: false },
-);
+export type FindProductReviewsQuerystring = z.infer<typeof findProductReviewsQuerySchema>;

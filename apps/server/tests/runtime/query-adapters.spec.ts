@@ -4,15 +4,9 @@ import {
   GetInventoryStockQuery,
   getInventoryStockQuery,
 } from '#src/modules/product/queries/get-inventory-stock/get-inventory-stock.query';
-import {
-  GetReviewSummaryQuery,
-  getReviewSummaryQuery,
-} from '#src/modules/review/queries/get-review-summary/get-review-summary.query';
 import { connectInventoryQuery } from '#src/server/migration/inventory-query.adapter';
-import { LegacyReviewSummaryHandler } from '#src/server/migration/legacy-review-summary.handler';
 import { decorateCommandWithMetadata } from '#src/shared/cqrs/middlewares';
 import { createRequestBus } from '#src/shared/cqrs/request-bus';
-import { NotFoundException } from '#src/shared/exceptions/index';
 
 it('forwards legacy inventory lookups without losing class identity, metadata, undefined or exceptions', async () => {
   const legacy = createRequestBus('Query');
@@ -47,32 +41,5 @@ it('forwards legacy inventory lookups without losing class identity, metadata, u
         },
       }),
     /already registered/,
-  );
-});
-
-it('forwards review results, metadata and domain exceptions across the temporary adapter', async () => {
-  const handler = new LegacyReviewSummaryHandler();
-  await assert.rejects(
-    handler.execute(new GetReviewSummaryQuery({ productId: 'cap' })),
-    /not connected/,
-  );
-  const bus = createRequestBus('Query');
-  const summary = { total: 2, average: 4.5, distribution: { 1: 0, 2: 0, 3: 0, 4: 1, 5: 1 } };
-  const metadata = { correlationId: 'review-adapter', timestamp: 123 };
-  const missing = new NotFoundException('Product missing not found');
-  bus.register<{ productId: string }>(getReviewSummaryQuery.type, async (action) => {
-    assert.deepEqual(action.meta, metadata);
-    if (action.payload.productId === 'missing') throw missing;
-    assert.equal(action.payload.productId, 'cap');
-    return summary;
-  });
-  handler.connect(bus);
-  assert.equal(
-    await handler.execute(new GetReviewSummaryQuery({ productId: 'cap' }, metadata)),
-    summary,
-  );
-  await assert.rejects(
-    handler.execute(new GetReviewSummaryQuery({ productId: 'missing' }, metadata)),
-    (error) => error === missing,
   );
 });

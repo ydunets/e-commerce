@@ -1,8 +1,10 @@
+import { Inject, Injectable } from '@nestjs/common';
 import type { SpecificationRepository } from '#src/modules/specification/database/specification.repository.port';
 import type {
   SpecificationEntity,
   SpecificationFeature,
 } from '#src/modules/specification/domain/specification.types';
+import { DATABASE, type Database } from '#src/shared/db/tokens';
 
 interface SpecificationRow {
   specification_id: string;
@@ -23,26 +25,27 @@ interface FeatureRow {
 
 const bySortOrder = <T extends { sort_order: number }>(a: T, b: T) => a.sort_order - b.sort_order;
 
-export default function specificationRepository({ db }: Dependencies): SpecificationRepository {
-  return {
-    async findAll(): Promise<SpecificationEntity[]> {
-      const specifications: SpecificationRow[] =
-        await db`SELECT specification_id, label, title, description, image_url, image_alt, sort_order FROM specifications`;
-      const features: FeatureRow[] =
-        await db`SELECT specification_id, icon, label, sort_order FROM specification_features`;
+@Injectable()
+export class PostgresSpecificationRepository implements SpecificationRepository {
+  constructor(@Inject(DATABASE) private readonly db: Database) {}
+  async findAll(): Promise<SpecificationEntity[]> {
+    const db = this.db;
+    const specifications: SpecificationRow[] =
+      await db`SELECT specification_id, label, title, description, image_url, image_alt, sort_order FROM specifications`;
+    const features: FeatureRow[] =
+      await db`SELECT specification_id, icon, label, sort_order FROM specification_features`;
 
-      return specifications.toSorted(bySortOrder).map((specification) => ({
-        id: specification.specification_id,
-        label: specification.label,
-        title: specification.title,
-        description: specification.description,
-        imageUrl: specification.image_url,
-        imageAlt: specification.image_alt,
-        features: features
-          .filter((feature) => feature.specification_id === specification.specification_id)
-          .toSorted(bySortOrder)
-          .map((feature) => ({ icon: feature.icon, label: feature.label })),
-      }));
-    },
-  };
+    return specifications.toSorted(bySortOrder).map((specification) => ({
+      id: specification.specification_id,
+      label: specification.label,
+      title: specification.title,
+      description: specification.description,
+      imageUrl: specification.image_url,
+      imageAlt: specification.image_alt,
+      features: features
+        .filter((feature) => feature.specification_id === specification.specification_id)
+        .toSorted(bySortOrder)
+        .map((feature) => ({ icon: feature.icon, label: feature.label })),
+    }));
+  }
 }

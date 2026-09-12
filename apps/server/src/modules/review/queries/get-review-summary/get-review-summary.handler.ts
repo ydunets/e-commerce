@@ -1,20 +1,18 @@
+import { Inject } from '@nestjs/common';
+import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import {
+  REVIEW_REPOSITORY,
+  type ReviewRepository,
+} from '#src/modules/review/database/review.repository.port';
 import { ensureProductExists } from '#src/modules/review/queries/ensure-product-exists';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types';
+import { GetReviewSummaryQuery, type GetReviewSummaryResult } from './get-review-summary.query.js';
 
-import { type GetReviewSummaryResult, getReviewSummaryQuery } from './get-review-summary.query.js';
+@QueryHandler(GetReviewSummaryQuery)
+export class GetReviewSummaryHandler implements IQueryHandler<GetReviewSummaryQuery> {
+  constructor(@Inject(REVIEW_REPOSITORY) private readonly repository: ReviewRepository) {}
 
-export { getReviewSummaryQuery } from './get-review-summary.query.js';
-
-export default function makeGetReviewSummaryQuery({ queryBus, reviewRepository }: Dependencies) {
-  return {
-    async handler({
-      payload,
-    }: HandlerAction<typeof getReviewSummaryQuery>): Promise<GetReviewSummaryResult> {
-      await ensureProductExists(reviewRepository, payload.productId);
-      return reviewRepository.getSummary(payload.productId);
-    },
-    init() {
-      queryBus.register(getReviewSummaryQuery.type, this.handler);
-    },
-  };
+  async execute({ payload }: GetReviewSummaryQuery): Promise<GetReviewSummaryResult> {
+    await ensureProductExists(this.repository, payload.productId);
+    return this.repository.getSummary(payload.productId);
+  }
 }

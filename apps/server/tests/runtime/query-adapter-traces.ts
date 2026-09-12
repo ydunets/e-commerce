@@ -17,8 +17,14 @@ export interface ExportedSpan {
 
 const PRODUCTS_PATH = '/api/v1/products';
 const CARTS_PATH = '/api/v1/carts';
+const SPECIFICATIONS_PATH = '/api/v1/specifications';
 const DEADLINE_MS = 15_000;
 const POLL_MS = 25;
+const CONTROLLERS: Record<string, string> = {
+  product: 'ProductController',
+  review: 'ReviewController',
+  specification: 'SpecificationController',
+};
 
 function assertForwardedQuery(
   actions: ExportedSpan[],
@@ -91,11 +97,12 @@ export async function verifyQueryAdapters(
     if (bridgedAction) {
       assertForwardedQuery(actions, parent, bridgedAction, logs().slice(logOffset));
     }
-    // Migrated product requests retain their Nest controller ancestor.
-    if (parentAction.startsWith('product/')) {
+    // Migrated reads retain their Nest controller ancestor.
+    const controller = CONTROLLERS[parentAction.split('/')[0]];
+    if (controller) {
       assert.ok(
         spans.some(
-          (span) => span.traceId === parent.traceId && span.name.startsWith('ProductController.'),
+          (span) => span.traceId === parent.traceId && span.name.startsWith(`${controller}.`),
         ),
       );
     }
@@ -103,6 +110,14 @@ export async function verifyQueryAdapters(
   }
 
   try {
+    const specifications = await request(SPECIFICATIONS_PATH, {}, 'specification/list-all');
+    assert.equal(specifications.status, HttpStatus.OK);
+    assert.deepEqual(
+      specifications.body.map(
+        (specification: { specification_id: string }) => specification.specification_id,
+      ),
+      ['sustainability', 'comfort', 'durability', 'versatility'],
+    );
     const listing = await request(`${PRODUCTS_PATH}?limit=1`, {}, 'product/list');
     assert.equal(listing.status, HttpStatus.OK);
     const [listed] = listing.body as ProductListItemDto[];
@@ -115,12 +130,22 @@ export async function verifyQueryAdapters(
     );
     assert.equal(details.status, HttpStatus.OK);
     const product = details.body as ProductResponseDto;
-    const summary = await fetch(`${origin}${PRODUCTS_PATH}/${listed.product_id}/reviews/summary`, {
-      signal: AbortSignal.timeout(DEADLINE_MS),
-    });
-    const review = await summary.json();
+    const summary = await request(
+      `${PRODUCTS_PATH}/${listed.product_id}/reviews/summary`,
+      {},
+      'review/get-summary',
+    );
+    assert.equal(summary.status, HttpStatus.OK);
+    const review = summary.body;
     assert.equal(product.reviews, review.total);
     assert.equal(product.rating, review.average);
+    const reviews = await request(
+      `${PRODUCTS_PATH}/${listed.product_id}/reviews?limit=2`,
+      {},
+      'review/find-all-paginated-by-product',
+    );
+    assert.equal(reviews.status, HttpStatus.OK);
+    assert.equal(reviews.body.count, review.total);
     const missing = await request(
       `${PRODUCTS_PATH}/char-runtime-missing`,
       {},

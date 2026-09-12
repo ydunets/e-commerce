@@ -14,6 +14,23 @@ Feature: Shopping cart behaviour
     Then the response returns a cart identifier
     And the cart has 1 line and 2 total units
 
+  Scenario: Numeric strings and unknown fields retain successful cart creation
+    When I submit this cart addition:
+      """
+      { "sku": ["char-cart-hoodie-black"], "quantity": "2", "extra": "accepted" }
+      """
+    Then the response returns a cart identifier
+    And the cart has 1 line and 2 total units
+
+  Scenario: Invalid quantity identifies the field without domain details
+    When I submit this cart addition:
+      """
+      { "sku": "char-cart-hoodie-black", "quantity": 0 }
+      """
+    Then I receive an error "Bad Request" with status code 400
+    And the response carries the error envelope
+    And cart validation identifies "/quantity"
+
   Scenario: Adding an already-present SKU merges into one line
     Given I add 2 units of "char-cart-hoodie-black" to a new cart
     When I add 1 unit of "char-cart-hoodie-black" to the cart

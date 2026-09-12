@@ -3,7 +3,7 @@ import { Then } from '@cucumber/cucumber';
 import type { ICustomWorld } from '../support/custom-world.js';
 
 Then(
-  /^(?:product|review) validation identifies "([^"]+)"$/,
+  /^(?:product|review|cart) validation identifies "([^"]+)"$/,
   function (this: ICustomWorld, path: string) {
     const error = this.context.latestResponse!.json();
     assert.equal(error.message, 'Validation error');

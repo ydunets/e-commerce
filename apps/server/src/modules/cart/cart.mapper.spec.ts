@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { EnrichedCartLine } from '#src/modules/cart/domain/cart.types';
-import cartMapper from './cart.mapper.js';
+import { toCartResponse, toValidateCartResponse } from './cart.mapper.js';
 
 function enrichedLine(sku: string, quantity: number, stock = 10): EnrichedCartLine {
   return {
@@ -22,7 +22,7 @@ function enrichedLine(sku: string, quantity: number, stock = 10): EnrichedCartLi
 
 describe('cartMapper.toResponse()', () => {
   it('maps enriched lines and coupons to the snake_case contract', () => {
-    const response = cartMapper().toResponse({
+    const response = toCartResponse({
       id: 'cart-1',
       createdAt: new Date(),
       lines: [enrichedLine('sku-a', 2), enrichedLine('sku-b', 3)],
@@ -50,7 +50,7 @@ describe('cartMapper.toResponse()', () => {
   });
 
   it('maps an empty cart to zero totalUnits', () => {
-    const response = cartMapper().toResponse({
+    const response = toCartResponse({
       id: 'cart-1',
       createdAt: new Date(),
       lines: [],
@@ -63,7 +63,7 @@ describe('cartMapper.toResponse()', () => {
 
 describe('cartMapper.toValidateResponse()', () => {
   it('maps stock changes to the snake_case contract alongside the cart', () => {
-    const response = cartMapper().toValidateResponse(
+    const response = toValidateCartResponse(
       { id: 'cart-1', createdAt: new Date(), lines: [enrichedLine('sku-a', 3, 3)], coupons: [] },
       [{ sku: 'sku-b', name: 'Voyager Hoodie', previousQuantity: 4, quantity: 0, stock: 0 }],
     );

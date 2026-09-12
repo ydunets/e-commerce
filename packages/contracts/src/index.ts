@@ -45,7 +45,7 @@ export {
   productListItemDtoSchema,
   productResponseDtoSchema,
 } from './product.js';
-export { reviewResponseDtoSchema } from './review.js';
+export { reviewResponseDtoSchema, reviewsPageResponseDtoSchema } from './review.js';
 export {
   specificationFeatureDtoSchema,
   specificationIconDtoSchema,

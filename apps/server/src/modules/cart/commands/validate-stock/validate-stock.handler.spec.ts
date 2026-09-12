@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import type { CartRepository } from '#src/modules/cart/database/cart.repository.port';
 import type {
   CartEntity,
   EnrichedCartLine,
   StockChange,
 } from '#src/modules/cart/domain/cart.types';
 import { NotFoundException } from '#src/shared/exceptions/index';
-import makeValidateStock, { validateStockCommand } from './validate-stock.handler.js';
+import { fakeCartRepository } from '#tests/support/cart-repository.fake';
+import { ValidateStockCommand } from './validate-stock.command.js';
+import { ValidateStockHandler } from './validate-stock.handler.js';
 
 function enrichedLine(sku: string, quantity: number, stock: number): EnrichedCartLine {
   return {
@@ -32,13 +35,13 @@ function cartWith(lines: EnrichedCartLine[]): CartEntity {
 // The handler re-reads the cart after reconciling, so the fake repository has
 // to reflect the applied changes the way the real one does.
 function fakeDeps(options: { cart?: CartEntity }): {
-  deps: Dependencies;
+  deps: { cartRepository: CartRepository };
   reconciled: { cartId: string; changes: StockChange[] }[];
 } {
   const reconciled: { cartId: string; changes: StockChange[] }[] = [];
   let stored = options.cart;
-  const deps = {
-    cartRepository: {
+  const deps: { cartRepository: CartRepository } = {
+    cartRepository: fakeCartRepository({
       findOneById: async (id: string) => (stored?.id === id ? stored : undefined),
       applyStockChanges: async (cartId: string, changes: StockChange[]) => {
         reconciled.push({ cartId, changes });
@@ -54,8 +57,8 @@ function fakeDeps(options: { cart?: CartEntity }): {
             .filter((line) => line.quantity > 0),
         };
       },
-    },
-  } as never as Dependencies;
+    }),
+  };
   return { deps, reconciled };
 }
 
@@ -64,8 +67,8 @@ describe('validateStockCommand handler', () => {
     const cart = cartWith([enrichedLine('sku-a', 2, 5)]);
     const { deps, reconciled } = fakeDeps({ cart });
 
-    const result = await makeValidateStock(deps).handler(
-      validateStockCommand({ cartId: 'cart-1' }),
+    const result = await new ValidateStockHandler(deps.cartRepository).execute(
+      new ValidateStockCommand({ cartId: 'cart-1' }),
     );
 
     assert.deepEqual(result.changes, []);
@@ -76,8 +79,8 @@ describe('validateStockCommand handler', () => {
   it('clamps an oversold line and reports the change', async () => {
     const { deps, reconciled } = fakeDeps({ cart: cartWith([enrichedLine('sku-a', 5, 3)]) });
 
-    const result = await makeValidateStock(deps).handler(
-      validateStockCommand({ cartId: 'cart-1' }),
+    const result = await new ValidateStockHandler(deps.cartRepository).execute(
+      new ValidateStockCommand({ cartId: 'cart-1' }),
     );
 
     assert.deepEqual(result.changes, [
@@ -92,8 +95,8 @@ describe('validateStockCommand handler', () => {
       cart: cartWith([enrichedLine('sku-a', 2, 0), enrichedLine('sku-b', 1, 5)]),
     });
 
-    const result = await makeValidateStock(deps).handler(
-      validateStockCommand({ cartId: 'cart-1' }),
+    const result = await new ValidateStockHandler(deps.cartRepository).execute(
+      new ValidateStockCommand({ cartId: 'cart-1' }),
     );
 
     assert.deepEqual(
@@ -109,20 +112,11 @@ describe('validateStockCommand handler', () => {
     const { deps } = fakeDeps({});
 
     await assert.rejects(
-      () => makeValidateStock(deps).handler(validateStockCommand({ cartId: 'missing' })),
+      () =>
+        new ValidateStockHandler(deps.cartRepository).execute(
+          new ValidateStockCommand({ cartId: 'missing' }),
+        ),
       NotFoundException,
     );
-  });
-
-  it('registers itself on the command bus under its action type', () => {
-    const registered: string[] = [];
-    const { deps } = fakeDeps({});
-
-    makeValidateStock({
-      ...deps,
-      commandBus: { register: (type: string) => void registered.push(type) },
-    } as never).init();
-
-    assert.deepEqual(registered, [validateStockCommand.type]);
   });
 });

@@ -4,7 +4,7 @@
 
 ## Project overview
 
-A hybrid Nest 12 and Fastify 5 application using Clean Architecture, CQRS, and DDD.
+A Nest 12 application on Fastify 5 using Clean Architecture, CQRS, and DDD.
 TypeScript strict mode and compiled ESM on Node 24.18.0. SWC emits application and test code; TypeScript performs strict no-emit checking.
 
 ## Quick reference
@@ -24,29 +24,32 @@ Always run `pnpm check` after making changes. If formatting fails, run `pnpm for
 
 ## Architecture
 
-### Migration boundary
+### Runtime architecture
 
-Newsletter, product, review and specification are Nest features. Their controllers, decorated handlers,
-symbol-token repositories and plain mappers are registered through feature modules.
-Import the non-global `SharedModule` explicitly for configuration, the existing
-singleton pool and `ApplicationDispatcher`. Preserve command prototypes when
-enriching metadata. Nest CQRS performs handler registration.
+All five features are Nest modules: newsletter, product, review, specification and cart.
+Import the non-global SharedModule explicitly for configuration, the singleton pool
+and ApplicationDispatcher. Controllers validate Zod contracts through the built-in
+Standard Schema pipe, dispatch typed commands or queries, and map responses with
+plain functions. Nest CQRS discovers decorated handlers registered as providers.
+Preserve command/query prototypes when enriching metadata.
 
-Cart retains the legacy conventions below. Its routes and error handler share one
-encapsulated Fastify scope, and only cart is eligible for Awilix autoloading. The initialized application factory
-returns `NestFastifyApplication`; retain its HTTP `inject()` seam in tests.
+Product details query review summaries, and cart additions/updates query inventory,
+through ApplicationDispatcher. Cross-feature imports target query contracts, not
+feature modules, repositories or handlers. Each nested query has its own correlated
+span and successful execution timing record.
 
-Product details dispatch review-summary queries through ApplicationDispatcher;
-the real review handler is the only Nest registration for that query. Legacy cart
-stock queries still forward to the raw Nest inventory query handler. Legacy
-middleware owns instrumentation on that bridge. Startup captures the actual legacy
-bus and connects the inventory adapter before returning the application.
-Cart removes the stock adapter when it migrates.
+Nest owns signal handling. Fastify drains active requests and closes the shared
+pool exactly once. For bootstrap, telemetry, validation or lifecycle changes, read
+[the runtime acceptance guide](doc/nest-migration.md) and run its live and image gates.
 
-Nest owns signal handling. Fastify drains requests and closes the singleton pool
-through its close hook. Keep the live tracing/draining regression and production
-image shutdown gate passing when changing this boundary. See `doc/nest-migration.md`
-for the telemetry compatibility constraint and verification commands.
+### API documentation
+
+Nest Swagger serves OpenAPI 3.0.0 at /api-docs/json and the UI at /api-docs.
+Parameter decorators expose Standard Schemas; ApiContract documents successful
+responses and errors without installing runtime serialization or output validation.
+The directly mounted Fastify health route is documented explicitly. Keep required
+input fields explicit in Zod metadata when preprocessing obscures their requiredness.
+ReviewsPageResponseDto remains a hand-written public interface.
 
 ### Layer boundaries (CRITICAL)
 
@@ -81,102 +84,24 @@ Known exception: the review module checks product existence with direct SQL agai
 `products` (`review.repository.productExists`) to avoid a bus round-trip on the hot
 path. New modules should default to bus queries for cross-module reads.
 
-## Legacy CQRS pattern
+## Nest provider conventions
 
-This project uses three buses: `CommandBus`, `QueryBus`, and `EventBus`.
+Use class-based commands and queries with descriptive action types and optional
+metadata. Handlers implement the appropriate Nest CQRS interface and receive
+repository interfaces through described symbol tokens. Concrete Postgres adapters
+are feature-local providers. Register handlers in their feature module.
 
-### Action creators
-
-Actions are created via `actionCreatorFactory` with a module prefix.
-The `Result` type parameter is a phantom type — it exists only at the type level
-to enable type-safe `execute()` calls:
-
-```typescript
-// In the module's index.ts
-export const userActionCreator = actionCreatorFactory('user');
-
-// In the handler file — embed both Payload and Result types
-export type CreateUserResult = string;
-export const createUserCommand = userActionCreator<CreateUserRequestDto, CreateUserResult>('create');
-```
-
-### Handler pattern
-
-Every handler follows this structure:
-
-```typescript
-export default function makeHandler({ commandBus, repository, ...deps }: Dependencies) {
-  return {
-    async handler({ payload }: HandlerAction<typeof myCommand>): Promise<MyResult> {
-      // business logic here
-    },
-    init() {
-      commandBus.register(myCommand.type, this.handler);
-    },
-  };
-}
-```
-
-Key rules:
-- Handler parameters use `HandlerAction<typeof creator>` (strips the phantom Result type for register() compatibility)
-- The result type (e.g. `CreateUserResult`) is the **unwrapped** value, not `Promise<X>` — the `Promise` wrapper comes from `execute()`
-- Events use `userActionCreator<PayloadType>('event-name')` without a Result generic (events return void)
-- Handlers are auto-loaded and wired via Awilix DI — the `init()` method is called automatically
-
-### Calling from routes/resolvers
-
-```typescript
-// Return type is inferred from the action's phantom Result — no manual generic needed
-const id = await fastify.commandBus.execute(createUserCommand(req.body));
-```
-
-Do **not** pass a manual generic to `execute()`. The type is inferred from the action creator's `Result` parameter.
-
-### Middlewares
-
-Middlewares use an onion-model pipeline (composed via `reduceRight`). They must **never mutate** the action — always spread into a new object:
-
-```typescript
-function myMiddleware(action: Action<unknown>, handler: CommandHandler): Promise<unknown> {
-  const enrichedAction = { ...action, meta: { ...action.meta, foo: 'bar' } } as Action<unknown>;
-  return handler(enrichedAction);
-}
-```
-
-There are separate types for command/query vs event middlewares:
-- `CommandMiddleware` — returns `Promise<unknown>` (used by CommandBus and QueryBus)
-- `EventMiddleware` — returns `void` (used by EventBus)
-
-### Bus differences
-
-| Bus | Purpose | Register method | Dispatch method | Handler return |
-|---|---|---|---|---|
-| `CommandBus` | State-changing mutations | `register(type, handler)` | `execute(action)` → `Promise<R>` (inferred) | `Promise<unknown>` |
-| `QueryBus` | Idempotent reads | `register(type, handler)` | `execute(action)` → `Promise<R>` (inferred) | `Promise<unknown>` |
-| `EventBus` | Fire-and-forget notifications | `on(type, handler)` | `emit(action)` → `void` | `void` |
-
-Commands and queries share a `createRequestBus` factory in `src/shared/cqrs/request-bus.ts`.
-The event bus is a separate implementation in `src/shared/cqrs/event-bus.ts` with a `logger` dependency
-for debug-level warnings when events have no subscribers. Note the different API: `on`/`emit` for events
-vs `register`/`execute` for commands and queries.
-
-## Legacy dependency injection
-
-DI uses [Awilix](https://github.com/jeffijoe/awilix) with `@fastify/awilix`.
-
-- Global dependencies (`db`, `logger`, `commandBus`, `queryBus`, `eventBus`) are registered in `src/modules/index.ts`
-- Module-specific dependencies are declared via `declare global { export interface Dependencies { ... } }` in the module's `index.ts`
-- Repositories, mappers, domain services are auto-loaded as singletons from `src/modules/**/*.{repository,mapper,service,domain}.ts`
-- Handlers and event-handlers are auto-loaded with `asyncInit: 'init'` from `src/modules/**/*.{handler,event-handler}.ts`
-- All handlers receive dependencies as a single destructured object: `function makeX({ dep1, dep2 }: Dependencies)`
-- DI naming convention: kebab-case filenames are converted to camelCase identifiers (e.g. `create-user.handler.ts` → `createUserHandler` in the container)
+The dispatcher owns correlation, timestamps, tracing and timing. Preserve existing
+metadata and prototypes; use its execute, query and publish methods rather than
+invoking raw Nest buses from feature code. Event publication is fire-and-forget,
+without an implied delivery guarantee or new subscribers.
 
 ## Database
 
 - Client: `postgres` (postgres.js) — uses tagged template literals for parameterized queries
 - Connection: lazy singleton via `getDb()` in `src/shared/db/postgres.ts`; close with `closeDbConnection()`
 - Migrations/seeds: DBMate (SQL files in `db/migrations/` and `db/seeds/`)
-- Transaction support: `withTransaction(async (tx) => { ... })`
+- Transaction support: call the injected database's `begin(async (tx) => { ... })`; cart reconciliation applies all changes within that transaction.
 - Repositories are hand-written per module (no generic base) — each repository port declares only the queries its module needs, and the adapter issues its own SQL and maps rows directly to domain shapes
 - Mappers are hand-written per module too: for read-only modules (no commands), a mapper only needs `toResponse(entity): ResponseDto`; add `toDomain`/`toPersistence` only if the module actually writes to the database
 - The `users` table and its seed are an unused placeholder for a future auth context; no application code references them
@@ -196,7 +121,7 @@ SQL parameterization rules:
 - Max line width: 100 characters
 - File naming: `kebab-case` only (enforced by Biome)
 - No enums — use `const` objects with derived types (e.g. `UserRoles`)
-- Keep pure domain logic functional. Nest controllers, handlers and repository adapters use classes; legacy features retain factories.
+- Keep pure domain logic functional. Nest controllers, handlers and repository adapters use classes.
 - No `any` — Biome's `noExplicitAny` is an error (relaxed only in test files)
 - No `console` — use the injected `logger` (Pino)
 
@@ -208,56 +133,40 @@ SQL parameterization rules:
 - Build contracts before the server. Use the manifest's build, test and development commands to preserve output cleaning, metadata preload and watcher startup ordering. See `../../docs/runbook.md` for execution and image verification.
 
 ### API
-- All REST routes are prefixed with `/api` (configured in `src/server/index.ts`)
-- Nest request schemas use Zod through `StandardSchemaValidationPipe`. Legacy request schemas retain TypeBox; shared response contracts use Zod with the temporary legacy schema adapter.
+- Business controllers declare the established `api/v1` prefix.
+- Request schemas and shared response contracts use Zod; the Standard Schema pipe validates requests.
 - Routes handle HTTP concerns only — no business logic in routes
-- GraphQL resolvers co-locate with their REST route counterparts
 
 ### Testing
 - Unit/integration tests: `*.spec.ts` files next to source, using `node:test` with `describe`/`it`/`assert`
 - Characterisation tests: Cucumber features in `tests/`, step definitions in `tests/<feature>/`, exercising HTTP through `inject()`
 - E2E tests: Playwright browser tests in the workspace's `apps/e2e` package
 - Load tests: k6 scripts in `tests/<feature>/`
-- Test server: use `buildApp()` from `tests/support/server.ts`, which initializes the hybrid application without listening.
+- Test server: use `buildApp()` from `tests/support/server.ts`, which initializes the Nest/Fastify application without listening.
 
 ### Exceptions
 - Domain errors extend `ExceptionBase` (in `src/shared/exceptions/`)
 - Built-in exceptions: `NotFoundException`, `ConflictException`, `DatabaseErrorException`, `ArgumentInvalidException`, `InternalServerErrorException`, `ProviderErrorException`
 - Always include a descriptive message: `throw new NotFoundException('User with id X not found')`
 
-## Legacy module structure
+## Verification
 
-This describes unmigrated features. For an approved Nest migration slice, follow
-the newsletter feature structure and remove that feature from legacy autoloading.
-
-1. Create `src/modules/<name>/` with the vertical slice structure
-2. Create `src/modules/<name>/index.ts` with `actionCreatorFactory('<name>')` and `declare global` Dependencies
-3. Create domain types in `domain/<name>.types.ts`
-4. Create repository port in `database/<name>.repository.port.ts` (an interface declaring only the queries this module needs)
-5. Create repository adapter in `database/<name>.repository.ts` (implements the port; hand-written SQL, no generic base)
-6. Create mapper in `<name>.mapper.ts` (`toResponse(entity): ResponseDto`; add `toDomain`/`toPersistence` only if the module writes to the database)
-7. Create command/query handlers with action creators embedding `<Payload, Result>` types
-8. Create routes and/or resolvers — call `bus.execute(action)` without manual generics
-9. Create a DB migration: `pnpm db:create-migration <name>`
-10. Run `pnpm check` to validate
-
-## Adding a new CQRS middleware
-
-1. Define the middleware function in `src/shared/cqrs/middlewares.ts` (or a new file)
-2. Match the correct signature: `CommandMiddleware` for command/query buses, `EventMiddleware` for event bus
-3. Never mutate the action — spread into a new object
-4. Register in `src/shared/cqrs/index.ts` via `busInstance.addMiddleware(myMiddleware)`
-5. Middleware order matters: first added = outermost wrapper
+Retain the existing domain, mapper, handler and repository behavior specifications.
+Construct handlers and repositories directly with complete typed port fakes.
+Test HTTP behavior through the initialized application's inject seam, with serial,
+isolated database fixtures. Use compiled runtime tests for provider resolution,
+documentation semantics, validation, configuration and telemetry compatibility.
+Run workspace checks, database-backed characterisation and the production image
+smoke gate before declaring a runtime migration complete.
 
 ## Common mistakes to avoid
 
 - Importing DB/infrastructure code in handlers (violates architecture boundaries)
-- Using `execute<ManualType>(action)` instead of letting the type be inferred from the action creator
-- Mutating `action.meta` in middleware instead of spreading
-- Using `ReturnType<typeof creator>` for handler params (incompatible with register — use `HandlerAction<typeof creator>`)
+- Supplying manual dispatcher result types instead of inferring them from the command or query
+- Mutating action metadata or discarding its prototype during enrichment
 - Using source extensions or development resolution in runtime imports
 - Using `npm` or `yarn` instead of `pnpm`
 - Using `console.log` instead of the injected Pino `logger`
 - Adding `enum` types (use const objects + derived types)
 - Putting business logic in route files
-- Directly importing from one module into another
+- Importing another feature's internals instead of its query contract

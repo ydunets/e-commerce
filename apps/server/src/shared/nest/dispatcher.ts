@@ -3,7 +3,7 @@ import { HttpAdapterHost } from '@nestjs/core';
 import { Command, CommandBus, EventBus, Query, QueryBus } from '@nestjs/cqrs';
 import type { FastifyInstance } from 'fastify';
 import { getRequestId } from '#src/shared/app/app-request-context';
-import type { TraceableAction } from '#src/shared/cqrs/bus.types';
+import type { TraceableAction } from '#src/shared/cqrs/action.types';
 import { makeTrackExecutionTime } from '#src/shared/cqrs/middlewares';
 import { makeTracingMiddleware, traceEventMiddleware } from '#src/shared/cqrs/otel-middleware';
 

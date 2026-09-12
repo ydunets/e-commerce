@@ -1,6 +1,6 @@
 import { Query } from '@nestjs/cqrs';
 import type { SpecificationEntity } from '#src/modules/specification/domain/specification.types';
-import type { Meta } from '#src/shared/cqrs/bus.types';
+import type { Meta } from '#src/shared/cqrs/action.types';
 
 export type ListSpecificationsResult = SpecificationEntity[];
 

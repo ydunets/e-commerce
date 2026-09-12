@@ -1,36 +1,28 @@
-import type { CartEntity } from '#src/modules/cart/domain/cart.types';
-import { cartActionCreator } from '#src/modules/cart/index';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types';
+import { Inject } from '@nestjs/common';
+import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
+import {
+  CART_REPOSITORY,
+  type CartRepository,
+} from '#src/modules/cart/database/cart.repository.port';
 import { NotFoundException } from '#src/shared/exceptions/index';
+import { ApplyCouponCommand, type ApplyCouponResult } from './apply-coupon.command.js';
 
-export type ApplyCouponResult = CartEntity;
+@CommandHandler(ApplyCouponCommand)
+export class ApplyCouponHandler implements ICommandHandler<ApplyCouponCommand> {
+  constructor(@Inject(CART_REPOSITORY) private readonly repository: CartRepository) {}
+  async execute({ payload }: ApplyCouponCommand): Promise<ApplyCouponResult> {
+    const cart = await this.repository.findOneById(payload.cartId);
+    if (!cart) {
+      throw new NotFoundException(`Cart ${payload.cartId} not found`);
+    }
 
-export const applyCouponCommand = cartActionCreator<
-  { cartId: string; code: string },
-  ApplyCouponResult
->('apply-coupon');
+    const coupon = await this.repository.findCouponByCode(payload.code);
+    if (!coupon) {
+      throw new NotFoundException(`Coupon ${payload.code} not found`);
+    }
 
-export default function makeApplyCoupon({ commandBus, cartRepository }: Dependencies) {
-  return {
-    async handler({
-      payload,
-    }: HandlerAction<typeof applyCouponCommand>): Promise<ApplyCouponResult> {
-      const cart = await cartRepository.findOneById(payload.cartId);
-      if (!cart) {
-        throw new NotFoundException(`Cart ${payload.cartId} not found`);
-      }
-
-      const coupon = await cartRepository.findCouponByCode(payload.code);
-      if (!coupon) {
-        throw new NotFoundException(`Coupon ${payload.code} not found`);
-      }
-
-      await cartRepository.applyCoupon(payload.cartId, payload.code);
-      const alreadyApplied = cart.coupons.some((applied) => applied.code === coupon.code);
-      return { ...cart, coupons: alreadyApplied ? cart.coupons : [...cart.coupons, coupon] };
-    },
-    init() {
-      commandBus.register(applyCouponCommand.type, this.handler);
-    },
-  };
+    await this.repository.applyCoupon(payload.cartId, payload.code);
+    const alreadyApplied = cart.coupons.some((applied) => applied.code === coupon.code);
+    return { ...cart, coupons: alreadyApplied ? cart.coupons : [...cart.coupons, coupon] };
+  }
 }

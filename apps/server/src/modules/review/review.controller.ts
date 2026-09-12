@@ -1,7 +1,9 @@
-import type { ReviewsPageResponseDto } from '@e-commerce/contracts';
-import { Controller, Get, Param, Query } from '@nestjs/common';
-import { RouteSchema } from '@nestjs/platform-fastify';
+import { type ReviewsPageResponseDto, reviewsPageResponseDtoSchema } from '@e-commerce/contracts';
+import { Controller, Get, HttpStatus, Param, Query } from '@nestjs/common';
+import { ApiOperation } from '@nestjs/swagger';
+import { ApiContract } from '#src/shared/nest/api-contract';
 import { ApplicationDispatcher } from '#src/shared/nest/dispatcher';
+import { reviewSummaryResponseDtoSchema } from './dtos/review-summary.response.dto.js';
 import { FindProductReviewsQuery } from './queries/find-product-reviews/find-product-reviews.query.js';
 import {
   type FindProductReviewsQuerystring,
@@ -20,9 +22,13 @@ export class ReviewController {
   constructor(private readonly dispatcher: ApplicationDispatcher) {}
 
   @Get()
-  @RouteSchema({
+  @ApiOperation({
     description: 'Find reviews for a product (paginated, optionally filtered by rating)',
     tags: ['reviews'],
+  })
+  @ApiContract({
+    response: reviewsPageResponseDtoSchema,
+    errors: [HttpStatus.BAD_REQUEST, HttpStatus.NOT_FOUND],
   })
   async list(
     @Param({ schema: findProductReviewsParamsSchema }) params: ReviewParams,
@@ -35,9 +41,13 @@ export class ReviewController {
   }
 
   @Get('summary')
-  @RouteSchema({
+  @ApiOperation({
     description: 'Get the rating summary (average + distribution) for a product',
     tags: ['reviews'],
+  })
+  @ApiContract({
+    response: reviewSummaryResponseDtoSchema,
+    errors: [HttpStatus.BAD_REQUEST, HttpStatus.NOT_FOUND],
   })
   summary(@Param({ schema: getReviewSummaryParamsSchema }) params: ReviewParams) {
     return this.dispatcher.query(new GetReviewSummaryQuery(params));

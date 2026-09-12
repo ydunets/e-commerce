@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import type { CartRepository } from '#src/modules/cart/database/cart.repository.port';
 import type { CartCoupon, CartEntity } from '#src/modules/cart/domain/cart.types';
 import { NotFoundException } from '#src/shared/exceptions/index';
-import makeApplyCoupon, { applyCouponCommand } from './apply-coupon.handler.js';
+import { fakeCartRepository } from '#tests/support/cart-repository.fake';
+import { ApplyCouponCommand } from './apply-coupon.command.js';
+import { ApplyCouponHandler } from './apply-coupon.handler.js';
 
 const WELCOME: CartCoupon = { code: 'WELCOME15', discountType: 'percentage', value: 15 };
 
@@ -11,18 +14,18 @@ function cartWith(coupons: CartCoupon[]): CartEntity {
 }
 
 function fakeDeps(options: { cart?: CartEntity; coupon?: CartCoupon }): {
-  deps: Dependencies;
+  deps: { cartRepository: CartRepository };
   applied: { cartId: string; code: string }[];
 } {
   const applied: { cartId: string; code: string }[] = [];
-  const deps = {
-    cartRepository: {
+  const deps: { cartRepository: CartRepository } = {
+    cartRepository: fakeCartRepository({
       findOneById: async (id: string) => (options.cart?.id === id ? options.cart : undefined),
       findCouponByCode: async (code: string) =>
         options.coupon?.code === code ? options.coupon : undefined,
       applyCoupon: async (cartId: string, code: string) => void applied.push({ cartId, code }),
-    },
-  } as never as Dependencies;
+    }),
+  };
   return { deps, applied };
 }
 
@@ -30,8 +33,8 @@ describe('applyCouponCommand handler', () => {
   it('applies an existing coupon and appends it to the cart', async () => {
     const { deps, applied } = fakeDeps({ cart: cartWith([]), coupon: WELCOME });
 
-    const cart = await makeApplyCoupon(deps).handler(
-      applyCouponCommand({ cartId: 'cart-1', code: 'WELCOME15' }),
+    const cart = await new ApplyCouponHandler(deps.cartRepository).execute(
+      new ApplyCouponCommand({ cartId: 'cart-1', code: 'WELCOME15' }),
     );
 
     assert.deepEqual(applied, [{ cartId: 'cart-1', code: 'WELCOME15' }]);
@@ -41,8 +44,8 @@ describe('applyCouponCommand handler', () => {
   it('keeps a single entry when the coupon is already applied', async () => {
     const { deps } = fakeDeps({ cart: cartWith([WELCOME]), coupon: WELCOME });
 
-    const cart = await makeApplyCoupon(deps).handler(
-      applyCouponCommand({ cartId: 'cart-1', code: 'WELCOME15' }),
+    const cart = await new ApplyCouponHandler(deps.cartRepository).execute(
+      new ApplyCouponCommand({ cartId: 'cart-1', code: 'WELCOME15' }),
     );
 
     assert.deepEqual(cart.coupons, [WELCOME]);
@@ -53,8 +56,8 @@ describe('applyCouponCommand handler', () => {
 
     await assert.rejects(
       () =>
-        makeApplyCoupon(deps).handler(
-          applyCouponCommand({ cartId: 'cart-1', code: 'NO-SUCH-CODE' }),
+        new ApplyCouponHandler(deps.cartRepository).execute(
+          new ApplyCouponCommand({ cartId: 'cart-1', code: 'NO-SUCH-CODE' }),
         ),
       NotFoundException,
     );
@@ -66,20 +69,10 @@ describe('applyCouponCommand handler', () => {
 
     await assert.rejects(
       () =>
-        makeApplyCoupon(deps).handler(applyCouponCommand({ cartId: 'missing', code: 'WELCOME15' })),
+        new ApplyCouponHandler(deps.cartRepository).execute(
+          new ApplyCouponCommand({ cartId: 'missing', code: 'WELCOME15' }),
+        ),
       NotFoundException,
     );
-  });
-
-  it('registers itself on the command bus under its action type', () => {
-    const registered: string[] = [];
-    const { deps } = fakeDeps({});
-
-    makeApplyCoupon({
-      ...deps,
-      commandBus: { register: (type: string) => void registered.push(type) },
-    } as never).init();
-
-    assert.deepEqual(registered, [applyCouponCommand.type]);
   });
 });

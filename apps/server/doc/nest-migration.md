@@ -1,63 +1,46 @@
-# Nest migration boundary
+# Nest runtime acceptance
 
-Newsletter subscriptions, products, reviews and specifications now pass through
-Nest on the existing Fastify instance. Cart is the only remaining legacy feature.
-Both dependency systems receive the existing singleton Postgres pool. The shared
-Nest module is explicitly imported and is not global.
+All five storefront features now run through Nest on the existing Fastify instance.
+Each feature imports the non-global SharedModule explicitly. Configuration is parsed
+once, and all repositories share the existing singleton Postgres pool.
 
-The controller validates with the built-in Standard Schema pipe, dispatches a
-class-based command and returns the established success response with HTTP 200.
-Duplicate subscriptions remain successful without publishing another event.
-The dispatcher adds metadata without losing the prototype, then applies tracing
-and execution timing before invoking Nest CQRS. No event subscribers were added.
+## Feature and query composition
 
-Legacy Swagger observes both routing systems and health because it is registered
-before routes. Migrated features currently contribute route metadata, not a second
-request validator or response serializer. Complete OpenAPI generation moves in a
-later migration slice.
+Controllers validate requests through the built-in Standard Schema pipe, dispatch
+typed commands or queries, and map responses with plain functions. Explicit HTTP
+200 decorators preserve successful POST outcomes. Duplicate newsletter subscriptions
+remain successful without publishing another event.
 
-## Query composition and the remaining adapter
+Product details dispatch GetReviewSummaryQuery; cart additions and updates dispatch
+GetInventoryStockQuery. Each query has one decorated Nest handler. The dispatcher
+preserves action prototypes, existing correlation IDs and timestamps, then applies
+tracing and execution timing. Nested queries have their own spans and successful
+timing records. No legacy query bridge, custom bus registration or container remains.
 
-Product details dispatch `GetReviewSummaryQuery` through the application dispatcher.
-The review module owns its real Nest handler. The temporary review adapter, legacy
-review action creators and review factory registrations have been removed in the
-same migration. Nested product/review queries retain metadata and have their own
-spans and successful timing records without duplicate instrumentation.
+Cart identity, current-price reads, summed quantities, coupon order and stock-conflict
+details are unchanged. Reconciliation applies clamps and removals in one transaction.
+The existing read-then-write stock trade remains deliberate; row locking, reservation,
+checkout and authentication are outside this migration.
 
-Legacy cart additions and updates retain the inventory action creator. A single
-legacy registration forwards to the raw Nest `GetInventoryStockQuery` handler.
-Legacy middleware remains the sole instrumentation owner on this bridge. Startup
-captures the actual legacy bus inside its encapsulated scope and registers the
-callback after Nest initialization, before returning the application. Cart removes
-this adapter and the final legacy creator consumer when it migrates.
+## Validation and documentation
 
-No feature imports another feature's Nest module. Cross-feature access uses query
-contracts and dispatch, not repository or handler exports.
+Nest Swagger serves the UI at /api-docs and OpenAPI 3.0.0 at /api-docs/json.
+Standard Schemas describe requests and successful responses. The named ApiErrorResponse
+component is exported through the contract's native Standard JSON Schema interface.
+Fastify health is documented explicitly because Nest does not discover its route.
 
-Review pagination uses Zod with the existing numeric conversion and bounds.
-Fractional pagination values remain accepted, while ratings remain integers.
-Unknown query fields are stripped, and the domain pagination helper retains its
-defaults. The response remains the hand-written `ReviewsPageResponseDto` contract.
-The old pagination response wrapper and base schema were removed only after their
-final consumer, the legacy review route serializer, was removed. They are not
-replaced by response validation. The active summary response schema uses Zod.
+Preprocessing preserves accepted scalar conversions without making absent identifiers
+into strings. Required request fields are explicit schema metadata where preprocessing
+obscures requiredness to documentation. Unknown fields are accepted without strict
+rejection; errors retain their envelope and JSON Pointer paths. No runtime response
+serializer or response-validation interceptor is installed.
 
-Live tracing verifies product/review composition and the remaining cart adapter.
-HTTP checks protect review aggregates, empty and missing outcomes, pagination,
-validation paths, and cart stock conflicts with details. The database cascade
-removes a cart line when its inventory row is deleted, so a later update retains
-the cart-line not-found outcome rather than reaching an inventory lookup for that
-deleted line.
-
-## Specification catalogue
-
-The specification controller dispatches a typed Nest query to feature-local
-providers. The repository preserves the existing SQL and display-order mapping;
-the plain response mapper preserves the stable seeded identifiers and shape.
-Specification factories and routes are excluded from every legacy loader.
-The cart inventory adapter and intermediate Swagger generator remain unchanged.
-The production image gate reads product details, both review routes and the
-specification catalogue together, and checks their documentation paths.
+ReviewsPageResponseDto remains a hand-written interface; its companion schema serves
+documentation. The database-free document regression checks all business paths,
+metadata, bounds, examples, nested references, UI assets and unchanged validation and
+response behavior. The legacy Swagger converter and packages, application-owned
+TypeBox/Ajv dependencies and unused generated-client tooling have been removed.
+Fastify still retains its own transitive validation dependencies.
 
 ## Telemetry compatibility
 
@@ -67,6 +50,13 @@ Nest 12. `Nest12Instrumentation` extends only its version guard to the pinned
 regression checks exported HTTP, Fastify, Nest, command and event ancestry and
 action correlation IDs. Revalidate this compatibility adjustment whenever either
 package changes; remove it when upstream supports the pinned Nest version.
+
+`telemetry-compatibility.spec.ts` compares both installed packages and manifest pins
+against the verified versions during `pnpm check`. A version change fails with
+revalidation instructions. Run the live characterisation suite and production image
+smoke gate before updating the verified pair, then review whether the upstream
+version guard still requires the adapter. The test also verifies that the adapter
+preserves the upstream file list and extends only the verified Nest version.
 
 ## Shutdown
 
@@ -88,3 +78,15 @@ migrated and seeded test database, run
 compiled HTTP suite and isolated live tracing/draining regression. Run the
 production image build and `apps/server/scripts/smoke-image.mjs` as documented in
 the workspace runbook.
+
+Architecture validation runs within `pnpm check` through `check:architecture`.
+Controllers belong to the API layer, and handlers cannot import persistence
+implementations or shared database helpers. Repository port imports remain allowed.
+A fixture-based dependency cruise verifies both rejected and permitted imports.
+
+
+## Delivery boundary
+
+Issues #96 and #97 complete application migration and documentation only. The parent
+specification remains open. Digest-based deployment, readiness verification and the
+two recovery branches remain the separate acceptance work in #98.

@@ -7,20 +7,20 @@ You are an expert in JavaScript, Rsbuild, and web application development. You w
 pnpm workspace. Packages live in `apps/`:
 
 - `apps/client` — `@e-commerce/client`: React 19 + TanStack Router SSR on Rsbuild
-- `apps/server` — `@e-commerce/server`: Fastify API (has its own AGENTS.md — read it before touching server code)
+- `apps/server` — `@e-commerce/server`: Nest/Fastify API (has its own AGENTS.md — read it before touching server code)
 - `apps/storybook` — `@e-commerce/storybook`: Storybook for client components (stories co-located in `apps/client/src`)
 
 ## Commands (repo root)
 
-- `pnpm dev` - Start the full stack: client SSR dev server (5173, proxies /api/*) + Fastify API (4000, needs Postgres)
+- `pnpm dev` - Start the full stack: client SSR dev server (5173, proxies /api/*) + Nest/Fastify API (4000, needs Postgres)
 - `pnpm dev:client` - Client SSR dev server only (5173)
 - `pnpm build` - Build contracts, then the client and compiled server for production
 - `pnpm preview` - Serve the client production build
 - `pnpm test` - Run client tests (rstest)
-- `pnpm check` - Run ALL checks in all packages concurrently (client biome+tsc+rstest, server biome+tsc+unit tests, storybook build). Use this to validate changes.
+- `pnpm check` - Run ALL checks in all packages concurrently (client biome+tsc+rstest, server biome+tsc+unit tests+architecture, storybook build). Use this to validate changes.
 - `pnpm check:client` - Client checks only
 - `pnpm storybook` - Start Storybook (port 6006)
-- `pnpm api` - Start the Fastify API (needs `.env` and Postgres)
+- `pnpm api` - Start the Nest/Fastify API (needs `.env` and Postgres)
 - `pnpm api:check` - Server biome + tsc
 
 Use `pnpm --filter @e-commerce/<name> <script>` for anything else.

@@ -1,3 +1,4 @@
+import { Inject, Injectable } from '@nestjs/common';
 import type { CartRepository } from '#src/modules/cart/database/cart.repository.port';
 import type {
   CartCoupon,
@@ -5,7 +6,7 @@ import type {
   CartEntity,
   StockChange,
 } from '#src/modules/cart/domain/cart.types';
-import { withTransaction } from '#src/shared/db/postgres';
+import { DATABASE, type Database } from '#src/shared/db/tokens';
 
 interface CartRow {
   cart_id: string;
@@ -43,17 +44,18 @@ interface CouponRow {
   value: string;
 }
 
-export default function cartRepository({ db }: Dependencies): CartRepository {
-  return {
-    async insert(cart: CartEntity): Promise<void> {
-      await db`INSERT INTO carts (cart_id, created_at) VALUES (${cart.id}, ${cart.createdAt})`;
-    },
+@Injectable()
+export class PostgresCartRepository implements CartRepository {
+  constructor(@Inject(DATABASE) private readonly db: Database) {}
+  async insert(cart: CartEntity): Promise<void> {
+    await this.db`INSERT INTO carts (cart_id, created_at) VALUES (${cart.id}, ${cart.createdAt})`;
+  }
 
-    async findOneById(id: string): Promise<CartEntity | undefined> {
-      // Product data joins in here per line (the same trade as
-      // review.repository.productExists: SQL beats a bus round-trip per line).
-      const [rows, couponRows] = await Promise.all([
-        db<CartRow[]>`
+  async findOneById(id: string): Promise<CartEntity | undefined> {
+    // Product data joins in here per line (the same trade as
+    // review.repository.productExists: SQL beats a bus round-trip per line).
+    const [rows, couponRows] = await Promise.all([
+      this.db<CartRow[]>`
           SELECT c.cart_id, c.created_at, l.sku, l.quantity,
             i.product_id, p.name, p.description, i.color, i.size, i.list_price,
             i.discount_percentage, i.sale_price, i.stock, img.image_url
@@ -69,97 +71,96 @@ export default function cartRepository({ db }: Dependencies): CartRepository {
           WHERE c.cart_id = ${id}
           ORDER BY l.created_at DESC, l.sku
         `,
-        db<CouponRow[]>`
+      this.db<CouponRow[]>`
           SELECT cc.code, co.discount_type, co.value
           FROM cart_coupons cc
           JOIN coupons co ON co.code = cc.code
           WHERE cc.cart_id = ${id}
           ORDER BY cc.created_at, cc.code
         `,
-      ]);
-      const [first] = rows;
-      if (!first) return undefined;
+    ]);
+    const [first] = rows;
+    if (!first) return undefined;
 
-      return {
-        id: first.cart_id,
-        createdAt: new Date(first.created_at),
-        lines: rows
-          .filter((row): row is LineRow => row.sku !== null)
-          .map((row) => ({
-            sku: row.sku,
-            quantity: Number(row.quantity),
-            productId: row.product_id,
-            name: row.name,
-            description: row.description,
-            color: row.color,
-            size: row.size,
-            imageUrl: row.image_url,
-            listPrice: Number(row.list_price),
-            discountPercentage:
-              row.discount_percentage === null ? null : Number(row.discount_percentage),
-            salePrice: Number(row.sale_price),
-            stock: Number(row.stock),
-          })),
-        coupons: couponRows.map((row) => ({
-          code: row.code,
-          discountType: row.discount_type,
-          value: Number(row.value),
+    return {
+      id: first.cart_id,
+      createdAt: new Date(first.created_at),
+      lines: rows
+        .filter((row): row is LineRow => row.sku !== null)
+        .map((row) => ({
+          sku: row.sku,
+          quantity: Number(row.quantity),
+          productId: row.product_id,
+          name: row.name,
+          description: row.description,
+          color: row.color,
+          size: row.size,
+          imageUrl: row.image_url,
+          listPrice: Number(row.list_price),
+          discountPercentage:
+            row.discount_percentage === null ? null : Number(row.discount_percentage),
+          salePrice: Number(row.sale_price),
+          stock: Number(row.stock),
         })),
-      };
-    },
+      coupons: couponRows.map((row) => ({
+        code: row.code,
+        discountType: row.discount_type,
+        value: Number(row.value),
+      })),
+    };
+  }
 
-    async upsertLine(cartId: string, sku: string, quantity: number): Promise<void> {
-      await db`
+  async upsertLine(cartId: string, sku: string, quantity: number): Promise<void> {
+    await this.db`
         INSERT INTO cart_lines (cart_id, sku, quantity)
         VALUES (${cartId}, ${sku}, ${quantity})
         ON CONFLICT (cart_id, sku) DO UPDATE SET quantity = EXCLUDED.quantity
       `;
-    },
+  }
 
-    async deleteLine(cartId: string, sku: string): Promise<boolean> {
-      const result = await db`
+  async deleteLine(cartId: string, sku: string): Promise<boolean> {
+    const result = await this.db`
         DELETE FROM cart_lines WHERE cart_id = ${cartId} AND sku = ${sku}
       `;
-      return result.count > 0;
-    },
+    return result.count > 0;
+  }
 
-    async findCouponByCode(code: string): Promise<CartCoupon | undefined> {
-      const [row] = await db<CouponRow[]>`
+  async findCouponByCode(code: string): Promise<CartCoupon | undefined> {
+    const [row] = await this.db<CouponRow[]>`
         SELECT code, discount_type, value FROM coupons WHERE code = ${code} LIMIT 1
       `;
-      return row
-        ? { code: row.code, discountType: row.discount_type, value: Number(row.value) }
-        : undefined;
-    },
+    return row
+      ? { code: row.code, discountType: row.discount_type, value: Number(row.value) }
+      : undefined;
+  }
 
-    async applyCoupon(cartId: string, code: string): Promise<void> {
-      await db`
+  async applyCoupon(cartId: string, code: string): Promise<void> {
+    await this.db`
         INSERT INTO cart_coupons (cart_id, code)
         VALUES (${cartId}, ${code})
         ON CONFLICT (cart_id, code) DO NOTHING
       `;
-    },
+  }
 
-    async removeCoupon(cartId: string, code: string): Promise<boolean> {
-      const result = await db`
+  async removeCoupon(cartId: string, code: string): Promise<boolean> {
+    const result = await this.db`
         DELETE FROM cart_coupons WHERE cart_id = ${cartId} AND code = ${code}
       `;
-      return result.count > 0;
-    },
+    return result.count > 0;
+  }
 
-    async applyStockChanges(cartId: string, changes: StockChange[]): Promise<void> {
-      await withTransaction(async (tx) => {
-        for (const change of changes) {
-          if (change.quantity === 0) {
-            await tx`DELETE FROM cart_lines WHERE cart_id = ${cartId} AND sku = ${change.sku}`;
-          } else {
-            await tx`
+  async applyStockChanges(cartId: string, changes: StockChange[]): Promise<void> {
+    await this.db.begin(async (tx) => {
+      for (const change of changes) {
+        if (change.quantity === 0) {
+          await tx`DELETE FROM cart_lines WHERE cart_id = ${cartId} AND sku = ${change.sku}`;
+        } else {
+          await tx`
               UPDATE cart_lines SET quantity = ${change.quantity}
               WHERE cart_id = ${cartId} AND sku = ${change.sku}
             `;
-          }
         }
-      });
-    },
-  };
+      }
+    });
+  }
 }

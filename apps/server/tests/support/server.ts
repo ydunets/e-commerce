@@ -10,11 +10,6 @@ export const buildApp = async () => {
     routerOptions: {
       ignoreDuplicateSlashes: true,
     },
-    ajv: {
-      customOptions: {
-        keywords: ['example'],
-      },
-    },
   });
 
   return server(app);

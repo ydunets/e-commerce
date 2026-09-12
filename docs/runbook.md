@@ -18,7 +18,7 @@ Watch out: an interactive shell picks up nvm, but scripts/CI may resolve an old 
 pnpm install
 ```
 
-One lockfile at the root covers all three packages (`apps/client`, `apps/server`, `apps/storybook`).
+One lockfile covers the workspace applications and shared contracts.
 
 ## 3. Database (needed for the API)
 
@@ -43,7 +43,7 @@ pnpm dev
 Completes the initial contracts and server builds, then starts the watchers concurrently, with output prefixed per package:
 
 - **client** — SSR dev server with HMR at http://localhost:5173
-- **server**: SWC compilation and the compiled Fastify API in Node watch mode at http://localhost:4000.
+- **server**: SWC compilation and the compiled Nest/Fastify API in Node watch mode at http://localhost:4000.
 
 The client proxies `/api/*` to the API, so the browser only ever talks to :5173. Sanity check:
 
@@ -67,7 +67,7 @@ Ports: client 5173 (3000 is squatted by Docker on this machine), API 4000, story
 ```bash
 pnpm check          # everything, all packages, concurrent (~3-4s):
                     #   client:    biome + tsc + rstest
-                    #   server:    biome + tsc + unit tests
+                    #   server:    biome + tsc + unit tests + architecture
                     #   storybook: static build
 ```
 
@@ -133,7 +133,7 @@ The preview server also proxies `/api/*`, so run the API alongside (`pnpm api`) 
 
 ### Compiled API execution
 
-Shared contracts use Zod 4.4.3. Legacy Fastify consumers temporarily convert them with `toLegacySchema`, selecting input JSON Schema for requests and output JSON Schema for responses. Keep metadata and examples on the authoritative contracts; `id` identifies a Zod component, whereas `$id` supplies the literal legacy JSON Schema identifier. Remove this adapter when its final legacy consumer migrates.
+Shared contracts use Zod 4.4.3. All five features run through Nest on Fastify. Nest Swagger consumes Standard Schemas and serves OpenAPI 3.0.0 at `/api-docs/json`, with the UI at `/api-docs`. It documents all 13 business endpoints and the directly mounted health route. Request validation remains in Nest; plain mappers determine successful responses without runtime output validation. The legacy Swagger converter and generated-client tooling have been removed.
 
 The contracts package is side-effect-free. Its DTO types were checked against the previous TypeBox definitions during replacement, and a utility-only production bundle verified that `compareSizes` and `SIZE_RANK` do not retain Zod. `ReviewsPageResponseDto` remains a hand-written interface.
 
@@ -149,7 +149,7 @@ pnpm --filter @e-commerce/server test:coverage
 pnpm --filter @e-commerce/server test:characterisation
 ```
 
-The first two commands remain database-free. Characterisation requires an isolated migrated and seeded PostgreSQL database; its feature text stays under `tests`, while support and step definitions execute from `dist/tests`. Coverage is remapped to source TypeScript. Keep the retained legacy unit specifications until their corresponding migration increment removes the relevant implementation.
+The first two commands remain database-free. Characterisation requires an isolated migrated and seeded PostgreSQL database; its feature text stays under `tests`, while support and step definitions execute from `dist/tests`. Coverage is remapped to source TypeScript. Retained behavior specifications use direct constructors and complete typed repository fakes; only obsolete legacy registration and naming-helper checks were removed.
 
 ### Final server image verification
 
@@ -162,7 +162,7 @@ The smoke check creates its own Docker network and PostgreSQL 18 container, appl
 
 A separate negative startup probe supplies an invalid log level to the same production image and requires a nonzero exit with redacted diagnostics. A test-only Node preload rejects any attempt to listen, detecting transient binds that readiness polling could miss. The production image command is not replaced.
 
-The existing PR image matrix retains client, server and migrations. Its server job now loads and tests the final image without publishing it. Branch protection on `main` requires the GitHub Actions checks `validate`, `characterisation`, and `build (server, apps/server/Dockerfile, .)`, including for administrators, with the branch up to date before merging. The workflow also runs for documentation-only pull requests so required checks are never omitted by path filters. Bounded SIGTERM exit is not evidence of in-flight request draining, which remains a separate migration acceptance check.
+The existing PR image matrix retains client, server and migrations. Its server job now loads and tests the final image without publishing it. Branch protection on `main` requires the GitHub Actions checks `validate`, `characterisation`, and `build (server, apps/server/Dockerfile, .)`, including for administrators, with the branch up to date before merging. The workflow also runs for documentation-only pull requests so required checks are never omitted by path filters. Bounded SIGTERM exit and in-flight request draining are distinct gates; the latter runs in the live characterisation regression. Application migration does not complete the digest-based deployment and recovery work in issue #98.
 
 ## 8. Stopping
 

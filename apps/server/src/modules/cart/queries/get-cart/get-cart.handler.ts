@@ -1,23 +1,20 @@
-import type { CartEntity } from '#src/modules/cart/domain/cart.types';
-import { cartActionCreator } from '#src/modules/cart/index';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types';
+import { Inject } from '@nestjs/common';
+import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import {
+  CART_REPOSITORY,
+  type CartRepository,
+} from '#src/modules/cart/database/cart.repository.port';
 import { NotFoundException } from '#src/shared/exceptions/index';
+import { GetCartQuery, type GetCartResult } from './get-cart.query.js';
 
-export type GetCartResult = CartEntity;
-
-export const getCartQuery = cartActionCreator<{ cartId: string }, GetCartResult>('get-cart');
-
-export default function makeGetCartQuery({ queryBus, cartRepository }: Dependencies) {
-  return {
-    async handler({ payload }: HandlerAction<typeof getCartQuery>): Promise<GetCartResult> {
-      const cart = await cartRepository.findOneById(payload.cartId);
-      if (!cart) {
-        throw new NotFoundException(`Cart ${payload.cartId} not found`);
-      }
-      return cart;
-    },
-    init() {
-      queryBus.register(getCartQuery.type, this.handler);
-    },
-  };
+@QueryHandler(GetCartQuery)
+export class GetCartHandler implements IQueryHandler<GetCartQuery> {
+  constructor(@Inject(CART_REPOSITORY) private readonly repository: CartRepository) {}
+  async execute({ payload }: GetCartQuery): Promise<GetCartResult> {
+    const cart = await this.repository.findOneById(payload.cartId);
+    if (!cart) {
+      throw new NotFoundException(`Cart ${payload.cartId} not found`);
+    }
+    return cart;
+  }
 }

@@ -1,5 +1,7 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
-import { RouteSchema } from '@nestjs/platform-fastify';
+import { productListItemDtoSchema, productResponseDtoSchema } from '@e-commerce/contracts';
+import { Controller, Get, HttpStatus, Param, Query } from '@nestjs/common';
+import { ApiOperation } from '@nestjs/swagger';
+import { ApiContract } from '#src/shared/nest/api-contract';
 import { ApplicationDispatcher } from '#src/shared/nest/dispatcher';
 import { toProductListItemResponse, toProductResponse } from './product.mapper.js';
 import { FindProductQuery } from './queries/find-product/find-product.query.js';
@@ -18,9 +20,13 @@ export class ProductController {
   constructor(private readonly dispatcher: ApplicationDispatcher) {}
 
   @Get()
-  @RouteSchema({
+  @ApiOperation({
     description: 'List products newest-first with per-colour card data',
     tags: ['products'],
+  })
+  @ApiContract({
+    response: productListItemDtoSchema.array(),
+    errors: [HttpStatus.BAD_REQUEST],
   })
   async list(@Query({ schema: listProductsQuerystringSchema }) query: ListProductsQuerystring) {
     const products = await this.dispatcher.query(new ListProductsQuery(query));
@@ -28,7 +34,11 @@ export class ProductController {
   }
 
   @Get(':id')
-  @RouteSchema({ description: 'Get a product by id', tags: ['products'] })
+  @ApiOperation({ description: 'Get a product by id', tags: ['products'] })
+  @ApiContract({
+    response: productResponseDtoSchema,
+    errors: [HttpStatus.BAD_REQUEST, HttpStatus.NOT_FOUND],
+  })
   async find(@Param({ schema: findProductParamsSchema }) params: FindProductParams) {
     return toProductResponse(await this.dispatcher.query(new FindProductQuery(params)));
   }

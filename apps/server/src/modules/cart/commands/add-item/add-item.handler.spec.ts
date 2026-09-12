@@ -1,8 +1,15 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import type { CartRepository } from '#src/modules/cart/database/cart.repository.port';
 import type { CartEntity, EnrichedCartLine } from '#src/modules/cart/domain/cart.types';
+import type {
+  GetInventoryStockQuery,
+  GetInventoryStockResult,
+} from '#src/modules/product/queries/get-inventory-stock/get-inventory-stock.query';
 import { ConflictException, NotFoundException } from '#src/shared/exceptions/index';
-import makeAddItem, { addItemCommand } from './add-item.handler.js';
+import { fakeCartRepository } from '#tests/support/cart-repository.fake';
+import { AddItemCommand } from './add-item.command.js';
+import { AddItemHandler } from './add-item.handler.js';
 
 const SKU = 'voyager-hoodie-brown-s';
 
@@ -30,19 +37,25 @@ function skuAndQuantity(lines: EnrichedCartLine[]): { sku: string; quantity: num
 // The handler re-reads the cart after writing, so the fake repository has to
 // reflect its own writes the way the real one does.
 function fakeDeps(options: { stock?: number; existingCart?: CartEntity }): {
-  deps: Dependencies;
+  deps: {
+    cartRepository: CartRepository;
+    queryBus: { query(query: GetInventoryStockQuery): Promise<GetInventoryStockResult> };
+  };
   inserted: CartEntity[];
   upserted: { cartId: string; sku: string; quantity: number }[];
 } {
   const inserted: CartEntity[] = [];
   const upserted: { cartId: string; sku: string; quantity: number }[] = [];
   let stored = options.existingCart;
-  const deps = {
+  const deps: {
+    cartRepository: CartRepository;
+    queryBus: { query(query: GetInventoryStockQuery): Promise<GetInventoryStockResult> };
+  } = {
     queryBus: {
-      execute: async () =>
+      query: async () =>
         options.stock === undefined ? undefined : { sku: SKU, stock: options.stock },
     },
-    cartRepository: {
+    cartRepository: fakeCartRepository({
       insert: async (cart: CartEntity) => {
         inserted.push(cart);
         stored = cart;
@@ -59,8 +72,8 @@ function fakeDeps(options: { stock?: number; existingCart?: CartEntity }): {
             : [enrichedLine(sku, quantity), ...stored.lines],
         };
       },
-    },
-  } as never as Dependencies;
+    }),
+  };
   return { deps, inserted, upserted };
 }
 
@@ -68,7 +81,9 @@ describe('addItemCommand handler', () => {
   it('mints a cart implicitly when no cartId is given', async () => {
     const { deps, inserted, upserted } = fakeDeps({ stock: 5 });
 
-    const cart = await makeAddItem(deps).handler(addItemCommand({ sku: SKU, quantity: 2 }));
+    const cart = await new AddItemHandler(deps.cartRepository, deps.queryBus).execute(
+      new AddItemCommand({ sku: SKU, quantity: 2 }),
+    );
 
     assert.equal(inserted.length, 1);
     assert.equal(cart.id, inserted[0]!.id);
@@ -79,7 +94,9 @@ describe('addItemCommand handler', () => {
   it('answers the persisted read model, enriched with product data', async () => {
     const { deps } = fakeDeps({ stock: 5 });
 
-    const cart = await makeAddItem(deps).handler(addItemCommand({ sku: SKU, quantity: 2 }));
+    const cart = await new AddItemHandler(deps.cartRepository, deps.queryBus).execute(
+      new AddItemCommand({ sku: SKU, quantity: 2 }),
+    );
 
     assert.deepEqual(cart.lines, [enrichedLine(SKU, 2)]);
   });
@@ -93,8 +110,8 @@ describe('addItemCommand handler', () => {
     };
     const { deps, inserted, upserted } = fakeDeps({ stock: 5, existingCart });
 
-    const cart = await makeAddItem(deps).handler(
-      addItemCommand({ cartId: 'cart-1', sku: SKU, quantity: 3 }),
+    const cart = await new AddItemHandler(deps.cartRepository, deps.queryBus).execute(
+      new AddItemCommand({ cartId: 'cart-1', sku: SKU, quantity: 3 }),
     );
 
     assert.equal(inserted.length, 0);
@@ -112,7 +129,10 @@ describe('addItemCommand handler', () => {
     const { deps, upserted } = fakeDeps({ stock: 5, existingCart });
 
     await assert.rejects(
-      () => makeAddItem(deps).handler(addItemCommand({ cartId: 'cart-1', sku: SKU, quantity: 2 })),
+      () =>
+        new AddItemHandler(deps.cartRepository, deps.queryBus).execute(
+          new AddItemCommand({ cartId: 'cart-1', sku: SKU, quantity: 2 }),
+        ),
       ConflictException,
     );
     assert.equal(upserted.length, 0);
@@ -122,7 +142,10 @@ describe('addItemCommand handler', () => {
     const { deps, inserted } = fakeDeps({ stock: 0 });
 
     await assert.rejects(
-      () => makeAddItem(deps).handler(addItemCommand({ sku: SKU, quantity: 1 })),
+      () =>
+        new AddItemHandler(deps.cartRepository, deps.queryBus).execute(
+          new AddItemCommand({ sku: SKU, quantity: 1 }),
+        ),
       ConflictException,
     );
     assert.equal(inserted.length, 0);
@@ -132,7 +155,10 @@ describe('addItemCommand handler', () => {
     const { deps, inserted } = fakeDeps({});
 
     await assert.rejects(
-      () => makeAddItem(deps).handler(addItemCommand({ sku: SKU, quantity: 1 })),
+      () =>
+        new AddItemHandler(deps.cartRepository, deps.queryBus).execute(
+          new AddItemCommand({ sku: SKU, quantity: 1 }),
+        ),
       NotFoundException,
     );
     assert.equal(inserted.length, 0);
@@ -142,20 +168,11 @@ describe('addItemCommand handler', () => {
     const { deps } = fakeDeps({ stock: 5 });
 
     await assert.rejects(
-      () => makeAddItem(deps).handler(addItemCommand({ cartId: 'missing', sku: SKU, quantity: 1 })),
+      () =>
+        new AddItemHandler(deps.cartRepository, deps.queryBus).execute(
+          new AddItemCommand({ cartId: 'missing', sku: SKU, quantity: 1 }),
+        ),
       NotFoundException,
     );
-  });
-
-  it('registers itself on the command bus under its action type', () => {
-    const registered: string[] = [];
-    const { deps } = fakeDeps({ stock: 5 });
-
-    makeAddItem({
-      ...deps,
-      commandBus: { register: (type: string) => void registered.push(type) },
-    } as never).init();
-
-    assert.deepEqual(registered, [addItemCommand.type]);
   });
 });

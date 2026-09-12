@@ -1,4 +1,5 @@
 import { STATUS_CODES } from 'node:http';
+import type { ApiErrorResponse } from '@e-commerce/contracts';
 import {
   type ArgumentsHost,
   Catch,
@@ -8,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import type { FastifyInstance, FastifyReply } from 'fastify';
-import type { ApiErrorResponse } from '#src/shared/api/api-error.response';
 import { getRequestId } from '#src/shared/app/app-request-context';
 import { ExceptionBase } from '#src/shared/exceptions/exception-base';
 import { ValidationException } from './validation.js';

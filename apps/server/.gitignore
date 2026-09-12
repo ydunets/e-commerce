@@ -31,7 +31,5 @@ coverage
 .history
 .cursor
 
-# Generated client types (produced by generate:types script)
-client/rest.d.ts
 .agents/skills/
 .claude/settings.local.json

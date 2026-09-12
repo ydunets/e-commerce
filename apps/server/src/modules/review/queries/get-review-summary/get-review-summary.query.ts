@@ -1,6 +1,6 @@
 import { Query } from '@nestjs/cqrs';
 import type { ReviewSummary } from '#src/modules/review/domain/review.types';
-import type { Meta } from '#src/shared/cqrs/bus.types';
+import type { Meta } from '#src/shared/cqrs/action.types';
 
 export type GetReviewSummaryResult = ReviewSummary;
 

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import postgres from 'postgres';
 import { SubscriberAlreadyExistsException } from '#src/modules/newsletter/domain/subscriber.errors';
+import type { Database } from '#src/shared/db/tokens';
 import { PostgresSubscriberRepository } from './subscriber.repository.js';
 
 const subscriber = {
@@ -11,8 +12,8 @@ const subscriber = {
   updatedAt: new Date('2026-01-01T00:00:00Z'),
 };
 
-function fakeDb(behavior: () => Promise<unknown[]>): Dependencies['db'] {
-  return (() => behavior()) as unknown as Dependencies['db'];
+function fakeDb(behavior: () => Promise<unknown[]>): Database {
+  return (() => behavior()) as unknown as Database;
 }
 
 // The published .d.ts models `PostgresError` after the built-in `Error(message)`
@@ -29,7 +30,7 @@ describe('subscriberRepository().insert()', () => {
     const db = ((strings: TemplateStringsArray) => {
       queried = strings.join('?');
       return Promise.resolve([]);
-    }) as unknown as Dependencies['db'];
+    }) as unknown as Database;
 
     await new PostgresSubscriberRepository(db).insert(subscriber);
 

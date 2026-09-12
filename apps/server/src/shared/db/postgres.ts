@@ -49,15 +49,3 @@ export const joinConditions = (
     db``,
   );
 };
-
-/**
- * Executes a callback within a database transaction.
- * All queries using the `tx` sql instance share the same transaction.
- * The transaction is committed if the callback resolves, rolled back if it throws.
- */
-export async function withTransaction<T>(
-  fn: (tx: postgres.TransactionSql) => Promise<T>,
-): Promise<T> {
-  const db = getDb();
-  return db.begin((tx) => fn(tx)) as Promise<T>;
-}

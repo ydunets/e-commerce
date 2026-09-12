@@ -6,7 +6,7 @@ import { CONFIGURATION } from '#src/shared/nest/shared.module';
 import { STATUS_OK } from '../shared/http.js';
 import type { ICustomWorld } from '../support/custom-world.js';
 
-Then('the legacy error identifies the invalid rating', function (this: ICustomWorld) {
+Then('the validation error identifies the invalid rating', function (this: ICustomWorld) {
   const body = this.context.latestResponse!.json();
   assert.equal(body.message, 'Validation error');
   assert.equal(body.details, undefined);
@@ -20,17 +20,16 @@ Then('the legacy error identifies the invalid rating', function (this: ICustomWo
 Then('the compiled API documents every existing business endpoint', function (this: ICustomWorld) {
   assert.ok(import.meta.url.endsWith('/dist/tests/runtime/runtime.steps.js'));
   assert.equal(this.context.latestResponse!.statusCode, STATUS_OK);
-  const document = this.context.latestResponse!.json<{
-    paths: Record<string, Record<string, unknown>>;
-  }>();
+  const document = this.context.latestResponse!.json();
+  assert.equal(document.openapi, '3.0.0');
   assert.ok(document.paths['/health']?.get);
   assert.equal(this.server.get(DATABASE), this.db);
   assert.equal(this.server.get(CONFIGURATION), env);
-  assert.ok(this.server.getHttpAdapter().getInstance().getSchema('ApiErrorResponse'));
+  assert.ok(document.components.schemas.ApiErrorResponse);
   const endpoints = Object.entries(document.paths)
     .filter(([path]) => path.startsWith('/api/v1/'))
     .flatMap(([path, methods]) =>
-      Object.keys(methods).map((method) => `${method.toUpperCase()} ${path}`),
+      Object.keys(methods as object).map((method) => `${method.toUpperCase()} ${path}`),
     );
   assert.deepEqual(
     endpoints.sort(),

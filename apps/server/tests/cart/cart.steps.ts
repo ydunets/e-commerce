@@ -52,6 +52,10 @@ async function addItem(world: ICustomWorld, payload: Record<string, unknown>): P
   }
 }
 
+When('I submit this cart addition:', async function (this: ICustomWorld, payload: string) {
+  await addItem(this, JSON.parse(payload));
+});
+
 Given(
   'an inventory item {string} with stock {int}',
   async function (this: ICustomWorld, sku: string, stock: number) {

@@ -14,9 +14,16 @@ export const reviewResponseDtoSchema = z.object({
 export type ReviewResponseDto = z.infer<typeof reviewResponseDtoSchema>;
 
 /** The paginated envelope `GET /products/:id/reviews` responds with. */
+export const reviewsPageResponseDtoSchema = z.object({
+  count: z.number(),
+  limit: z.number(),
+  page: z.number(),
+  data: z.array(reviewResponseDtoSchema),
+});
+
 export interface ReviewsPageResponseDto {
-  count: number;
-  limit: number;
-  page: number;
-  data: ReviewResponseDto[];
+ count: number;
+ limit: number;
+ page: number;
+ data: ReviewResponseDto[];
 }

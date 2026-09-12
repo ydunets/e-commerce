@@ -217,6 +217,26 @@ try {
     });
   }
   const documentation = await readJson(`${origin}/api-docs/json`);
+  assert.equal(documentation.openapi, '3.0.0');
+  assert.ok(documentation.components.schemas.ApiErrorResponse);
+  for (const [path, method] of [
+    ['/api/v1/carts/items', 'post'],
+    ['/api/v1/carts/{cartId}', 'get'],
+    ['/api/v1/carts/{cartId}/items/{sku}', 'patch'],
+    ['/api/v1/carts/{cartId}/items/{sku}', 'delete'],
+    ['/api/v1/carts/{cartId}/coupons', 'post'],
+    ['/api/v1/carts/{cartId}/coupons/{code}', 'delete'],
+    ['/api/v1/carts/{cartId}/validate', 'post'],
+  ]) {
+    assert.ok(documentation.paths[path][method], `${method} ${path}`);
+  }
+  for (const path of ['/api-docs', '/api-docs/swagger-ui-bundle.js']) {
+    const response = await fetch(`${origin}${path}`, {
+      signal: AbortSignal.timeout(STARTUP_TIMEOUT_MS),
+    });
+    assert.equal(response.status, STATUS_OK, path);
+    await response.arrayBuffer();
+  }
   assert.ok(documentation.paths['/api/v1/newsletter/subscriptions'].post);
   assert.ok(documentation.paths['/health'].get);
   for (const path of [
@@ -304,7 +324,7 @@ try {
     );
   }
   process.stdout.write(
-    'Production image passed health, product/review/specification reads, newsletter subscriptions, hybrid documentation, packaging, bounded SIGTERM exit and invalid-configuration rejection before listening.\n',
+    'Production image passed health, product/review/specification reads, cart inventory dispatch, newsletter subscriptions, Nest documentation and UI assets, packaging, bounded SIGTERM exit and invalid-configuration rejection before listening.\n',
   );
 } catch (error) {
   if (ownedContainers.includes(server)) {

@@ -6,7 +6,7 @@ import {
 } from '#src/modules/newsletter/database/subscriber.repository.port';
 import { SubscriberAlreadyExistsException } from '#src/modules/newsletter/domain/subscriber.errors';
 import { createSubscriber } from '#src/modules/newsletter/domain/subscriber.factory';
-import type { Meta } from '#src/shared/cqrs/bus.types';
+import type { Meta } from '#src/shared/cqrs/action.types';
 import { ApplicationDispatcher } from '#src/shared/nest/dispatcher';
 
 export class SubscribeCommand extends Command<undefined> {

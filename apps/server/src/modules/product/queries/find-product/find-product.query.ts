@@ -1,6 +1,6 @@
 import { Query } from '@nestjs/cqrs';
 import type { ProductEntity } from '#src/modules/product/domain/product.types';
-import type { Meta } from '#src/shared/cqrs/bus.types';
+import type { Meta } from '#src/shared/cqrs/action.types';
 
 export class FindProductQuery extends Query<ProductEntity> {
   static readonly type = 'product/find-one-by-id';

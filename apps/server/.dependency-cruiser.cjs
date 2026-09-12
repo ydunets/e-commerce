@@ -1,4 +1,4 @@
-const apiLayerPaths = ['dtos', 'dto\\.ts$', 'route\\.ts$', 'resolver\\.ts$'];
+const apiLayerPaths = ['dtos', 'dto\\.ts$', 'route\\.ts$', 'resolver\\.ts$', 'controller\\.ts$'];
 
 const applicationLayerPaths = [
   'application',
@@ -66,6 +66,17 @@ module.exports = {
       },
       to: {
         path: apiLayerPaths,
+      },
+    },
+
+    {
+      name: 'no-handler-to-infrastructure-deps',
+      comment: 'Handlers access persistence through repository ports only',
+      severity: 'error',
+      from: { path: ['\\.handler\\.ts$', '\\.event-handler\\.ts$'] },
+      to: {
+        path: [...infrastructureLayerPaths, '^src/shared/db/'],
+        pathNot: ['\\.port\\.ts$'],
       },
     },
 
@@ -156,7 +167,6 @@ module.exports = {
         'in your package.json.',
       from: {},
       to: {
-        pathNot: ['ajv'],
         dependencyTypes: ['npm-no-pkg', 'npm-unknown'],
       },
     },
@@ -197,7 +207,7 @@ module.exports = {
         "or there's something in the test folder that isn't a test.",
       severity: 'error',
       from: {
-        pathNot: '^(tests)',
+        pathNot: ['^(tests)', '\\.spec\\.ts$'],
       },
       to: {
         path: '^(tests)',

@@ -21,34 +21,35 @@ const SPECIFICATIONS_PATH = '/api/v1/specifications';
 const DEADLINE_MS = 15_000;
 const POLL_MS = 25;
 const CONTROLLERS: Record<string, string> = {
+  cart: 'CartController',
   product: 'ProductController',
   review: 'ReviewController',
   specification: 'SpecificationController',
 };
 
-function assertForwardedQuery(
+function assertNestedQuery(
   actions: ExportedSpan[],
   parent: ExportedSpan,
   name: string,
   logs: string,
 ): void {
-  const forwarded = actions.filter((span) => span.name === name);
-  assert.equal(forwarded.length, 1, 'each forwarded query must have exactly one span');
-  assert.equal(forwarded[0].parentSpanId, parent.spanId);
-  assert.equal(forwarded[0].traceId, parent.traceId);
+  const nested = actions.filter((span) => span.name === name);
+  assert.equal(nested.length, 1, 'each nested query must have exactly one span');
+  assert.equal(nested[0].parentSpanId, parent.spanId);
+  assert.equal(nested[0].traceId, parent.traceId);
   const timings = logs
     .split('\n')
     .filter((line) => line.startsWith('{'))
     .map((line) => JSON.parse(line));
-  // The retained legacy timer reports successful completion only.
-  const expectedTimings = forwarded[0].status?.code === SpanStatusCode.ERROR ? 0 : 1;
+  // The action timer reports successful completion only.
+  const expectedTimings = nested[0].status?.code === SpanStatusCode.ERROR ? 0 : 1;
   assert.equal(
     timings.filter((record) => record.msg?.startsWith(`Action ${name} took `)).length,
     expectedTimings,
   );
 }
 
-export async function verifyQueryAdapters(
+export async function verifyQueryComposition(
   origin: string,
   spans: ExportedSpan[],
   logs: () => string,
@@ -58,7 +59,7 @@ export async function verifyQueryAdapters(
     path: string,
     options: RequestInit,
     parentAction: string,
-    bridgedAction?: string,
+    nestedAction?: string,
   ) {
     const correlationId = randomUUID();
     const logOffset = logs().length;
@@ -94,10 +95,10 @@ export async function verifyQueryAdapters(
       `${parentAction}: ${JSON.stringify(actions)}`,
     );
     const parent = actions.find((span) => span.name === parentAction)!;
-    if (bridgedAction) {
-      assertForwardedQuery(actions, parent, bridgedAction, logs().slice(logOffset));
+    if (nestedAction) {
+      assertNestedQuery(actions, parent, nestedAction, logs().slice(logOffset));
     }
-    // Migrated reads retain their Nest controller ancestor.
+    // Feature requests retain their Nest controller ancestor.
     const controller = CONTROLLERS[parentAction.split('/')[0]];
     if (controller) {
       assert.ok(

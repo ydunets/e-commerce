@@ -1,33 +1,27 @@
-import type { CartEntity } from '#src/modules/cart/domain/cart.types';
-import { cartActionCreator } from '#src/modules/cart/index';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types';
+import { Inject } from '@nestjs/common';
+import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
+import {
+  CART_REPOSITORY,
+  type CartRepository,
+} from '#src/modules/cart/database/cart.repository.port';
 import { NotFoundException } from '#src/shared/exceptions/index';
+import { RemoveItemCommand, type RemoveItemResult } from './remove-item.command.js';
 
-export type RemoveItemResult = CartEntity;
+@CommandHandler(RemoveItemCommand)
+export class RemoveItemHandler implements ICommandHandler<RemoveItemCommand> {
+  constructor(@Inject(CART_REPOSITORY) private readonly repository: CartRepository) {}
+  async execute({ payload }: RemoveItemCommand): Promise<RemoveItemResult> {
+    const cart = await this.repository.findOneById(payload.cartId);
+    if (!cart) {
+      throw new NotFoundException(`Cart ${payload.cartId} not found`);
+    }
 
-export const removeItemCommand = cartActionCreator<
-  { cartId: string; sku: string },
-  RemoveItemResult
->('remove-item');
+    const removed = await this.repository.deleteLine(payload.cartId, payload.sku);
+    if (!removed) {
+      throw new NotFoundException(`Cart line ${payload.sku} not found`);
+    }
 
-export default function makeRemoveItem({ commandBus, cartRepository }: Dependencies) {
-  return {
-    async handler({ payload }: HandlerAction<typeof removeItemCommand>): Promise<RemoveItemResult> {
-      const cart = await cartRepository.findOneById(payload.cartId);
-      if (!cart) {
-        throw new NotFoundException(`Cart ${payload.cartId} not found`);
-      }
-
-      const removed = await cartRepository.deleteLine(payload.cartId, payload.sku);
-      if (!removed) {
-        throw new NotFoundException(`Cart line ${payload.sku} not found`);
-      }
-
-      // Removing the last line leaves an empty cart; the cart row survives.
-      return { ...cart, lines: cart.lines.filter((line) => line.sku !== payload.sku) };
-    },
-    init() {
-      commandBus.register(removeItemCommand.type, this.handler);
-    },
-  };
+    // Removing the last line leaves an empty cart; the cart row survives.
+    return { ...cart, lines: cart.lines.filter((line) => line.sku !== payload.sku) };
+  }
 }

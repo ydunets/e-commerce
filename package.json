@@ -6,10 +6,6 @@
   "engines": {
     "node": ">=24"
   },
-  "devDependencies": {
-    "openapi-typescript": "7.13.0",
-    "typescript": "npm:@typescript/typescript6@6.0.2"
-  },
   "scripts": {
     "postinstall": "pnpm --filter @e-commerce/contracts build",
     "dev": "pnpm --filter @e-commerce/contracts build && pnpm --filter @e-commerce/server build && pnpm run --parallel '/^dev:watch:/'",

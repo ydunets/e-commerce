@@ -15,3 +15,5 @@ export interface CartRepository {
   /** Applies the clamps and removals of a stock reconciliation in one transaction. */
   applyStockChanges(cartId: string, changes: StockChange[]): Promise<void>;
 }
+
+export const CART_REPOSITORY = Symbol('CartRepository');

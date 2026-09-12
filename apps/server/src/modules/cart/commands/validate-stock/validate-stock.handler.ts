@@ -1,44 +1,34 @@
+import { Inject } from '@nestjs/common';
+import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
+import {
+  CART_REPOSITORY,
+  type CartRepository,
+} from '#src/modules/cart/database/cart.repository.port';
 import { reconcileCartStock } from '#src/modules/cart/domain/cart.stock';
-import type { CartEntity, StockChange } from '#src/modules/cart/domain/cart.types';
-import { cartActionCreator } from '#src/modules/cart/index';
-import type { HandlerAction } from '#src/shared/cqrs/bus.types';
 import { NotFoundException } from '#src/shared/exceptions/index';
+import { ValidateStockCommand, type ValidateStockResult } from './validate-stock.command.js';
 
-export interface ValidateStockResult {
-  cart: CartEntity;
-  changes: StockChange[];
-}
+@CommandHandler(ValidateStockCommand)
+export class ValidateStockHandler implements ICommandHandler<ValidateStockCommand> {
+  constructor(@Inject(CART_REPOSITORY) private readonly repository: CartRepository) {}
+  async execute({ payload }: ValidateStockCommand): Promise<ValidateStockResult> {
+    const cart = await this.repository.findOneById(payload.cartId);
+    if (!cart) {
+      throw new NotFoundException(`Cart ${payload.cartId} not found`);
+    }
 
-export const validateStockCommand = cartActionCreator<{ cartId: string }, ValidateStockResult>(
-  'validate-stock',
-);
+    // ponytail: read-then-write reconciliation; lock the inventory rows if
+    // a stock change between the read and the clamp ever matters.
+    const changes = reconcileCartStock(cart.lines);
+    if (changes.length === 0) {
+      return { cart, changes };
+    }
 
-export default function makeValidateStock({ commandBus, cartRepository }: Dependencies) {
-  return {
-    async handler({
-      payload,
-    }: HandlerAction<typeof validateStockCommand>): Promise<ValidateStockResult> {
-      const cart = await cartRepository.findOneById(payload.cartId);
-      if (!cart) {
-        throw new NotFoundException(`Cart ${payload.cartId} not found`);
-      }
-
-      // ponytail: read-then-write reconciliation; lock the inventory rows if
-      // a stock change between the read and the clamp ever matters.
-      const changes = reconcileCartStock(cart.lines);
-      if (changes.length === 0) {
-        return { cart, changes };
-      }
-
-      await cartRepository.applyStockChanges(payload.cartId, changes);
-      const corrected = await cartRepository.findOneById(payload.cartId);
-      if (!corrected) {
-        throw new NotFoundException(`Cart ${payload.cartId} not found`);
-      }
-      return { cart: corrected, changes };
-    },
-    init() {
-      commandBus.register(validateStockCommand.type, this.handler);
-    },
-  };
+    await this.repository.applyStockChanges(payload.cartId, changes);
+    const corrected = await this.repository.findOneById(payload.cartId);
+    if (!corrected) {
+      throw new NotFoundException(`Cart ${payload.cartId} not found`);
+    }
+    return { cart: corrected, changes };
+  }
 }

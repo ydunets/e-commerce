@@ -1,19 +1,24 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import type { CartRepository } from '#src/modules/cart/database/cart.repository.port';
 import type { CartCoupon, CartEntity } from '#src/modules/cart/domain/cart.types';
 import { NotFoundException } from '#src/shared/exceptions/index';
-import makeRemoveCoupon, { removeCouponCommand } from './remove-coupon.handler.js';
+import { fakeCartRepository } from '#tests/support/cart-repository.fake';
+import { RemoveCouponCommand } from './remove-coupon.command.js';
+import { RemoveCouponHandler } from './remove-coupon.handler.js';
 
 const WELCOME: CartCoupon = { code: 'WELCOME15', discountType: 'percentage', value: 15 };
 const SAVE: CartCoupon = { code: 'SAVE20', discountType: 'fixed', value: 20 };
 
-function fakeDeps(options: { cart?: CartEntity; removed?: boolean }): Dependencies {
+function fakeDeps(options: { cart?: CartEntity; removed?: boolean }): {
+  cartRepository: CartRepository;
+} {
   return {
-    cartRepository: {
+    cartRepository: fakeCartRepository({
       findOneById: async (id: string) => (options.cart?.id === id ? options.cart : undefined),
       removeCoupon: async () => options.removed ?? false,
-    },
-  } as never as Dependencies;
+    }),
+  };
 }
 
 describe('removeCouponCommand handler', () => {
@@ -23,8 +28,8 @@ describe('removeCouponCommand handler', () => {
       removed: true,
     });
 
-    const cart = await makeRemoveCoupon(deps).handler(
-      removeCouponCommand({ cartId: 'cart-1', code: 'WELCOME15' }),
+    const cart = await new RemoveCouponHandler(deps.cartRepository).execute(
+      new RemoveCouponCommand({ cartId: 'cart-1', code: 'WELCOME15' }),
     );
 
     assert.deepEqual(cart.coupons, [SAVE]);
@@ -38,8 +43,8 @@ describe('removeCouponCommand handler', () => {
 
     await assert.rejects(
       () =>
-        makeRemoveCoupon(deps).handler(
-          removeCouponCommand({ cartId: 'cart-1', code: 'WELCOME15' }),
+        new RemoveCouponHandler(deps.cartRepository).execute(
+          new RemoveCouponCommand({ cartId: 'cart-1', code: 'WELCOME15' }),
         ),
       NotFoundException,
     );
@@ -50,21 +55,10 @@ describe('removeCouponCommand handler', () => {
 
     await assert.rejects(
       () =>
-        makeRemoveCoupon(deps).handler(
-          removeCouponCommand({ cartId: 'missing', code: 'WELCOME15' }),
+        new RemoveCouponHandler(deps.cartRepository).execute(
+          new RemoveCouponCommand({ cartId: 'missing', code: 'WELCOME15' }),
         ),
       NotFoundException,
     );
-  });
-
-  it('registers itself on the command bus under its action type', () => {
-    const registered: string[] = [];
-
-    makeRemoveCoupon({
-      ...fakeDeps({}),
-      commandBus: { register: (type: string) => void registered.push(type) },
-    } as never).init();
-
-    assert.deepEqual(registered, [removeCouponCommand.type]);
   });
 });

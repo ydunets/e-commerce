@@ -8,7 +8,7 @@ import { setTimeout } from 'node:timers/promises';
 import { HttpStatus } from '@nestjs/common';
 import { closeDbConnection, getDb } from '#src/shared/db/postgres';
 import { ERROR_CASES } from './fixtures/error-cases.js';
-import { type ExportedSpan, verifyQueryAdapters } from './query-adapter-traces.js';
+import { type ExportedSpan, verifyQueryComposition } from './query-composition.js';
 
 const DEADLINE_MS = 15_000;
 const POLL_MS = 25;
@@ -196,7 +196,7 @@ it('exports related HTTP, Fastify, Nest and action spans and drains an in-flight
 
     // Hold the actual INSERT in PostgreSQL, not a mocked handler or close hook.
     assert.ok(origin);
-    await verifyQueryAdapters(origin, spans, () => diagnostics);
+    await verifyQueryComposition(origin, spans, () => diagnostics);
     let locked = false;
     const release = new Promise<void>((resolve) => {
       unlock = resolve;

@@ -13,6 +13,8 @@ const IS_CI = !!process.env.CI;
 const SETUP_SPECS = /.*\.setup\.ts/;
 const MOBILE_SPECS = /mobile-.*\.spec\.ts/;
 const STREAMING_SPECS = /streaming\.spec\.ts/;
+// Rendering baselines are recorded on both Chromium projects (see visual.spec.ts).
+const VISUAL_SPECS = /visual\.spec\.ts/;
 
 // The storefront's cross-browser promise (#41) is kept by the smoke set:
 // rendering, composition, add-to-cart and the newsletter, run on all three
@@ -77,7 +79,8 @@ export default defineConfig<TestOptions, WorkerOptions>({
     {
       name: 'mobile-chromium',
       use: { ...devices['Pixel 7'] },
-      testMatch: MOBILE_SPECS,
+      dependencies: ['setup'],
+      testMatch: [MOBILE_SPECS, VISUAL_SPECS],
     },
     {
       name: 'streaming-prod',

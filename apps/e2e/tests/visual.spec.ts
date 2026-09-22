@@ -1,6 +1,12 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { COOKIE_CHOICE_KEY, PRODUCT, ROUTES } from './helpers';
+import {
+  COOKIE_CHOICE_KEY,
+  PRODUCT,
+  ROUTES,
+  SEEDED_CART_STATE,
+  seedLocalStorage,
+} from './helpers';
 
 const SCREENSHOT_STYLESHEET = 'tests/screenshot.css';
 const COOKIES_ACCEPTED = 'accepted';
@@ -21,10 +27,7 @@ const DIFF_TOLERANCE = { maxDiffPixelRatio: 0.01 };
 
 /** The banner would otherwise cover the page bottom in every capture. */
 async function acceptCookiesUpFront(page: Page) {
-  await page.addInitScript(
-    ([key, value]) => localStorage.setItem(key, value),
-    [COOKIE_CHOICE_KEY, COOKIES_ACCEPTED],
-  );
+  await seedLocalStorage(page, COOKIE_CHOICE_KEY, COOKIES_ACCEPTED);
 }
 
 /** Web fonts land after hydration and reflow the text they replace. */
@@ -67,9 +70,48 @@ test.describe('Rendering Baselines', () => {
       ...DIFF_TOLERANCE,
     });
   });
+
+  test('should render the home page as recorded', async ({
+    gotoHydrated,
+    page,
+  }) => {
+    await gotoHydrated(ROUTES.home);
+    await settle(page);
+
+    await expect(page).toHaveScreenshot('home.png', {
+      fullPage: true,
+      mask: maskedImages(page),
+      stylePath: SCREENSHOT_STYLESHEET,
+      ...DIFF_TOLERANCE,
+    });
+  });
+
+  test.describe('starting from a seeded cart', () => {
+    test.use({ storageState: SEEDED_CART_STATE });
+
+    test('should render the cart page as recorded', async ({
+      gotoHydrated,
+      page,
+    }) => {
+      await gotoHydrated(ROUTES.cart);
+      await settle(page);
+
+      await expect(page).toHaveScreenshot('cart.png', {
+        fullPage: true,
+        mask: maskedImages(page),
+        stylePath: SCREENSHOT_STYLESHEET,
+        ...DIFF_TOLERANCE,
+      });
+    });
+  });
 });
 
 test.describe('Structural Snapshots', () => {
+  test.skip(
+    ({ isMobile }) => isMobile,
+    'the desktop navigation is hidden on phones',
+  );
+
   test('should keep the navigation bar, a product card and the footer in shape', async ({
     gotoHydrated,
     page,

@@ -34,6 +34,18 @@ export const SEEDED_CART_STATE = 'tests/.state/cart.json';
  */
 export const FIXED_CLOCK = new Date('2030-06-15T12:00:00Z');
 
+/**
+ * Writes one localStorage entry before any page script runs, in the top window
+ * only: a sandboxed iframe has no storage and would report the access as an error.
+ */
+export const seedLocalStorage = (page: Page, key: string, value: string) =>
+  page.addInitScript(
+    ([storageKey, storageValue]) => {
+      if (window === window.top) localStorage.setItem(storageKey, storageValue);
+    },
+    [key, value],
+  );
+
 /** The navbar's bag, whose accessible name carries the cart count. */
 export const cartLink = (page: Page) =>
   page.getByRole('link', { name: /shopping bag/i });
@@ -51,6 +63,7 @@ export const ROUTES = {
   home: '/',
   about: '/about',
   products: '/products',
+  cart: '/cart',
 } as const;
 
 /** Versioned API routes; `/health` and `/api-docs/json` sit outside this prefix. */

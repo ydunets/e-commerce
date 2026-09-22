@@ -1,8 +1,21 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import * as stylex from '@stylexjs/stylex';
 import { useState } from 'react';
 import { fn } from 'storybook/test';
 import { Button } from '@/shared/ui/button';
+import { colors } from '@/shared/ui/tokens.stylex';
 import { Dialog } from './Dialog';
+
+const styles = stylex.create({
+  body: { padding: '2.5rem' },
+  title: {
+    fontSize: '1.5rem',
+    lineHeight: '2rem',
+    fontWeight: 600,
+    color: colors.ink,
+  },
+  copy: { marginTop: '0.5rem', color: colors.muted },
+});
 
 const meta = {
   title: 'Shared/Dialog',
@@ -28,9 +41,9 @@ export const Default: Story = {
             setOpen(false);
           }}
         >
-          <div className="p-10">
-            <h2 className="text-2xl font-semibold text-ink">Dialog title</h2>
-            <p className="mt-2 text-muted">
+          <div {...stylex.props(styles.body)}>
+            <h2 {...stylex.props(styles.title)}>Dialog title</h2>
+            <p {...stylex.props(styles.copy)}>
               Dismiss with Esc, a backdrop click, or the ✕ button — all route
               through onClose.
             </p>

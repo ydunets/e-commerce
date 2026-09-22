@@ -1,7 +1,9 @@
+import * as stylex from '@stylexjs/stylex';
 import { useRef, useState } from 'react';
-import { cx } from '@/shared/lib/cx';
 import { squareImage } from '@/shared/lib/image';
-import styles from './ImageGallery.module.css';
+import { focusRing } from '@/shared/ui/focus-ring';
+import { transitions } from '@/shared/ui/motion.stylex';
+import { colors } from '@/shared/ui/tokens.stylex';
 
 type TDragState = {
   active: boolean;
@@ -22,6 +24,61 @@ const MAX_FILLED_THUMBS = 3;
 const SWIPE_THRESHOLD_PX = 50;
 
 export const MAIN_IMAGE_SIZES = '(min-width: 768px) 592px, 100vw';
+
+const styles = stylex.create({
+  root: {
+    marginInline: 'auto',
+    display: 'flex',
+    width: '100%',
+    maxWidth: '592px',
+    flexDirection: 'column',
+    gap: '1.5rem',
+  },
+  mainWrap: {
+    aspectRatio: '592 / 800',
+    width: '100%',
+    touchAction: 'pan-y',
+    overflow: 'hidden',
+    borderRadius: '0.5rem',
+    backgroundColor: colors.surface,
+  },
+  main: { height: '100%', width: '100%', objectFit: 'cover' },
+  thumbs: {
+    display: 'flex',
+    aspectRatio: '592 / 190',
+    width: '100%',
+    gap: '1rem',
+  },
+  thumbsScroll: {
+    overflowX: 'auto',
+    paddingBottom: '0.25rem',
+    scrollbarWidth: 'none',
+    // oxlint-disable-next-line @stylexjs/valid-styles -- the compiler emits the vendor pseudo-element, and WebKit still draws the scrollbar without it.
+    '::-webkit-scrollbar': { display: 'none' },
+  },
+  thumb: {
+    height: '100%',
+    flexShrink: 0,
+    cursor: 'pointer',
+    overflow: 'hidden',
+    borderRadius: '0.5rem',
+    borderWidth: '3px',
+    borderStyle: 'solid',
+    borderColor: 'transparent',
+    transitionProperty: transitions.colors,
+    transitionDuration: transitions.duration,
+    transitionTimingFunction: transitions.easing,
+  },
+  thumbFill: { flexGrow: 1, flexShrink: 1, flexBasis: '0%' },
+  thumbFixed: { width: '160px' },
+  thumbActive: { borderColor: colors.brandSolid },
+  thumbImage: {
+    height: '100%',
+    width: '100%',
+    backgroundColor: colors.surface,
+    objectFit: 'cover',
+  },
+});
 
 export const mainImageSrcSet = (url: string): string =>
   MAIN_WIDTHS.map((width) => `${squareImage(url, width)} ${width}w`).join(', ');
@@ -58,9 +115,9 @@ export const ImageGallery = ({ images, alt }: TImageGalleryProps) => {
   };
 
   return (
-    <div className={styles.root}>
+    <div {...stylex.props(styles.root)}>
       <div
-        className={styles.mainWrap}
+        {...stylex.props(styles.mainWrap)}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -74,7 +131,7 @@ export const ImageGallery = ({ images, alt }: TImageGalleryProps) => {
             alt={alt}
             width={MAIN_WIDTH}
             height={MAIN_WIDTH}
-            className={styles.main}
+            {...stylex.props(styles.main)}
             fetchPriority="high"
             decoding="async"
             draggable={false}
@@ -83,13 +140,16 @@ export const ImageGallery = ({ images, alt }: TImageGalleryProps) => {
       </div>
 
       {images.length > 1 && (
-        <div className={cx(styles.thumbs, isScrollable && styles.thumbsScroll)}>
+        <div
+          {...stylex.props(styles.thumbs, isScrollable && styles.thumbsScroll)}
+        >
           {images.map((url, index) => (
             <button
               key={url}
               type="button"
-              className={cx(
+              {...stylex.props(
                 styles.thumb,
+                focusRing.ring,
                 isScrollable ? styles.thumbFixed : styles.thumbFill,
                 url === mainImage && styles.thumbActive,
               )}
@@ -100,7 +160,7 @@ export const ImageGallery = ({ images, alt }: TImageGalleryProps) => {
               <img
                 src={squareImage(url, THUMB_WIDTH)}
                 alt=""
-                className={styles.thumbImage}
+                {...stylex.props(styles.thumbImage)}
                 loading="lazy"
                 decoding="async"
               />

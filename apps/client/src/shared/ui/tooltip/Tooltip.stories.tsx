@@ -1,5 +1,28 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import * as stylex from '@stylexjs/stylex';
+import { colors } from '@/shared/ui/tokens.stylex';
 import { Tooltip } from './Tooltip';
+
+const styles = stylex.create({
+  // Give the tooltip room to render in the preview.
+  stage: {
+    display: 'flex',
+    height: '10rem',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trigger: {
+    borderRadius: '0.5rem',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: colors.line,
+    paddingInline: '1rem',
+    paddingBlock: '0.5rem',
+    fontSize: '0.875rem',
+    lineHeight: '1.25rem',
+    color: colors.ink,
+  },
+});
 
 const meta = {
   title: 'Shared/Tooltip',
@@ -10,10 +33,9 @@ const meta = {
       options: ['top', 'bottom', 'left', 'right'],
     },
   },
-  // Give the tooltip room to render in the preview.
   decorators: [
     (Story) => (
-      <div className="flex h-40 items-center justify-center">
+      <div {...stylex.props(styles.stage)}>
         <Story />
       </div>
     ),
@@ -24,10 +46,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const Trigger = (
-  <button
-    type="button"
-    className="rounded-lg border border-line px-4 py-2 text-sm text-ink"
-  >
+  <button type="button" {...stylex.props(styles.trigger)}>
     Hover or focus me
   </button>
 );

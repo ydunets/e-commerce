@@ -1,9 +1,22 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import * as stylex from '@stylexjs/stylex';
 import { useState } from 'react';
+import { media } from '@/shared/lib/breakpoints.stylex';
 import { withRouter } from '@/shared/lib/storybookRouter';
 import { Button } from '@/shared/ui/button';
 import { TextInput } from '@/shared/ui/text-input';
 import { Footer } from './Footer';
+
+const styles = stylex.create({
+  form: {
+    display: 'flex',
+    width: '100%',
+    flexDirection: { default: 'column', [media.md]: 'row' },
+    alignItems: { default: null, [media.md]: 'flex-start' },
+    gap: '1rem',
+  },
+  field: { flexGrow: 1, flexShrink: 1, flexBasis: '0%' },
+});
 
 // A presentational stand-in for the NewsletterForm widget: the shared UI
 // layer (and its stories) stays free of widget imports, per the Footer's
@@ -12,9 +25,9 @@ const NewsletterSlotPlaceholder = () => {
   const [email, setEmail] = useState('');
 
   return (
-    <form className="flex w-full flex-col gap-4 md:flex-row md:items-start">
+    <form {...stylex.props(styles.form)}>
       <TextInput
-        className="flex-1"
+        style={styles.field}
         label="Email address"
         labelHidden
         type="email"

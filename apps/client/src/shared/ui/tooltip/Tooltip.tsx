@@ -1,5 +1,6 @@
+import * as stylex from '@stylexjs/stylex';
 import { type PropsWithChildren, type ReactNode, useId, useState } from 'react';
-import { cx } from '@/shared/lib/cx';
+import { colors, shadows } from '@/shared/ui/tokens.stylex';
 
 export type TTooltipPosition = 'top' | 'bottom' | 'left' | 'right';
 
@@ -10,23 +11,100 @@ export type TTooltipProps = PropsWithChildren<{
   enabled?: boolean;
 }>;
 
-const panelPosition: Record<TTooltipPosition, string> = {
-  top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-  bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-  left: 'right-full top-1/2 -translate-y-1/2 mr-2',
-  right: 'left-full top-1/2 -translate-y-1/2 ml-2',
-};
+const styles = stylex.create({
+  root: { position: 'relative', display: 'inline-flex', alignItems: 'center' },
+  panel: {
+    pointerEvents: 'none',
+    position: 'absolute',
+    zIndex: 10,
+    whiteSpace: 'nowrap',
+    borderRadius: '0.5rem',
+    backgroundColor: colors.inkStrong,
+    paddingInline: '0.75rem',
+    paddingBlock: '0.5rem',
+    fontSize: '0.75rem',
+    lineHeight: '1rem',
+    fontWeight: 500,
+    color: '#fff',
+    boxShadow: shadows.cardLg,
+  },
+  // A CSS triangle: the solid border faces the panel, the transparent sides
+  // form the point. Figma arrow is 16px wide × 6px tall (8px sides + 6px base).
+  arrow: {
+    position: 'absolute',
+    height: 0,
+    width: 0,
+    borderWidth: 0,
+    borderStyle: 'solid',
+    borderColor: 'transparent',
+  },
+});
 
-// A CSS triangle: the solid border faces the panel, the transparent sides
-// form the point. Figma arrow is 16px wide × 6px tall (border-x-8 + border-6px).
-const arrowPosition: Record<TTooltipPosition, string> = {
-  top: 'top-full left-1/2 -translate-x-1/2 border-t-ink-strong border-t-[6px] border-x-8 border-x-transparent',
-  bottom:
-    'bottom-full left-1/2 -translate-x-1/2 border-b-ink-strong border-b-[6px] border-x-8 border-x-transparent',
-  left: 'left-full top-1/2 -translate-y-1/2 border-l-ink-strong border-l-[6px] border-y-8 border-y-transparent',
-  right:
-    'right-full top-1/2 -translate-y-1/2 border-r-ink-strong border-r-[6px] border-y-8 border-y-transparent',
-};
+const panelPosition = stylex.create({
+  top: {
+    bottom: '100%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    marginBottom: '0.5rem',
+  },
+  bottom: {
+    top: '100%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    marginTop: '0.5rem',
+  },
+  left: {
+    right: '100%',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    marginRight: '0.5rem',
+  },
+  right: {
+    left: '100%',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    marginLeft: '0.5rem',
+  },
+});
+
+const arrowPosition = stylex.create({
+  top: {
+    top: '100%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    borderTopWidth: '6px',
+    borderTopColor: colors.inkStrong,
+    borderLeftWidth: '8px',
+    borderRightWidth: '8px',
+  },
+  bottom: {
+    bottom: '100%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    borderBottomWidth: '6px',
+    borderBottomColor: colors.inkStrong,
+    borderLeftWidth: '8px',
+    borderRightWidth: '8px',
+  },
+  left: {
+    left: '100%',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    borderLeftWidth: '6px',
+    borderLeftColor: colors.inkStrong,
+    borderTopWidth: '8px',
+    borderBottomWidth: '8px',
+  },
+  right: {
+    right: '100%',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    borderRightWidth: '6px',
+    borderRightColor: colors.inkStrong,
+    borderTopWidth: '8px',
+    borderBottomWidth: '8px',
+  },
+});
 
 export const Tooltip = ({
   content,
@@ -41,7 +119,7 @@ export const Tooltip = ({
   return (
     // Shows on hover and keyboard focus; onFocus/onBlur bubble from the trigger.
     <span
-      className="relative inline-flex items-center"
+      {...stylex.props(styles.root)}
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
       onFocus={() => setVisible(true)}
@@ -53,18 +131,12 @@ export const Tooltip = ({
         <span
           id={tooltipId}
           role="tooltip"
-          className={cx(
-            'pointer-events-none absolute z-10 whitespace-nowrap',
-            'rounded-lg bg-ink-strong px-3 py-2',
-            'text-xs font-medium text-white',
-            'shadow-card-lg',
-            panelPosition[position],
-          )}
+          {...stylex.props(styles.panel, panelPosition[position])}
         >
           {content}
           <span
             aria-hidden="true"
-            className={cx('absolute h-0 w-0', arrowPosition[position])}
+            {...stylex.props(styles.arrow, arrowPosition[position])}
           />
         </span>
       )}

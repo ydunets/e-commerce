@@ -1,5 +1,9 @@
+import * as stylex from '@stylexjs/stylex';
+import type { StyleXStyles } from '@stylexjs/stylex';
 import { useId } from 'react';
-import { cx } from '@/shared/lib/cx';
+import { focusRing } from '@/shared/ui/focus-ring';
+import { colors } from '@/shared/ui/tokens.stylex';
+import { visuallyHidden } from '@/shared/ui/visually-hidden';
 
 export type TTextInputType = 'text' | 'email';
 
@@ -15,15 +19,49 @@ export type TTextInputProps = {
   labelHidden?: boolean;
   /** Focus on mount. Only for a field that replaces the control the visitor just activated. */
   autoFocus?: boolean;
-  className?: string;
+  style?: StyleXStyles;
 };
 
-const fieldClasses = cx(
-  'h-10 w-full rounded-sm border border-line bg-field px-3.5 text-sm text-ink',
-  'placeholder:text-tertiary',
-  'focus-visible:focus-ring',
-  'disabled:cursor-not-allowed disabled:bg-surface disabled:text-disabled disabled:placeholder:text-disabled',
-);
+const styles = stylex.create({
+  root: { display: 'flex', flexDirection: 'column', gap: '0.25rem' },
+  label: {
+    fontSize: '0.875rem',
+    lineHeight: '1.25rem',
+    fontWeight: 500,
+    color: colors.ink,
+  },
+  fieldWrap: { position: 'relative' },
+  field: {
+    height: '2.5rem',
+    width: '100%',
+    borderRadius: '0.25rem',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: colors.line,
+    backgroundColor: { default: colors.field, ':disabled': colors.surface },
+    paddingLeft: '0.875rem',
+    paddingRight: '0.875rem',
+    fontSize: '0.875rem',
+    lineHeight: '1.25rem',
+    color: { default: colors.ink, ':disabled': colors.disabled },
+    cursor: { default: null, ':disabled': 'not-allowed' },
+    '::placeholder': {
+      color: { default: colors.tertiary, ':disabled': colors.disabled },
+    },
+  },
+  fieldError: { paddingRight: '2.25rem' },
+  errorIcon: {
+    pointerEvents: 'none',
+    position: 'absolute',
+    top: '50%',
+    right: '0.875rem',
+    height: '1rem',
+    width: '1rem',
+    transform: 'translateY(-50%)',
+    color: colors.danger,
+  },
+  error: { fontSize: '0.875rem', lineHeight: '1.25rem', color: colors.danger },
+});
 
 // Figma pairs the error copy with a warning glyph inside the field, so colour
 // alone never carries the rejection.
@@ -36,7 +74,7 @@ const ErrorIcon = () => (
     strokeLinecap="round"
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true"
-    className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 text-danger"
+    {...stylex.props(styles.errorIcon)}
   >
     <circle cx="12" cy="12" r="9" />
     <path d="M12 7.5v5" />
@@ -55,25 +93,22 @@ export const TextInput = ({
   disabled = false,
   labelHidden = false,
   autoFocus = false,
-  className,
+  style,
 }: TTextInputProps) => {
   const fieldId = useId();
   const errorId = useId();
   const hasError = Boolean(errorMessage);
 
   return (
-    <div className={cx('flex flex-col gap-1', className)}>
+    <div {...stylex.props(styles.root, style)}>
       <label
         htmlFor={fieldId}
-        className={cx(
-          'text-sm font-medium text-ink',
-          labelHidden ? 'sr-only' : undefined,
-        )}
+        {...stylex.props(styles.label, labelHidden && visuallyHidden.root)}
       >
         {label}
       </label>
 
-      <div className="relative">
+      <div {...stylex.props(styles.fieldWrap)}>
         <input
           // oxlint-disable-next-line jsx-a11y/no-autofocus -- the field replaces the button the visitor just activated, so focus has to follow it
           autoFocus={autoFocus}
@@ -85,14 +120,18 @@ export const TextInput = ({
           disabled={disabled}
           aria-invalid={hasError}
           aria-describedby={hasError ? errorId : undefined}
-          className={cx(fieldClasses, hasError && 'pr-9')}
+          {...stylex.props(
+            styles.field,
+            focusRing.ring,
+            hasError && styles.fieldError,
+          )}
           onChange={(event) => onChange(event.target.value)}
         />
         {hasError && <ErrorIcon />}
       </div>
 
       {hasError ? (
-        <p id={errorId} role="alert" className="text-sm text-danger">
+        <p id={errorId} role="alert" {...stylex.props(styles.error)}>
           {errorMessage}
         </p>
       ) : null}

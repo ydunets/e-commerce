@@ -1,3 +1,4 @@
+import * as stylex from '@stylexjs/stylex';
 import {
   type MouseEvent,
   type PropsWithChildren,
@@ -5,8 +6,9 @@ import {
   useRef,
   useState,
 } from 'react';
-import { cx } from '@/shared/lib/cx';
-import styles from './Dialog.module.css';
+import { media } from '@/shared/lib/breakpoints.stylex';
+import { focusRing } from '@/shared/ui/focus-ring';
+import { colors, shadows } from '@/shared/ui/tokens.stylex';
 
 export type TDialogSize = 'lg' | 'sm';
 
@@ -16,6 +18,47 @@ export type TDialogProps = PropsWithChildren<{
   label: string;
   size?: TDialogSize;
 }>;
+
+const styles = stylex.create({
+  dialog: {
+    position: 'fixed',
+    inset: 0,
+    margin: 'auto',
+    width: 'min(92vw, 63rem)',
+    maxHeight: 'min(88vh, 800px)',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    padding: 0,
+    borderWidth: 0,
+    borderRadius: '0.5rem',
+    backgroundColor: '#fff',
+    color: colors.ink,
+    boxShadow: shadows.cardLg,
+    '::backdrop': { backgroundColor: 'rgba(10, 10, 10, 0.7)' },
+  },
+  sm: { width: 'min(92vw, 22rem)' },
+  close: {
+    position: 'absolute',
+    top: '1rem',
+    right: '1rem',
+    zIndex: 10,
+    display: 'inline-flex',
+    padding: '0.5rem',
+    borderWidth: 0,
+    borderRadius: '0.375rem',
+    backgroundColor: {
+      default: 'transparent',
+      ':hover': { default: null, [media.hover]: colors.surface },
+    },
+    color: {
+      default: colors.muted,
+      ':hover': { default: null, [media.hover]: colors.ink },
+    },
+    cursor: 'pointer',
+    transition: 'color 0.15s, background-color 0.15s',
+  },
+});
 
 const CloseIcon = () => (
   <svg
@@ -71,14 +114,14 @@ export const Dialog = ({
     // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events -- backdrop dismissal is mouse-only; Esc closes the dialog via the native close event.
     <dialog
       ref={ref}
-      className={cx(styles.dialog, size === 'sm' && styles.sm)}
+      {...stylex.props(styles.dialog, size === 'sm' && styles.sm)}
       aria-label={label}
       onClose={handleNativeClose}
       onClick={handleClick}
     >
       <button
         type="button"
-        className={styles.close}
+        {...stylex.props(styles.close, focusRing.ring)}
         aria-label="Close dialog"
         onClick={onClose}
       >

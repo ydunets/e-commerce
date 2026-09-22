@@ -1,47 +1,83 @@
+import * as stylex from '@stylexjs/stylex';
 import { useQuery } from '@tanstack/react-query';
 import { fetchCatalog } from '@/shared/api';
-import { cx } from '@/shared/lib/cx';
 import { describeError } from '@/shared/lib/describeError';
+import { animations } from '@/shared/ui/motion.stylex';
+import { colors } from '@/shared/ui/tokens.stylex';
 
-const STATUS_DOT = {
-  pending: 'bg-amber-400 animate-pulse',
-  error: 'bg-red-500',
-  success: 'bg-green-500',
-} as const;
+const styles = stylex.create({
+  root: {
+    width: '100%',
+    maxWidth: '28rem',
+    borderRadius: '0.75rem',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: colors.gray200,
+    backgroundColor: '#fff',
+    padding: '1.25rem',
+    boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+  },
+  header: {
+    marginBottom: '0.75rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+  },
+  dot: {
+    display: 'inline-block',
+    height: '0.625rem',
+    width: '0.625rem',
+    borderRadius: '9999px',
+  },
+  pending: {
+    backgroundColor: colors.warning,
+    animationName: animations.pulse,
+    animationDuration: '2s',
+    animationTimingFunction: 'cubic-bezier(0.4, 0, 0.6, 1)',
+    animationIterationCount: 'infinite',
+  },
+  error: { backgroundColor: colors.danger },
+  success: { backgroundColor: colors.success },
+  title: {
+    fontSize: '0.875rem',
+    lineHeight: '1.25rem',
+    fontWeight: 600,
+    color: colors.gray600,
+  },
+  message: {
+    fontSize: '0.875rem',
+    lineHeight: '1.25rem',
+    color: colors.gray500,
+  },
+  messageError: { color: colors.danger },
+  messageSuccess: { color: colors.gray600 },
+  count: { fontWeight: 600, color: colors.ink },
+});
 
 export function ServerStatus() {
   const request = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalog });
 
   return (
-    <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-5 shadow-xs">
-      <div className="mb-3 flex items-center gap-2">
-        <span
-          className={cx(
-            'inline-block h-2.5 w-2.5 rounded-full',
-            STATUS_DOT[request.status],
-          )}
-        />
-        <h2 className="text-sm font-semibold text-gray-700">
-          Server connection
-        </h2>
+    <div {...stylex.props(styles.root)}>
+      <div {...stylex.props(styles.header)}>
+        <span {...stylex.props(styles.dot, styles[request.status])} />
+        <h2 {...stylex.props(styles.title)}>Server connection</h2>
       </div>
 
       {request.status === 'pending' && (
-        <p className="text-sm text-gray-500">Contacting the server…</p>
+        <p {...stylex.props(styles.message)}>Contacting the server…</p>
       )}
 
       {request.status === 'error' && (
-        <p className="text-sm text-red-600">
+        <p {...stylex.props(styles.message, styles.messageError)}>
           Could not reach the server: {describeError(request.error)}
         </p>
       )}
 
       {request.status === 'success' && (
-        <p className="text-sm text-gray-600">
+        <p {...stylex.props(styles.message, styles.messageSuccess)}>
           Connected — server reports{' '}
-          <span className="font-semibold text-gray-900">
-            {request.data.length}
-          </span>{' '}
+          <span {...stylex.props(styles.count)}>{request.data.length}</span>{' '}
           product(s).
         </p>
       )}

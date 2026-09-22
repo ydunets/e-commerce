@@ -14,7 +14,7 @@
     "vertical-slice-architecture"
   ],
   "license": "MIT",
-  "author": "Marco Turi <marco.turi@hotmail.it>",
+  "author": "Yuri Dunets <yuri.dunets@hiqo-solutions.com>",
   "files": [
     "dist/src",
     "!dist/src/**/*.spec.js",

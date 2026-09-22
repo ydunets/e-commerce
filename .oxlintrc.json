@@ -23,7 +23,8 @@
     "typescript/no-unsafe-type-assertion": "warn",
     // Helpers inside hooks and fakes read better next to their only caller.
     "unicorn/consistent-function-scoping": "off",
-    // Array#toSorted needs the ES2023 lib, which the client does not target.
+    // Array#toSorted and Array#toReversed need the ES2023 lib, which the client does not target.
+    "unicorn/no-array-reverse": "off",
     "unicorn/no-array-sort": "off"
   },
   "overrides": [

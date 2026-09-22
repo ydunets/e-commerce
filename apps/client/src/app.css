@@ -1,78 +1,12 @@
-@import 'tailwindcss' source("./");
+@import './preflight.css';
 
-/* Design tokens reconciled with the Figma design system
-   (product-details-section-figma, node 1:1588). Each maps to a Figma
-   variable; prefer the semantic tokens over raw hex or the gray scale. */
-@theme {
-  /* Cool gray scale (legacy; a follow-up migrates these to Figma's neutral scale). */
-  --color-gray-100: #f9fafb;
-  --color-gray-200: #d2d6db;
-  --color-gray-300: #9ca3af;
-  --color-gray-400: #6b7280;
-  --color-gray-500: #4b5563;
-  --color-gray-600: #374151;
-
-  /* Neutrals */
-  --color-ink-strong: #0a0a0a; /* neutral-950 · Background/primary-inverted, Text/primary-hover */
-  --color-ink: #171717; /* neutral-900 · Text/primary */
-  --color-muted: #525252; /* neutral-600 · Text/secondary */
-  --color-tertiary: #737373; /* neutral-500 · Text/tertiary (option labels) */
-  --color-disabled: #a3a3a3; /* neutral-400 · Text/disabled, Icon/primary */
-  --color-field: #fafafa; /* neutral-50 · Input/Form field background */
-  --color-line: #e5e5e5; /* neutral-200 · Border/primary */
-  --color-line-strong: #d4d4d4; /* neutral-300 · Border/secondary (tab bar divider) */
-  --color-surface: #f5f5f5; /* neutral-100 · Background/disabled */
-  --color-surface-strong: #e5e7eb; /* Figma Background/secondary (applied coupon tag); outside both scales above */
-
-  /* Brand */
-  --color-brand: #4338ca; /* indigo-700 · Background/brand-primary */
-  --color-brand-dark: #3730a3; /* indigo-800 · Background/brand-primary-emphasize */
-  --color-brand-solid: #4f46e5; /* indigo-600 · Border/brand-solid (selected) */
-  --color-brand-soft: #eef2ff; /* indigo-50 · Background/brand-subtle */
-  --color-brand-line: #c7d2fe; /* indigo-200 · Border/brand-subtle */
-  --color-focus: #444ce7; /* focus ring */
-
-  /* Status */
-  --color-star: #facc15; /* yellow-400 · Icon/warning (rating) */
-  --color-warning: #b45309; /* amber-700 · Text/warning (discount) */
-  --color-warning-soft: #fffbeb; /* amber-50 · Background/warning-subtle */
-  --color-warning-line: #fde68a; /* amber-200 · Border/warning-subtle */
-  --color-success: #15803d; /* green-700 · Text/success */
-  --color-success-soft: #f0fdf4; /* green-50 · Background/success-subtle */
-  --color-success-line: #bbf7d0; /* green-200 · Border/success */
-  --color-danger: #b91c1c; /* red-700 · error text (red-600 fails WCAG AA on the danger-subtle background) */
-  --color-danger-soft: #fef2f2; /* red-50 · Background/danger-subtle */
-  --color-danger-line: #fecaca; /* red-200 · Border/danger */
-
-  --font-sans:
-    'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-
-  /* Elevation. Named to avoid colliding with Tailwind's default --shadow-*.
-     --shadow-card    · Figma `shadow`    (buttons, cards): two-layer 1px lift.
-     --shadow-card-lg · Figma `shadow-lg` (tooltips, overlays): floating panel. */
-  --shadow-card:
-    0px 1px 2px 0px rgba(0, 0, 0, 0.06), 0px 1px 3px 0px rgba(0, 0, 0, 0.1);
-  --shadow-card-lg:
-    0px 4px 6px -4px rgba(0, 0, 0, 0.1), 0px 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-/* Shared keyboard-focus affordance, matching Figma's focus-band: a 1px solid
-   ring plus a 4px translucent halo. box-shadow follows the element's own
-   border-radius, so it works on pills, circles and inputs alike. */
-@utility focus-ring {
-  outline: none;
-  box-shadow:
-    0 0 0 1px var(--color-focus),
-    0 0 0 4px color-mix(in srgb, var(--color-focus) 12%, transparent);
-}
-
+/* Design tokens live in src/shared/ui/tokens.stylex.ts; the two values the
+   document itself needs are repeated here as literals. */
 body {
-  margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  color: var(--color-ink);
+  color: #171717;
   background-color: #fff;
 }
 

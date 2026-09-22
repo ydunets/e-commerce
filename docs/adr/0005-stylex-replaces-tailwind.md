@@ -24,16 +24,18 @@ component that owns them, and flagged when unused.
 
 StyleX replaces Tailwind entirely. The Tailwind plugin, package, `@apply`
 blocks and utility strings all go; nothing keeps both systems alive during a
-transition. The remaining global stylesheet holds a hand-written reset for the
-rules the components relied on from Tailwind's preflight, the reduced-motion
-and print overrides, and nothing else that a component could own.
+transition. The remaining global stylesheet holds a port of Tailwind's preflight
+(trimmed of its theme hooks and of controls the storefront never renders), the
+reduced-motion and print overrides, and nothing else that a component could own.
 
 Only the Figma-bound values become StyleX variables: the colour sets, the two
 elevation shadows and the font stack, defined with `defineVars` in
 `src/shared/ui/tokens.stylex.ts`. Spacing and type sizes are written as
 literal values, because those scales were Tailwind's rather than the design
-system's. Breakpoints and the hover guard are exported constants next to the
-existing desktop media query in `src/shared/lib/breakpoints.ts`.
+system's. Breakpoints and the hover guard are `defineConsts` in
+`src/shared/lib/breakpoints.stylex.ts`, next to the desktop media query the
+JavaScript side keeps in `breakpoints.ts`; the transition defaults sit in
+`src/shared/ui/motion.stylex.ts`.
 
 Styles are declared with `stylex.create` in the component file that uses them;
 the CSS Modules disappear rather than get renamed. Shared components accept a

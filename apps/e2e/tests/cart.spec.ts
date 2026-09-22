@@ -10,6 +10,7 @@ import {
   readJson,
   SEEDED_CART,
   SEEDED_CART_STATE,
+  seedLocalStorage,
 } from './helpers';
 
 const ADD_TO_CART = { name: 'Add to Cart' } as const;
@@ -153,10 +154,7 @@ test.describe('Shopping Cart', () => {
         },
       },
       async ({ gotoHydrated, page }) => {
-        await page.addInitScript(
-          ([key, id]) => localStorage.setItem(key, id),
-          [CART_ID_STORAGE_KEY, STALE_CART_ID],
-        );
+        await seedLocalStorage(page, CART_ID_STORAGE_KEY, STALE_CART_ID);
 
         await gotoHydrated(PRODUCT.path);
         await page.getByRole('button', ADD_TO_CART).click();

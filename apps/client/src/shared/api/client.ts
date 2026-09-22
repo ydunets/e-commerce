@@ -12,16 +12,15 @@ async function request<T>(
   baseUrl: string,
   init: RequestInit = {},
 ): Promise<T> {
-  const res = await fetch(`${baseUrl}/api${path}`, {
-    ...init,
-    headers: { Accept: 'application/json', ...init.headers },
-  });
+  const headers = new Headers(init.headers);
+  if (!headers.has('Accept')) headers.set('Accept', 'application/json');
+  const res = await fetch(`${baseUrl}/api${path}`, { ...init, headers });
 
   if (!res.ok) {
     throw await toApiError(res);
   }
 
-  return res.json() as Promise<T>;
+  return res.json();
 }
 
 // Relative `/api/...` paths hit the SSR express server, which proxies them to

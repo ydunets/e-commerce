@@ -41,7 +41,7 @@ export async function toApiError(response: Response): Promise<ApiError> {
   };
 
   try {
-    const body = (await response.json()) as Partial<ApiErrorResponse>;
+    const body: Partial<ApiErrorResponse> = await response.json();
 
     return new ApiError({
       statusCode: body.statusCode ?? fallback.statusCode,

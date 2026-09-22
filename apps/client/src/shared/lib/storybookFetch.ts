@@ -10,12 +10,12 @@ export function stubFetch(
 ): () => void {
   const original = window.fetch;
 
-  window.fetch = ((input, init) => {
+  window.fetch = (input, init) => {
     const url = input instanceof Request ? input.url : String(input);
     return url.includes(pathFragment)
       ? handler(input, init)
       : original(input, init);
-  }) as typeof fetch;
+  };
 
   return () => {
     window.fetch = original;

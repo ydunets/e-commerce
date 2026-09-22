@@ -108,7 +108,7 @@ export function useUpdateCartLine() {
       queryClient.setQueryData(CART_QUERY_KEY, cart);
     },
     onError: () => {
-      queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
     },
   });
 

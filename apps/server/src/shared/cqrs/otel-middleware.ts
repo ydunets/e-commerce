@@ -23,8 +23,9 @@ export function makeTracingMiddleware(busType: 'command' | 'query') {
         },
       },
       async (span) => {
-        if (action.meta?.correlationId) {
-          span.setAttribute('cqrs.correlation_id', String(action.meta.correlationId));
+        const correlationId = action.meta?.correlationId;
+        if (typeof correlationId === 'string') {
+          span.setAttribute('cqrs.correlation_id', correlationId);
         }
         try {
           const result = await handler(action);
@@ -60,8 +61,9 @@ export function traceEventMiddleware<Action extends TraceableAction>(
       },
     },
     (span) => {
-      if (action.meta?.correlationId) {
-        span.setAttribute('cqrs.correlation_id', String(action.meta.correlationId));
+      const correlationId = action.meta?.correlationId;
+      if (typeof correlationId === 'string') {
+        span.setAttribute('cqrs.correlation_id', correlationId);
       }
       try {
         handler(action);

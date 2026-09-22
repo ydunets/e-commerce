@@ -1,7 +1,7 @@
 import { apiErrorResponseSchema } from '@e-commerce/contracts';
 import type { INestApplication } from '@nestjs/common';
 import { HttpStatus } from '@nestjs/common';
-import { DocumentBuilder, type SchemaObject, SwaggerModule } from '@nestjs/swagger';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 /** Health is mounted directly on Fastify and is therefore outside Nest's route explorer. */
 export function setupDocumentation(app: INestApplication) {
@@ -19,7 +19,7 @@ export function setupDocumentation(app: INestApplication) {
   delete errorSchema.$id;
   document.components ??= {};
   document.components.schemas ??= {};
-  document.components.schemas.ApiErrorResponse = errorSchema as SchemaObject;
+  document.components.schemas.ApiErrorResponse = errorSchema;
   document.paths['/health'] = {
     get: {
       responses: {

@@ -5,7 +5,7 @@ import { buildApp } from './server.js';
 
 setDefaultTimeout(process.env.PWDEBUG ? -1 : 60 * 1000);
 
-Before({ tags: '@pending' }, () => 'skipped' as unknown as undefined);
+Before({ tags: '@pending' }, () => 'skipped');
 
 Before({ tags: '@debug' }, function (this: ICustomWorld) {
   this.debug = true;

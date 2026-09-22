@@ -86,7 +86,7 @@ describe('addItemCommand handler', () => {
     );
 
     assert.equal(inserted.length, 1);
-    assert.equal(cart.id, inserted[0]!.id);
+    assert.equal(cart.id, inserted[0].id);
     assert.deepEqual(upserted, [{ cartId: cart.id, sku: SKU, quantity: 2 }]);
     assert.deepEqual(skuAndQuantity(cart.lines), [{ sku: SKU, quantity: 2 }]);
   });

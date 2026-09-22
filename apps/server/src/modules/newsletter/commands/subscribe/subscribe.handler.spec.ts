@@ -25,11 +25,11 @@ describe('SubscribeHandler', () => {
       new SubscribeCommand({ email: ' Jane@Example.com ' }),
     );
     assert.equal(inserted.length, 1);
-    assert.equal(inserted[0]!.email, 'jane@example.com');
+    assert.equal(inserted[0].email, 'jane@example.com');
     assert.equal(emitted.length, 1);
     assert.ok(emitted[0] instanceof SubscribedEvent);
     assert.equal(emitted[0].payload.email, 'jane@example.com');
-    assert.equal(emitted[0].payload.subscriberId, inserted[0]!.id);
+    assert.equal(emitted[0].payload.subscriberId, inserted[0].id);
     assert.equal(emitted[0].type, 'newsletter/subscribed');
   });
 

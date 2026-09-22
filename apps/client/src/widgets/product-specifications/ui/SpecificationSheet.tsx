@@ -15,6 +15,7 @@ export const SpecificationSheet = () => (
       className={styles.frame}
       title={SHEET_TITLE}
       src={SHEET_URL}
+      sandbox=""
       loading="lazy"
     />
   </div>

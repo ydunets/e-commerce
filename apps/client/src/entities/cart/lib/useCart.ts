@@ -107,9 +107,7 @@ export function useUpdateCartLine() {
     onSuccess: (cart) => {
       queryClient.setQueryData(CART_QUERY_KEY, cart);
     },
-    onError: () => {
-      void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
-    },
+    onError: () => queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY }),
   });
 
   const patchersRef = useRef(
@@ -139,8 +137,8 @@ export function useUpdateCartLine() {
     return patcher;
   };
 
-  const updateQuantity = (input: UpdateCartLineInput) => {
-    void queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+  const updateQuantity = async (input: UpdateCartLineInput) => {
+    await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
     queryClient.setQueryData<CartResponseDto | null>(CART_QUERY_KEY, (cart) =>
       cart ? withLineQuantity(cart, input.sku, input.quantity) : cart,
     );

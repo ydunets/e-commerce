@@ -185,9 +185,10 @@ export function GeneralErrorBoundary({
     console.error(error);
   }, [error]);
 
-  const retry = () => {
+  const retry = async () => {
     queryErrorReset.reset();
-    void router.invalidate().then(reset);
+    await router.invalidate();
+    reset();
   };
 
   const statusHandlers = { ...defaultStatusHandlers, ...givenStatusHandlers };

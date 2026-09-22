@@ -22,10 +22,16 @@ export function useServerHealth(error: unknown): ServerOutage {
     const controller = new AbortController();
     setOutage('checking');
 
-    void probeServers(controller.signal).then((health) => {
-      if (controller.signal.aborted) return;
-      setOutage(readOutage(health));
-    });
+    probeServers(controller.signal).then(
+      (health) => {
+        if (controller.signal.aborted) return;
+        setOutage(readOutage(health));
+      },
+      () => {
+        if (controller.signal.aborted) return;
+        setOutage('app-unreachable');
+      },
+    );
 
     return () => controller.abort();
   }, [error]);

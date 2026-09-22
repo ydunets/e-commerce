@@ -49,9 +49,9 @@ export function useReviews(
 
   const status = toStatus(query);
 
-  const loadMore = () => {
+  const loadMore = async () => {
     if (query.hasNextPage && !query.isFetchingNextPage) {
-      void query.fetchNextPage();
+      await query.fetchNextPage();
     }
   };
 

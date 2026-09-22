@@ -15,6 +15,8 @@
     "eslint/no-await-in-loop": "off",
     // Spreading inside map keeps rows immutable; the cost is not measurable here.
     "oxc/no-map-spread": "off",
+    // A discarded promise must be returned, awaited, or given a rejection handler; void is not an answer.
+    "typescript/no-floating-promises": ["error", { "ignoreVoid": false }],
     "typescript/no-explicit-any": "error",
     "typescript/no-non-null-assertion": "error",
     // Warn until the existing assertions are removed; then promote to error.

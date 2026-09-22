@@ -2,8 +2,8 @@ import type { CartLineDto, CartResponseDto } from '@e-commerce/contracts';
 import { useState } from 'react';
 import { useRemoveCartLine, useUpdateCartLine } from '@/entities/cart';
 import { CartLineRow } from './CartLineRow';
-import styles from './CartLines.module.css';
 import { RemoveLineDialog } from './RemoveLineDialog';
+import styles from './CartLines.module.css';
 
 export type TCartLinesProps = {
   cart: CartResponseDto;

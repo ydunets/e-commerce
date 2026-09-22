@@ -2,8 +2,8 @@ import { useState } from 'react';
 import type { Specification } from '@/entities/specification';
 import { Tabs, tabButtonId, tabPanelId } from '@/shared/ui/tabs';
 import { getSpecificationIcon } from '../lib/icon-map';
-import styles from './ProductSpecificationsSection.module.css';
 import { SpecificationSheet } from './SpecificationSheet';
+import styles from './ProductSpecificationsSection.module.css';
 
 const TABS_ID_PREFIX = 'product-specifications';
 

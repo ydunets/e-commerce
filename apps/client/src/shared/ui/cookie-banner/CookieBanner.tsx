@@ -1,12 +1,12 @@
 import { useSyncExternalStore } from 'react';
 import { Button } from '@/shared/ui/button';
-import styles from './CookieBanner.module.css';
 import {
   acceptCookies,
   hasAcceptedCookies,
   hasAcceptedCookiesOnServer,
   subscribeToCookieChoice,
 } from './cookieChoice';
+import styles from './CookieBanner.module.css';
 
 const BANNER_LABEL = 'Cookie notice';
 

@@ -110,7 +110,7 @@ export const Navbar = ({
       </div>
 
       {!isDesktop && (
-        // biome-ignore lint/a11y/useKeyWithClickEvents: backdrop click-to-close; <dialog> handles Esc natively.
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events -- backdrop click-to-close; <dialog> handles Esc natively.
         <dialog
           id={drawerId}
           ref={dialogRef}

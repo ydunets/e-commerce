@@ -66,8 +66,8 @@ Ports: client 5173 (3000 is squatted by Docker on this machine), API 4000, story
 
 ```bash
 pnpm check          # everything, all packages, concurrent (~3-4s):
-                    #   client:    biome + tsc + rstest
-                    #   server:    biome + tsc + unit tests + architecture
+                    #   client:    oxlint + oxfmt + tsc + rstest
+                    #   server:    oxlint + oxfmt + tsc + unit tests + architecture
                     #   storybook: static build
 ```
 

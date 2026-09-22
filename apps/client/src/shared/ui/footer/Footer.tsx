@@ -2,7 +2,6 @@ import { Link, type LinkProps } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { cx } from '@/shared/lib/cx';
 import { StyleNestLogo } from '@/shared/ui/logo';
-import styles from './Footer.module.css';
 import {
   FacebookIcon,
   GithubIcon,
@@ -10,6 +9,7 @@ import {
   XIcon,
   YoutubeIcon,
 } from './icons';
+import styles from './Footer.module.css';
 
 export type TFooterProps = {
   newsletterSlot: ReactNode;

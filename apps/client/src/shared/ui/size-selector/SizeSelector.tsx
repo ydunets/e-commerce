@@ -28,6 +28,7 @@ export const SizeSelector = ({
   );
 
   return (
+    // oxlint-disable-next-line jsx-a11y/interactive-supports-focus -- WAI-ARIA radiogroup composite with roving tabindex: focus lives on the radios, not on the group.
     <div
       className={styles.root}
       role="radiogroup"
@@ -37,7 +38,6 @@ export const SizeSelector = ({
       {options.map((option) => {
         const selected = option.value === value;
         return (
-          // biome-ignore lint/a11y/useSemanticElements: WAI-ARIA radiogroup composite with roving tabindex; native radios cannot be styled as these controls.
           <button
             key={option.value}
             ref={optionRef(option.value)}

@@ -1,0 +1,23 @@
+{
+  "$schema": "./apps/client/node_modules/oxfmt/configuration_schema.json",
+  "singleQuote": true,
+  "printWidth": 80,
+  "sortImports": { "newlinesBetween": false },
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/storybook-static/**",
+    "**/routeTree.gen.ts",
+    "apps/server/.dependency-cruiser.cjs",
+    "apps/server/cucumber.setup.js",
+    "**/*.md",
+    "**/*.yml",
+    "**/*.yaml",
+    "**/*.html"
+  ],
+  "overrides": [
+    {
+      "files": ["apps/server/**"],
+      "options": { "printWidth": 100 }
+    }
+  ]
+}

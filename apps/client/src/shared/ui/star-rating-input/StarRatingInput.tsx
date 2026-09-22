@@ -59,6 +59,7 @@ export const StarRatingInput = ({
   };
 
   return (
+    // oxlint-disable-next-line jsx-a11y/interactive-supports-focus -- WAI-ARIA radiogroup composite with roving tabindex: focus lives on the radios, not on the group.
     <div
       className={styles.input}
       role="radiogroup"
@@ -68,7 +69,6 @@ export const StarRatingInput = ({
     >
       {name ? <input type="hidden" name={name} value={selected} /> : null}
       {stars.map((starValue, index) => (
-        // biome-ignore lint/a11y/useSemanticElements: WAI-ARIA radio group composite with roving tabindex; native radios cannot be styled as these controls.
         <button
           key={starValue}
           ref={(node) => {

@@ -1,4 +1,6 @@
+import * as stylex from '@stylexjs/stylex';
 import { useEffect, useId, useRef, useState } from 'react';
+import { colors } from '@/shared/ui/tokens.stylex';
 
 type TSelectedPhoto = {
   name: string;
@@ -7,6 +9,65 @@ type TSelectedPhoto = {
 
 const FIELD_LABEL = 'Add a photo';
 const ACCEPTED_TYPES = 'image/*';
+
+const styles = stylex.create({
+  root: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+    borderTopWidth: '1px',
+    borderTopStyle: 'solid',
+    borderTopColor: colors.line,
+    paddingTop: '1.5rem',
+  },
+  label: {
+    fontSize: '0.875rem',
+    lineHeight: '1.25rem',
+    fontWeight: 600,
+    color: colors.ink,
+  },
+  input: {
+    fontSize: '0.875rem',
+    lineHeight: '1.25rem',
+    color: colors.muted,
+    '::file-selector-button': {
+      marginRight: '0.75rem',
+      borderRadius: '0.25rem',
+      borderWidth: '1px',
+      borderStyle: 'solid',
+      borderColor: colors.line,
+      backgroundColor: colors.surface,
+      paddingInline: '0.75rem',
+      paddingBlock: '0.375rem',
+      color: colors.ink,
+    },
+  },
+  preview: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
+  image: {
+    height: '4rem',
+    width: '4rem',
+    borderRadius: '0.25rem',
+    objectFit: 'cover',
+  },
+  caption: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '0%',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    fontSize: '0.875rem',
+    lineHeight: '1.25rem',
+    color: colors.muted,
+  },
+  remove: {
+    fontSize: '0.875rem',
+    lineHeight: '1.25rem',
+    fontWeight: 600,
+    color: colors.ink,
+    textDecorationLine: 'underline',
+  },
+});
 
 export const ReviewPhotoPicker = () => {
   const fieldId = useId();
@@ -28,8 +89,8 @@ export const ReviewPhotoPicker = () => {
   };
 
   return (
-    <div className="flex flex-col gap-3 border-t border-line pt-6">
-      <label className="text-sm font-semibold text-ink" htmlFor={fieldId}>
+    <div {...stylex.props(styles.root)}>
+      <label {...stylex.props(styles.label)} htmlFor={fieldId}>
         {FIELD_LABEL}
       </label>
       <input
@@ -37,22 +98,22 @@ export const ReviewPhotoPicker = () => {
         id={fieldId}
         type="file"
         accept={ACCEPTED_TYPES}
-        className="text-sm text-muted file:mr-3 file:rounded-sm file:border file:border-line file:bg-surface file:px-3 file:py-1.5 file:text-ink"
+        {...stylex.props(styles.input)}
         onChange={(event) => selectPhoto(event.target.files?.[0])}
       />
       {photo && (
-        <figure className="flex items-center gap-3">
+        <figure {...stylex.props(styles.preview)}>
           <img
             src={photo.url}
             alt={`Preview of ${photo.name}`}
-            className="h-16 w-16 rounded-sm object-cover"
+            {...stylex.props(styles.image)}
           />
-          <figcaption className="flex-1 truncate text-sm text-muted">
+          <figcaption {...stylex.props(styles.caption)}>
             {photo.name}
           </figcaption>
           <button
             type="button"
-            className="text-sm font-semibold text-ink underline"
+            {...stylex.props(styles.remove)}
             onClick={removePhoto}
           >
             Remove

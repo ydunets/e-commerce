@@ -1,13 +1,17 @@
 import type { CartLineDto, CartResponseDto } from '@e-commerce/contracts';
+import * as stylex from '@stylexjs/stylex';
 import { useState } from 'react';
 import { useRemoveCartLine, useUpdateCartLine } from '@/entities/cart';
 import { CartLineRow } from './CartLineRow';
 import { RemoveLineDialog } from './RemoveLineDialog';
-import styles from './CartLines.module.css';
 
 export type TCartLinesProps = {
   cart: CartResponseDto;
 };
+
+const styles = stylex.create({
+  list: { margin: 0, listStyle: 'none', padding: 0 },
+});
 
 export const CartLines = ({ cart }: TCartLinesProps) => {
   const { updateQuantity, cancelPending } = useUpdateCartLine();
@@ -34,7 +38,7 @@ export const CartLines = ({ cart }: TCartLinesProps) => {
 
   return (
     <>
-      <ul className={styles.list}>
+      <ul {...stylex.props(styles.list)}>
         {cart.lines.map((line) => (
           <CartLineRow
             key={line.sku}

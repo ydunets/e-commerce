@@ -1,3 +1,4 @@
+import * as stylex from '@stylexjs/stylex';
 import {
   useVirtualizer,
   type VirtualItem,
@@ -5,7 +6,10 @@ import {
 } from '@tanstack/react-virtual';
 import type { ReactNode, RefObject } from 'react';
 import type { Review } from '@/entities/review';
+import { media } from '@/shared/lib/breakpoints.stylex';
 import { Button } from '@/shared/ui/button';
+import { animations } from '@/shared/ui/motion.stylex';
+import { colors } from '@/shared/ui/tokens.stylex';
 import type { ReviewsStatus } from '../lib/useReviews';
 import { ClearFilterButton } from './ClearFilterButton';
 import { ReviewItem } from './ReviewItem';
@@ -25,6 +29,78 @@ export type TReviewListProps = {
 const ESTIMATED_ROW_HEIGHT = 112;
 const ROW_GAP = 32;
 
+const styles = stylex.create({
+  root: {
+    minHeight: 0,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '0%',
+    overflowY: 'auto',
+    paddingTop: { default: '1.5rem', [media.md]: 0 },
+    paddingRight: { default: '1.5rem', [media.md]: '2rem' },
+    paddingBottom: { default: '1.5rem', [media.md]: '2rem' },
+    paddingLeft: { default: '1.5rem', [media.md]: 0 },
+  },
+  emptyState: {
+    display: 'flex',
+    height: '100%',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.5rem',
+    paddingBlock: '4rem',
+    textAlign: 'center',
+  },
+  emptyTitle: {
+    fontSize: { default: '1rem', [media.lg]: '1.125rem' },
+    lineHeight: { default: '1.5rem', [media.lg]: '1.75rem' },
+    fontWeight: 600,
+    color: colors.ink,
+  },
+  emptyBody: {
+    fontSize: { default: '0.875rem', [media.lg]: '1rem' },
+    lineHeight: { default: '1.25rem', [media.lg]: '1.5rem' },
+    color: colors.muted,
+  },
+  emptyAction: { marginTop: '0.5rem' },
+  skeleton: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
+  skeletonRow: {
+    display: 'flex',
+    gap: '0.75rem',
+    animationName: animations.pulse,
+    animationDuration: '2s',
+    animationTimingFunction: 'cubic-bezier(0.4, 0, 0.6, 1)',
+    animationIterationCount: 'infinite',
+  },
+  skeletonAvatar: {
+    height: '2.5rem',
+    width: '2.5rem',
+    flexShrink: 0,
+    borderRadius: '9999px',
+    backgroundColor: colors.surface,
+  },
+  skeletonBody: {
+    display: 'flex',
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '0%',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+  skeletonBar: {
+    height: '0.75rem',
+    borderRadius: '0.25rem',
+    backgroundColor: colors.surface,
+  },
+  skeletonName: { height: '1rem', width: '33.333333%' },
+  skeletonMeta: { width: '25%' },
+  skeletonText: { width: '100%' },
+  list: { position: 'relative', width: '100%' },
+  row: { position: 'absolute', top: 0, left: 0, width: '100%' },
+  loadMore: { paddingTop: '2rem' },
+  fullWidth: { width: '100%' },
+});
+
 const EmptyState = ({
   title,
   body,
@@ -34,22 +110,22 @@ const EmptyState = ({
   body: string;
   action?: ReactNode;
 }) => (
-  <div className="flex h-full flex-col items-center justify-center gap-2 py-16 text-center">
-    <p className="text-base font-semibold text-ink lg:text-lg">{title}</p>
-    <p className="text-sm text-muted lg:text-base">{body}</p>
+  <div {...stylex.props(styles.emptyState)}>
+    <p {...stylex.props(styles.emptyTitle)}>{title}</p>
+    <p {...stylex.props(styles.emptyBody)}>{body}</p>
     {action}
   </div>
 );
 
 const ReviewSkeleton = () => (
-  <div className="flex flex-col gap-6">
+  <div {...stylex.props(styles.skeleton)} aria-busy="true">
     {[0, 1, 2, 3].map((key) => (
-      <div key={key} className="flex animate-pulse gap-3">
-        <div className="h-10 w-10 shrink-0 rounded-full bg-surface" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 w-1/3 rounded bg-surface" />
-          <div className="h-3 w-1/4 rounded bg-surface" />
-          <div className="h-3 w-full rounded bg-surface" />
+      <div key={key} {...stylex.props(styles.skeletonRow)}>
+        <div {...stylex.props(styles.skeletonAvatar)} />
+        <div {...stylex.props(styles.skeletonBody)}>
+          <div {...stylex.props(styles.skeletonBar, styles.skeletonName)} />
+          <div {...stylex.props(styles.skeletonBar, styles.skeletonMeta)} />
+          <div {...stylex.props(styles.skeletonBar, styles.skeletonText)} />
         </div>
       </div>
     ))}
@@ -73,7 +149,9 @@ const NoMatchingReviews = ({
   <EmptyState
     title="No matching reviews"
     body={`No ${activeRating}-star reviews yet.`}
-    action={<ClearFilterButton className="mt-2" onClick={onClearFilter} />}
+    action={
+      <ClearFilterButton style={styles.emptyAction} onClick={onClearFilter} />
+    }
   />
 );
 
@@ -118,13 +196,13 @@ const VirtualizedReviews = ({
 
   return (
     <>
-      <ul className="relative w-full" style={{ height: totalSize }}>
+      <ul {...stylex.props(styles.list)} style={{ height: totalSize }}>
         {virtualItems.map((virtualItem) => (
           <li
             key={items[virtualItem.index].id}
             ref={measureElement}
             data-index={virtualItem.index}
-            className="absolute top-0 left-0 w-full"
+            {...stylex.props(styles.row)}
             style={{ transform: `translateY(${virtualItem.start}px)` }}
           >
             <ReviewItem review={items[virtualItem.index]} />
@@ -132,10 +210,10 @@ const VirtualizedReviews = ({
         ))}
       </ul>
       {hasMore && (
-        <div className="pt-8">
+        <div {...stylex.props(styles.loadMore)}>
           <Button
             variant="secondary"
-            className="w-full"
+            style={styles.fullWidth}
             onClick={onLoadMore}
             disabled={loadingMore}
           >
@@ -176,10 +254,7 @@ export const ReviewList = (props: TReviewListProps) => {
   });
 
   return (
-    <div
-      ref={props.listRef}
-      className="min-h-0 flex-1 overflow-y-auto px-6 py-6 md:pt-0 md:pr-8 md:pb-8 md:pl-0"
-    >
+    <div ref={props.listRef} {...stylex.props(styles.root)}>
       <ReviewListContent
         {...props}
         virtualItems={virtualizer.getVirtualItems()}

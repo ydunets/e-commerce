@@ -1,9 +1,13 @@
+import * as stylex from '@stylexjs/stylex';
 import { useQuery } from '@tanstack/react-query';
 import { useRef } from 'react';
 import { getReviewSummary } from '@/entities/review';
 import { DESKTOP_MEDIA_QUERY } from '@/shared/lib/breakpoints';
+import { media } from '@/shared/lib/breakpoints.stylex';
 import { useMediaQuery } from '@/shared/lib/useMediaQuery';
 import { Dialog } from '@/shared/ui/dialog';
+import { animations } from '@/shared/ui/motion.stylex';
+import { colors } from '@/shared/ui/tokens.stylex';
 import { useReviews } from '../lib/useReviews';
 import { ReviewList } from './ReviewList';
 import { ReviewPhotoPicker } from './ReviewPhotoPicker';
@@ -15,6 +19,39 @@ export type TProductReviewsDialogProps = {
   productId: string;
   productName: string;
 };
+
+const styles = stylex.create({
+  skeleton: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.5rem',
+    animationName: animations.pulse,
+    animationDuration: '2s',
+    animationTimingFunction: 'cubic-bezier(0.4, 0, 0.6, 1)',
+    animationIterationCount: 'infinite',
+  },
+  skeletonBar: { borderRadius: '0.25rem', backgroundColor: colors.surface },
+  skeletonTitle: { height: '1.5rem', width: '50%' },
+  skeletonBands: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
+  skeletonBand: { height: '0.75rem', width: '100%' },
+  content: {
+    display: 'flex',
+    minHeight: 0,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '0%',
+    flexDirection: { default: 'column', [media.md]: 'row' },
+    gap: { default: null, [media.md]: '2rem' },
+    paddingTop: { default: '3.5rem', [media.md]: '72px' },
+  },
+  summary: {
+    flexShrink: 0,
+    width: { default: null, [media.md]: '384px' },
+    paddingInline: { default: '1.5rem', [media.md]: '2rem' },
+    paddingBottom: { default: '1.5rem', [media.md]: '2rem' },
+  },
+  summaryError: { color: colors.muted },
+});
 
 export const ProductReviewsDialog = ({
   open,
@@ -28,11 +65,14 @@ export const ProductReviewsDialog = ({
 );
 
 const SummarySkeleton = () => (
-  <div className="flex animate-pulse flex-col gap-6">
-    <div className="h-6 w-1/2 rounded bg-surface" />
-    <div className="flex flex-col gap-3">
+  <div {...stylex.props(styles.skeleton)}>
+    <div {...stylex.props(styles.skeletonBar, styles.skeletonTitle)} />
+    <div {...stylex.props(styles.skeletonBands)}>
       {[0, 1, 2, 3, 4].map((key) => (
-        <div key={key} className="h-3 w-full rounded bg-surface" />
+        <div
+          key={key}
+          {...stylex.props(styles.skeletonBar, styles.skeletonBand)}
+        />
       ))}
     </div>
   </div>
@@ -60,8 +100,8 @@ const ReviewsContent = ({ productId }: { productId: string }) => {
   const clearFilter = () => changeFilter(null);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col pt-14 md:flex-row md:gap-8 md:pt-[72px]">
-      <div className="shrink-0 px-6 pb-6 md:w-[384px] md:px-8 md:pb-8">
+    <div {...stylex.props(styles.content)}>
+      <div {...stylex.props(styles.summary)}>
         {summaryQuery.status === 'success' && (
           <ReviewSummary
             summary={summaryQuery.data}
@@ -71,7 +111,9 @@ const ReviewsContent = ({ productId }: { productId: string }) => {
           />
         )}
         {summaryQuery.status === 'error' && (
-          <p className="text-muted">Couldn't load the rating summary.</p>
+          <p {...stylex.props(styles.summaryError)}>
+            Couldn't load the rating summary.
+          </p>
         )}
         {summaryQuery.status === 'pending' && <SummarySkeleton />}
         <ReviewPhotoPicker />

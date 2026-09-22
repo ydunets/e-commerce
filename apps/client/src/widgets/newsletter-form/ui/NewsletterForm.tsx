@@ -1,3 +1,4 @@
+import { isType } from '@e-commerce/contracts';
 import { useActionState, useState } from 'react';
 import { subscribeToNewsletter } from '@/shared/api';
 import { TextInput } from '@/shared/ui/text-input';
@@ -31,7 +32,7 @@ const NewsletterFormFields = () => {
       formData: FormData,
     ): Promise<string | undefined> => {
       const field = formData.get('email');
-      const value = typeof field === 'string' ? field : EMPTY;
+      const value = isType(field, 'string') ? field : EMPTY;
 
       const validationError = validateEmail(value);
       if (validationError) {

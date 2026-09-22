@@ -1,6 +1,7 @@
 import {
   addCartItemBodySchema as addBody,
   applyCouponBodySchema as couponBody,
+  isType,
   updateCartItemBodySchema as updateBody,
 } from '@e-commerce/contracts';
 import { z } from 'zod';
@@ -16,13 +17,11 @@ export {
 function stringValue(value: unknown): unknown {
   const scalar = unwrapQueryValue(value);
   if (scalar === null) return '';
-  return typeof scalar === 'number' || typeof scalar === 'boolean' ? String(scalar) : scalar;
+  return isType(scalar, 'number') || isType(scalar, 'boolean') ? String(scalar) : scalar;
 }
 function quantityValue(value: unknown): unknown {
   const scalar = unwrapQueryValue(value);
-  return scalar === null ||
-    typeof scalar === 'boolean' ||
-    (typeof scalar === 'string' && scalar !== '')
+  return scalar === null || isType(scalar, 'boolean') || (isType(scalar, 'string') && scalar !== '')
     ? Number(scalar)
     : scalar;
 }

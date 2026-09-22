@@ -5,6 +5,7 @@ import { once } from 'node:events';
 import { createServer } from 'node:http';
 import { it } from 'node:test';
 import { setTimeout } from 'node:timers/promises';
+import { isType } from '@e-commerce/contracts';
 import { HttpStatus } from '@nestjs/common';
 import { closeDbConnection, getDb } from '#src/shared/db/postgres';
 import { ERROR_CASES } from './fixtures/error-cases.js';
@@ -46,7 +47,7 @@ it(
     collector.listen(0, '127.0.0.1');
     await once(collector, 'listening');
     const address = collector.address();
-    assert.ok(address && typeof address !== 'string');
+    assert.ok(address && !isType(address, 'string'));
     const child = fork(new URL('./fixtures/hybrid.js', import.meta.url), [], {
       execArgv: [
         '--enable-source-maps',

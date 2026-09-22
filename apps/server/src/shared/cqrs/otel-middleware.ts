@@ -1,3 +1,4 @@
+import { isType } from '@e-commerce/contracts';
 import { SpanKind, SpanStatusCode, trace } from '@opentelemetry/api';
 import type { TraceableAction } from '#src/shared/cqrs/action.types';
 
@@ -24,7 +25,7 @@ export function makeTracingMiddleware(busType: 'command' | 'query') {
       },
       async (span) => {
         const correlationId = action.meta?.correlationId;
-        if (typeof correlationId === 'string') {
+        if (isType(correlationId, 'string')) {
           span.setAttribute('cqrs.correlation_id', correlationId);
         }
         try {
@@ -62,7 +63,7 @@ export function traceEventMiddleware<Action extends TraceableAction>(
     },
     (span) => {
       const correlationId = action.meta?.correlationId;
-      if (typeof correlationId === 'string') {
+      if (isType(correlationId, 'string')) {
         span.setAttribute('cqrs.correlation_id', correlationId);
       }
       try {

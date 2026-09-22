@@ -11,7 +11,10 @@
     "jsx-a11y"
   ],
   "ignorePatterns": ["dist/**", "src/routeTree.gen.ts"],
+  "jsPlugins": ["@stylexjs/eslint-plugin"],
   "rules": {
+    "@stylexjs/valid-styles": "error",
+    "@stylexjs/no-unused": "error",
     "react/rules-of-hooks": "error",
     // The automatic JSX runtime needs no React binding in scope.
     "react/react-in-jsx-scope": "off",

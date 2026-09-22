@@ -1,3 +1,4 @@
+import * as stylex from '@stylexjs/stylex';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   createRootRouteWithContext,
@@ -16,6 +17,16 @@ import '../app.css';
 
 const GOOGLE_FONTS_URL =
   'https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap';
+
+// Locks background scroll while the navbar drawer is open, without an effect.
+const styles = stylex.create({
+  body: {
+    overflow: {
+      default: null,
+      ':has(dialog[data-navbar-drawer][open])': 'hidden',
+    },
+  },
+});
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   // Loader data is dehydrated to the client, so the asset lists rendered on
@@ -68,7 +79,7 @@ function RootDocument({ children }: { children: ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body {...stylex.props(styles.body)}>
         <QueryClientProvider client={queryClient}>
           <SiteNavbar />
           {children}

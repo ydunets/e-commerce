@@ -19,6 +19,7 @@ export function useHydrated(): boolean {
 
   useEffect(() => {
     documentHydrated = true;
+    // oxlint-disable-next-line react/set-state-in-effect -- the second pass is the point: it is the post-hydration render the two-pass pattern needs.
     setHydrated(true);
   }, []);
 

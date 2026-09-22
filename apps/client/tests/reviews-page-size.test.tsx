@@ -51,9 +51,8 @@ const stubMatchMedia = (desktopMatches: boolean) => {
 };
 
 const renderDialog = async () => {
-  const { ProductReviewsDialog } = await import(
-    '@/widgets/product-reviews/ui/ProductReviewsDialog.tsx'
-  );
+  const { ProductReviewsDialog } =
+    await import('@/widgets/product-reviews/ui/ProductReviewsDialog.tsx');
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });

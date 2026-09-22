@@ -6,11 +6,11 @@
   "scripts": {
     "build": "rsbuild build",
     "check": "pnpm run \"/^check:(lint|types|test)$/\"",
-    "check:lint": "biome check --write",
+    "check:lint": "oxlint && oxfmt --check",
     "check:test": "rstest",
     "check:types": "tsc --noEmit",
     "dev": "node --experimental-vm-modules ssr/dev.mjs",
-    "format": "biome format --write",
+    "format": "oxfmt",
     "preview": "node ssr/prod.mjs",
     "test": "rstest",
     "test:watch": "rstest --watch"
@@ -27,7 +27,6 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.15",
     "@rsbuild/core": "^2.1.4",
     "@rsbuild/plugin-react": "^2.1.0",
     "@rsbuild/plugin-tailwindcss": "^2.0.3",
@@ -44,6 +43,9 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "happy-dom": "^20.10.6",
+    "oxfmt": "0.70.0",
+    "oxlint": "1.85.0",
+    "oxlint-tsgolint": "7.0.2002",
     "storybook": "^10.5.2",
     "tailwindcss": "^4.3.1",
     "typescript": "7.0.2"

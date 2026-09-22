@@ -6,6 +6,7 @@ import type {
   ReviewResponseDto,
   ReviewsPageResponseDto,
 } from '@e-commerce/contracts';
+import { isType } from '@e-commerce/contracts';
 import type { ReviewSummaryResponseDto } from '#src/modules/review/dtos/review-summary.response.dto';
 import { assertKeys, assertText, getJson, PRODUCTS_URL, STATUS_OK } from '../shared/http.js';
 import type { ICustomWorld } from '../support/custom-world.js';
@@ -128,7 +129,7 @@ Then('review entries carry the public response fields', function (this: ICustomW
     assertText(review.name);
     if (review.avatar_url !== null) assertText(review.avatar_url);
     assert.ok(Number.isInteger(review.rating) && review.rating >= 1 && review.rating <= 5);
-    assert.ok(review.content === null || typeof review.content === 'string');
+    assert.ok(review.content === null || isType(review.content, 'string'));
     assert.match(review.created_at, DATE_ONLY_PATTERN);
   }
 });

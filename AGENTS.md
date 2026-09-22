@@ -17,11 +17,11 @@ pnpm workspace. Packages live in `apps/`:
 - `pnpm build` - Build contracts, then the client and compiled server for production
 - `pnpm preview` - Serve the client production build
 - `pnpm test` - Run client tests (rstest)
-- `pnpm check` - Run ALL checks in all packages concurrently (client biome+tsc+rstest, server biome+tsc+unit tests+architecture, storybook build). Use this to validate changes.
+- `pnpm check` - Run ALL checks in all packages concurrently (client oxlint+oxfmt+tsc+rstest, server oxlint+oxfmt+tsc+unit tests+architecture, storybook build). Use this to validate changes.
 - `pnpm check:client` - Client checks only
 - `pnpm storybook` - Start Storybook (port 6006)
 - `pnpm api` - Start the Nest/Fastify API (needs `.env` and Postgres)
-- `pnpm api:check` - Server biome + tsc
+- `pnpm api:check` - Server oxlint + oxfmt + tsc
 
 Use `pnpm --filter @e-commerce/<name> <script>` for anything else.
 

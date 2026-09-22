@@ -2,8 +2,24 @@
   "name": "@e-commerce/server",
   "version": "2.4.44",
   "description": "A Fastify template that follows the Clean Architecture principles and encourages established practices.",
-  "author": "Marco Turi <marco.turi@hotmail.it>",
+  "keywords": [
+    "boilerplate",
+    "clean-architecture",
+    "cucumber",
+    "domain-driven-design",
+    "fastify",
+    "functional-programming",
+    "template",
+    "typescript",
+    "vertical-slice-architecture"
+  ],
   "license": "MIT",
+  "author": "Yuri Dunets <yuri.dunets@hiqo-solutions.com>",
+  "files": [
+    "dist/src",
+    "!dist/src/**/*.spec.js",
+    "!dist/src/**/*.spec.js.map"
+  ],
   "type": "module",
   "imports": {
     "#src/*": {
@@ -24,15 +40,15 @@
     "test:coverage": "pnpm build && c8 --exclude-after-remap --include 'src/**/*.ts' --exclude 'src/**/*.spec.ts' node --env-file-if-exists=.env --enable-source-maps --import reflect-metadata --test 'dist/src/**/*.spec.js' 'dist/tests/runtime/**/*.spec.js'",
     "test:unit": "pnpm build && node --env-file-if-exists=.env --enable-source-maps --import reflect-metadata --test 'dist/src/**/*.spec.js' 'dist/tests/runtime/**/*.spec.js'",
     "test:characterisation": "pnpm build && node --env-file-if-exists=.env --enable-source-maps --import reflect-metadata ./node_modules/@cucumber/cucumber/bin/cucumber.js --exit && node --env-file-if-exists=.env --enable-source-maps --import reflect-metadata --test 'dist/tests/runtime/*.integration.js'",
-    "format": "biome format --write .",
-    "lint": "biome lint --write .",
+    "format": "oxfmt",
+    "lint": "oxlint --fix",
     "type:check": "tsc --noEmit",
     "check": "pnpm run \"/^check:(lint|types|test|architecture)$/\"",
     "check:architecture": "pnpm deps:validate",
-    "check:lint": "biome check",
+    "check:lint": "oxlint && oxfmt --check",
     "check:test": "pnpm run test:unit",
     "check:types": "tsc --noEmit",
-    "check:fix": "biome check --write && tsc --noEmit",
+    "check:fix": "oxlint --fix && oxfmt && tsc --noEmit",
     "db": "dbmate h",
     "db:create-migration": "dbmate new",
     "db:migrate": "dbmate -e DBMATE_DATABASE_URL --no-dump-schema up",
@@ -46,11 +62,6 @@
     "dev:serve": "node --env-file-if-exists=.env --enable-source-maps --import reflect-metadata --import ./dist/src/instrumentation.js --watch ./dist/src/index.js",
     "watch": "pnpm run --parallel '/^dev:(compile|serve)$/'"
   },
-  "engines": {
-    "node": ">=24.0.0",
-    "pnpm": ">=10.0.0"
-  },
-  "packageManager": "pnpm@10.34.3",
   "dependencies": {
     "@e-commerce/contracts": "workspace:*",
     "@fastify/cors": "11.2.0",
@@ -77,7 +88,6 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.0",
     "@commitlint/cli": "20.5.3",
     "@commitlint/config-conventional": "20.5.3",
     "@cucumber/cucumber": "12.9.0",
@@ -96,20 +106,16 @@
     "dbmate": "2.33.0",
     "dependency-cruiser": "17.4.3",
     "husky": "9.1.7",
+    "oxfmt": "0.70.0",
+    "oxlint": "1.85.0",
+    "oxlint-tsgolint": "7.0.2002",
     "pino-pretty": "13.1.3",
     "semantic-release": "25.0.5",
     "typescript": "7.0.2"
   },
-  "keywords": [
-    "fastify",
-    "domain-driven-design",
-    "functional-programming",
-    "vertical-slice-architecture",
-    "cucumber",
-    "clean-architecture",
-    "typescript",
-    "template",
-    "boilerplate"
-  ],
-  "files": ["dist/src", "!dist/src/**/*.spec.js", "!dist/src/**/*.spec.js.map"]
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "packageManager": "pnpm@10.34.3"
 }

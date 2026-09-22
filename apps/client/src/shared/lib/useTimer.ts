@@ -11,7 +11,7 @@ export function useTimer(
 ): void {
   const handleElapsed = useEffectEvent(onElapsed);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: `resetKey` isn't read in the body; it's a caller-chosen value whose identity changing is what should restart the timer.
+  // oxlint-disable-next-line react/exhaustive-deps -- `resetKey` isn't read in the body; it's a caller-chosen value whose identity changing is what should restart the timer.
   useEffect(() => {
     if (delayMs === null) return;
     const timer = setTimeout(handleElapsed, delayMs);

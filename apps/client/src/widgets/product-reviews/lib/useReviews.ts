@@ -49,8 +49,10 @@ export function useReviews(
 
   const status = toStatus(query);
 
-  const loadMore = () => {
-    if (query.hasNextPage && !query.isFetchingNextPage) query.fetchNextPage();
+  const loadMore = async () => {
+    if (query.hasNextPage && !query.isFetchingNextPage) {
+      await query.fetchNextPage();
+    }
   };
 
   const pages = query.data?.pages ?? [];

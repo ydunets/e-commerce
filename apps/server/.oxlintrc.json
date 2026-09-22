@@ -1,0 +1,43 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "extends": ["../../.oxlintrc.json"],
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "import", "promise", "node"],
+  "ignorePatterns": ["dist/**", "doc/**", ".dependency-cruiser.cjs", "cucumber.setup.js"],
+  "rules": {
+    "eslint/no-console": "warn",
+    "import/extensions": ["error", "always", { "ignorePackages": true }],
+    "import/no-commonjs": "error",
+    "typescript/consistent-type-definitions": "error",
+    // Nest modules are empty classes that exist for their decorator.
+    "typescript/no-extraneous-class": ["error", { "allowWithDecorator": true }],
+    // node:test registers describe/it and returns promises nobody needs to await.
+    "typescript/no-floating-promises": [
+      "error",
+      {
+        "ignoreVoid": false,
+        "allowForKnownSafeCalls": [
+          {
+            "from": "package",
+            "package": "node:test",
+            "name": ["describe", "it", "test", "before", "after", "beforeEach", "afterEach"]
+          }
+        ]
+      }
+    ],
+    "typescript/no-namespace": "error",
+    // Row types are hand-written; postgres.js returns numeric and bigint columns as strings, so the Number() calls are load-bearing.
+    "typescript/no-unnecessary-type-conversion": "off",
+    // Nest's HttpStatus is a numeric enum compared against plain status numbers.
+    "typescript/no-unsafe-enum-comparison": "off",
+    "unicorn/filename-case": ["error", { "case": "kebabCase" }],
+    "unicorn/prefer-node-protocol": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.cjs"],
+      "rules": {
+        "import/no-commonjs": "off"
+      }
+    }
+  ]
+}

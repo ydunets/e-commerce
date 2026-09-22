@@ -10,7 +10,7 @@ export function getDb(): ReturnType<typeof postgres> {
     sql = postgres(env.db.url, {
       debug: (conn: number, query: string, params: unknown[], paramTypes: unknown[]) => {
         if (env.log.level === LogLevel.debug) {
-          // biome-ignore lint/suspicious/noConsole: needed for debugging
+          // oxlint-disable-next-line no-console -- needed for debugging
           console.debug(`
     SQL::
       Executing query: "${query.trim()}"

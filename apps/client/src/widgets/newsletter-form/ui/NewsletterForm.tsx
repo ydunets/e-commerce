@@ -1,11 +1,12 @@
+import { isType } from '@e-commerce/contracts';
 import { useActionState, useState } from 'react';
 import { subscribeToNewsletter } from '@/shared/api';
 import { TextInput } from '@/shared/ui/text-input';
 import { ToastProvider, useToast } from '../lib/toast-context';
 import { validateEmail } from '../lib/validate-email';
-import styles from './NewsletterForm.module.css';
 import { SubscribeButton } from './SubscribeButton';
 import { ToastViewport } from './ToastViewport';
+import styles from './NewsletterForm.module.css';
 
 const FAILURE_MESSAGE =
   'Failed to subscribe. Please ensure your email is correct or try again later.';
@@ -30,7 +31,8 @@ const NewsletterFormFields = () => {
       _previous: string | undefined,
       formData: FormData,
     ): Promise<string | undefined> => {
-      const value = String(formData.get('email') ?? EMPTY);
+      const field = formData.get('email');
+      const value = isType(field, 'string') ? field : EMPTY;
 
       const validationError = validateEmail(value);
       if (validationError) {

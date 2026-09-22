@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react';
 import { cx } from '@/shared/lib/cx';
 import { useRadioGroup } from '@/shared/lib/useRadioGroup';
-import styles from './ColorSwatches.module.css';
 import { resolveSwatchColor } from './swatch-colors';
+import styles from './ColorSwatches.module.css';
 
 export type TColorOption = {
   value: string;
@@ -50,6 +50,7 @@ export const ColorSwatches = ({
   );
 
   return (
+    // oxlint-disable-next-line jsx-a11y/interactive-supports-focus -- WAI-ARIA radiogroup composite with roving tabindex: focus lives on the radios, not on the group.
     <div
       className={cx(styles.root, size === 'sm' && styles.smRoot)}
       role="radiogroup"
@@ -60,7 +61,6 @@ export const ColorSwatches = ({
         const selected = option.value === value;
         const { fill, ring } = resolveSwatchColor(option.value);
         return (
-          // biome-ignore lint/a11y/useSemanticElements: WAI-ARIA radiogroup composite with roving tabindex; native radios cannot be styled as these controls.
           <button
             key={option.value}
             ref={optionRef(option.value)}

@@ -4,8 +4,8 @@ import { useApplyCoupon, useRemoveCoupon } from '@/entities/cart';
 import { Button } from '@/shared/ui/button';
 import { TextInput } from '@/shared/ui/text-input';
 import { applyFailureMessage, validateCouponCode } from '../lib/coupon-errors';
-import styles from './CouponField.module.css';
 import { CloseIcon, CouponIcon } from './icons';
+import styles from './CouponField.module.css';
 
 export type TCouponFieldProps = {
   cart: CartResponseDto;

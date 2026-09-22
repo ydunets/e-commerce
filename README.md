@@ -28,7 +28,7 @@ pnpm build            # client production build (dist/ + dist/server/)
 pnpm preview          # serve the client production build
 pnpm test             # client unit tests (rstest)
 pnpm check            # ALL checks, all packages, concurrent (~3-4s):
-                      #   client: biome + tsc + rstest | server: biome + tsc + unit tests | storybook: build
+                      #   client: oxlint + oxfmt + tsc + rstest | server: oxlint + oxfmt + tsc + unit tests | storybook: build
 pnpm check:client     # client checks only
 pnpm e2e              # Playwright e2e (starts DB + API + client itself; needs Docker)
 pnpm api:check        # server checks only

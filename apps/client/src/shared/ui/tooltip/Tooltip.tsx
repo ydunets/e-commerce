@@ -40,7 +40,6 @@ export const Tooltip = ({
 
   return (
     // Shows on hover and keyboard focus; onFocus/onBlur bubble from the trigger.
-    // biome-ignore lint/a11y/noStaticElementInteractions: the wrapper is not itself actionable; the listeners only reveal a descriptive tooltip for the trigger it wraps.
     <span
       className="relative inline-flex items-center"
       onMouseEnter={() => setVisible(true)}

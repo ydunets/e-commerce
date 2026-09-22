@@ -68,6 +68,7 @@ export function useIntersectionObserver({
      remounted node starts from a clean slate. */
   useEffect(() => {
     if (!target && !freezeOnceVisible) {
+      // oxlint-disable-next-line react/set-state-in-effect -- deriving during render would carry the previous node's state into a remount until the observer fires.
       setIsIntersecting(initialIsIntersecting);
       setEntry(undefined);
     }

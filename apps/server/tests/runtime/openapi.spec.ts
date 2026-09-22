@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { it } from 'node:test';
+import { detectType, isType } from '@e-commerce/contracts';
 import { HttpStatus, Module } from '@nestjs/common';
 import { APP_FILTER, NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
@@ -95,9 +96,9 @@ it('documents every migrated endpoint without changing Nest validation or respon
       'Field-level details for a validation failure',
     );
     function assertReferences(value: unknown): void {
-      if (!value || typeof value !== 'object') return;
+      if (!(isType(value, 'object') || isType(value, 'array'))) return;
       if ('$ref' in value) {
-        assert.equal(typeof value.$ref, 'string');
+        assert.equal(detectType(value.$ref), 'string');
         const reference = String(value.$ref);
         assert.ok(reference.startsWith('#/components/schemas/'), reference);
         const name = reference

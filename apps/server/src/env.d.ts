@@ -1,4 +1,4 @@
-// biome-ignore lint/style/noNamespace: augmenting Node's global ProcessEnv requires the NodeJS namespace.
+// oxlint-disable-next-line typescript/no-namespace -- augmenting Node's global ProcessEnv requires the NodeJS namespace.
 declare namespace NodeJS {
   interface ProcessEnv {
     /** Set to 'true' to skip OpenTelemetry SDK startup. */

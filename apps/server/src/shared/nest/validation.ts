@@ -1,4 +1,4 @@
-import type { ApiErrorSubError } from '@e-commerce/contracts';
+import { type ApiErrorSubError, isType } from '@e-commerce/contracts';
 import { HttpStatus, StandardSchemaValidationPipe } from '@nestjs/common';
 import { ExceptionBase } from '#src/shared/exceptions/exception-base';
 
@@ -17,7 +17,7 @@ export function createValidationPipe() {
         issues.map((issue) => ({
           path: (issue.path ?? [])
             .map((segment) => {
-              const key = typeof segment === 'object' ? segment.key : segment;
+              const key = isType(segment, 'object') ? segment.key : segment;
               return `/${String(key).replaceAll('~', '~0').replaceAll('/', '~1')}`;
             })
             .join(''),

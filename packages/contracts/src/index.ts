@@ -1,6 +1,7 @@
 // Types
 
 export type { ApiErrorResponse, ApiErrorSubError } from './api-error.js';
+export type { TType } from './detect-type.js';
 export type {
   AddCartItemBodyDto,
   AppliedCouponDto,
@@ -54,5 +55,6 @@ export {
 
 // Constants and helpers
 
+export { detectType, isType } from './detect-type.js';
 export { compareSizes, SIZE_RANK } from './sizes.js';
 export { SPECIFICATION_ICONS } from './specification.js';

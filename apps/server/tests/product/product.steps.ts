@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { Given, Then, When } from '@cucumber/cucumber';
-import type { ProductListItemDto, ProductResponseDto } from '@e-commerce/contracts';
+import { isType, type ProductListItemDto, type ProductResponseDto } from '@e-commerce/contracts';
 import type { ReviewSummaryResponseDto } from '#src/modules/review/dtos/review-summary.response.dto';
 import { assertKeys, assertText, getJson, PRODUCTS_URL, STATUS_OK } from '../shared/http.js';
 import type { ICustomWorld } from '../support/custom-world.js';
@@ -166,7 +166,7 @@ function assertInventory(detail: ProductResponseDto): void {
       assert.equal(typeof price, 'number');
       assert.ok(price >= 0);
     }
-    assert.ok(item.discount_percentage === null || typeof item.discount_percentage === 'number');
+    assert.ok(item.discount_percentage === null || isType(item.discount_percentage, 'number'));
     assert.ok(Number.isInteger(item.stock) && item.stock >= 0);
     assert.ok(Number.isInteger(item.sold) && item.sold >= 0);
   }

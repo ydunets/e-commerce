@@ -62,8 +62,8 @@ flowchart LR
 
 ### Stages
 
-1. **validate** — `pnpm check` across the workspace: client (Biome + `tsc` + rstest), server
-   (Biome + `tsc --noEmit` + unit tests), storybook (build). No database required. Runs in both
+1. **validate** — `pnpm check` across the workspace: client (oxlint + oxfmt + `tsc` + rstest), server
+   (oxlint + oxfmt + `tsc --noEmit` + unit tests), storybook (build). No database required. Runs in both
    workflows (each is self-contained; a PR run and the post-merge run are independent).
 2. **security** — CodeQL (`javascript-typescript`, `build-mode: none`) via the reusable
    [`_codeql.yml`](../.github/workflows/_codeql.yml). Runs in parallel with `validate`; results land

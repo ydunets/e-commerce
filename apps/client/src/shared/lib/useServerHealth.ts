@@ -17,15 +17,21 @@ function readOutage(health: ServerHealth): ServerOutage {
 export function useServerHealth(error: unknown): ServerOutage {
   const [outage, setOutage] = useState<ServerOutage>('checking');
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: `error` is the hook's own argument, so a second failure on a mounted boundary has to re-probe; the rule reads it as an outer-scope value.
+  // oxlint-disable-next-line react/exhaustive-deps -- `error` is the hook's own argument, so a second failure on a mounted boundary has to re-probe; the rule reads it as an outer-scope value.
   useEffect(() => {
     const controller = new AbortController();
     setOutage('checking');
 
-    probeServers(controller.signal).then((health) => {
-      if (controller.signal.aborted) return;
-      setOutage(readOutage(health));
-    });
+    probeServers(controller.signal).then(
+      (health) => {
+        if (controller.signal.aborted) return;
+        setOutage(readOutage(health));
+      },
+      () => {
+        if (controller.signal.aborted) return;
+        setOutage('app-unreachable');
+      },
+    );
 
     return () => controller.abort();
   }, [error]);

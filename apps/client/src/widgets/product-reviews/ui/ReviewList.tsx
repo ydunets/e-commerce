@@ -167,6 +167,7 @@ const ReviewListContent = (props: TReviewListProps & TVirtualListState) => {
 export const ReviewList = (props: TReviewListProps) => {
   'use no memo';
 
+  // oxlint-disable-next-line react/incompatible-library -- the directive above opts this component out of the compiler, which is the fix the rule asks for.
   const virtualizer = useVirtualizer({
     count: props.items.length,
     getScrollElement: () => props.listRef.current,

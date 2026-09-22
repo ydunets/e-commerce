@@ -29,14 +29,10 @@ export const Tabs = ({
   idPrefix,
 }: TTabsProps) => {
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
-  const startSentinel = useIntersectionObserver({
-    root: scroller,
-    initialIsIntersecting: true,
-  });
-  const endSentinel = useIntersectionObserver({
-    root: scroller,
-    initialIsIntersecting: true,
-  });
+  const { ref: startSentinelRef, isIntersecting: startVisible } =
+    useIntersectionObserver({ root: scroller, initialIsIntersecting: true });
+  const { ref: endSentinelRef, isIntersecting: endVisible } =
+    useIntersectionObserver({ root: scroller, initialIsIntersecting: true });
 
   const activateTab = (tab: TTabItem) => {
     onChange(tab.id);
@@ -78,10 +74,11 @@ export const Tabs = ({
     <div className={styles.root}>
       <div ref={setScroller} className={styles.scroller}>
         <span
-          ref={startSentinel.ref}
+          ref={startSentinelRef}
           className={styles.sentinel}
           aria-hidden="true"
         />
+        {/* oxlint-disable-next-line jsx-a11y/interactive-supports-focus -- WAI-ARIA tabs composite with roving tabindex: focus lives on the tabs, not on the list. */}
         <div
           role="tablist"
           aria-label={label}
@@ -110,19 +107,19 @@ export const Tabs = ({
           })}
         </div>
         <span
-          ref={endSentinel.ref}
+          ref={endSentinelRef}
           className={styles.sentinel}
           aria-hidden="true"
         />
       </div>
       <span
         className={`${styles.shadow} ${styles.shadowStart}`}
-        data-visible={!startSentinel.isIntersecting || undefined}
+        data-visible={!startVisible || undefined}
         aria-hidden="true"
       />
       <span
         className={`${styles.shadow} ${styles.shadowEnd}`}
-        data-visible={!endSentinel.isIntersecting || undefined}
+        data-visible={!endVisible || undefined}
         aria-hidden="true"
       />
     </div>

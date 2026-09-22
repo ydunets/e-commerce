@@ -1,0 +1,37 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "extends": ["../../.oxlintrc.json"],
+  "plugins": [
+    "eslint",
+    "typescript",
+    "unicorn",
+    "oxc",
+    "import",
+    "react",
+    "jsx-a11y"
+  ],
+  "ignorePatterns": ["dist/**", "src/routeTree.gen.ts"],
+  "rules": {
+    "react/rules-of-hooks": "error",
+    // The automatic JSX runtime needs no React binding in scope.
+    "react/react-in-jsx-scope": "off",
+    // The React Compiler memoises context values; a manual useMemo would be redundant.
+    "react/jsx-no-constructed-context-values": "off",
+    // Effects return a cleanup only on some paths; the middleware in ssr/ ends with next().
+    "typescript/consistent-return": "off",
+    // The Express handlers in ssr/ catch and forward to next(); the rule cannot see that.
+    "oxc/no-async-endpoint-handlers": "off",
+    // Composite ARIA widgets and accessible SVGs carry roles the rule would replace with the wrong element.
+    "jsx-a11y/prefer-tag-over-role": "off",
+    "jsx-a11y/no-autofocus": ["error", { "ignoreNonDOM": true }]
+  },
+  "overrides": [
+    {
+      // Storybook calls render() as a component, so hooks inside it are valid.
+      "files": ["**/*.stories.tsx"],
+      "rules": {
+        "react/rules-of-hooks": "off"
+      }
+    }
+  ]
+}

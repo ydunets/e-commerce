@@ -75,7 +75,7 @@ export const TextInput = ({
 
       <div className="relative">
         <input
-          // biome-ignore lint/a11y/noAutofocus: the field replaces the button the visitor just activated, so focus has to follow it
+          // oxlint-disable-next-line jsx-a11y/no-autofocus -- the field replaces the button the visitor just activated, so focus has to follow it
           autoFocus={autoFocus}
           id={fieldId}
           name={name}

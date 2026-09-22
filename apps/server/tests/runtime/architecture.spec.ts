@@ -7,6 +7,7 @@ import { dirname, join } from 'node:path';
 import { it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { isType } from '@e-commerce/contracts';
 
 const execute = promisify(execFile);
 const require = createRequire(import.meta.url);
@@ -59,7 +60,7 @@ it('rejects controller and persistence imports across layers while allowing repo
       { cwd: directory },
     ));
   } catch (error) {
-    assert.ok(error && typeof error === 'object' && 'stdout' in error);
+    assert.ok(isType(error, 'error') && 'stdout' in error);
     output = String(error.stdout);
   }
   const violations = JSON.parse(output).summary.violations;

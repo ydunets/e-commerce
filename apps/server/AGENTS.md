@@ -9,18 +9,23 @@ TypeScript strict mode and compiled ESM on Node 24.18.0. SWC emits application a
 
 ## Quick reference
 
+Run the commands below from `apps/server`. From the workspace root, use
+`pnpm --filter @e-commerce/server <script>`; root `pnpm check` validates the whole workspace.
+Consult [package.json](package.json) for the current script definitions.
+
 | What | Where |
 |---|---|
 | Package manager | `pnpm` (never npm or yarn) |
-| Linter + formatter | Biome (never ESLint or Prettier) |
-| Validation after changes | `pnpm check` (runs `biome check && tsc --noEmit`) |
+| Linter + formatter | oxlint + oxfmt |
+| Validation after changes | `pnpm check` (lint, formatting, types, compiled unit/runtime tests and architecture) |
 | Auto-fix formatting | `pnpm format` |
 | Unit tests | `pnpm test:unit` (node:test) |
 | Characterisation tests | `pnpm test:characterisation` (Cucumber + Gherkin) |
 | Architecture validation | `pnpm deps:validate` (dependency-cruiser) |
 | DB migrations | `pnpm db:migrate` (DBMate) |
 
-Always run `pnpm check` after making changes. If formatting fails, run `pnpm format` first, then `pnpm check`.
+Run `pnpm check` after changes. If formatting fails, format only the files owned by
+the task with `pnpm format <paths>`, then rerun the check.
 
 ## Architecture
 
@@ -117,19 +122,19 @@ SQL parameterization rules:
 ## Coding conventions
 
 ### Style
-- Biome enforces: single quotes, 2-space indent, trailing commas, semicolons, LF line endings
-- Max line width: 100 characters
-- File naming: `kebab-case` only (enforced by Biome)
+- Follow the workspace [oxfmt configuration](../../.oxfmtrc.jsonc) and the server
+  [oxlint configuration](.oxlintrc.json), which extends the workspace rules.
+- File naming: `kebab-case` only (enforced by oxlint's `unicorn/filename-case`)
 - No enums — use `const` objects with derived types (e.g. `UserRoles`)
 - Keep pure domain logic functional. Nest controllers, handlers and repository adapters use classes.
-- No `any` — Biome's `noExplicitAny` is an error (relaxed only in test files)
+- Use explicit types; oxlint's `typescript/no-explicit-any` is an error, with test overrides in the workspace configuration.
 - No `console` — use the injected `logger` (Pino)
 
 ### TypeScript
 - `strict: true` with `noImplicitAny: true`
 - Use extensionless `#src/*` and `#tests/*` aliases. The `development` condition resolves source for checking; runtime defaults resolve compiled JavaScript. Runtime commands must omit `--conditions=development`.
 - Use `.js` extensions for relative ESM imports, including in TypeScript source.
-- Use type-only imports for erased types, but retain runtime imports for constructor dependencies whose classes must appear in decorator metadata. Biome deliberately leaves this distinction to the author.
+- Use type-only imports for erased types, but retain runtime imports for constructor dependencies whose classes must appear in decorator metadata. Verify these imports through compiled application initialization.
 - Build contracts before the server. Use the manifest's build, test and development commands to preserve output cleaning, metadata preload and watcher startup ordering. See `../../docs/runbook.md` for execution and image verification.
 
 ### API

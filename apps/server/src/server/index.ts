@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { isType } from '@e-commerce/contracts';
 import Cors from '@fastify/cors';
 import Helmet from '@fastify/helmet';
 import UnderPressure from '@fastify/under-pressure';
@@ -18,7 +19,10 @@ export default async function createServer(
       level: env.log.level,
       redact: ['headers.authorization', 'req.headers.authorization'],
     },
-    genReqId: (request) => (request.headers['request-id'] as string) ?? randomUUID(),
+    genReqId: (request) => {
+      const requestId = request.headers['request-id'];
+      return isType(requestId, 'string') ? requestId : randomUUID();
+    },
     routerOptions: { ignoreDuplicateSlashes: true },
   }),
 ): Promise<NestFastifyApplication> {

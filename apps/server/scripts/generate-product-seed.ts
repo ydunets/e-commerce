@@ -3,50 +3,51 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
+import { z } from 'zod';
 
 // Shapes of the challenge's source JSON files.
-interface ProductRecord {
-  product_id: string;
-  name: string;
-  description: string;
-  category: string;
-  collection: string;
-  created_at: string;
-}
+const productRecordSchema = z.object({
+  product_id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  category: z.string(),
+  collection: z.string(),
+  created_at: z.string(),
+});
 
-interface InventoryRecord {
-  sku: string;
-  product_id: string;
-  color: string;
-  // Clothing sizes are strings ('xs'), shoe sizes are numbers (4, 4.5),
-  // one-size products (hats, socks, sunglasses) are null.
-  size: string | number | null;
-  list_price: number;
-  discount_percentage: number | null;
-  sale_price: number;
-  stock: number;
-  sold: number;
-}
+const inventoryRecordSchema = z.object({
+  sku: z.string(),
+  product_id: z.string(),
+  color: z.string(),
+  // Clothing sizes are strings, shoe sizes are numbers, and one-size products are null.
+  size: z.union([z.string(), z.number(), z.null()]),
+  list_price: z.number(),
+  discount_percentage: z.union([z.number(), z.null()]),
+  sale_price: z.number(),
+  stock: z.number(),
+  sold: z.number(),
+});
 
-interface ImageRecord {
-  product_id: string;
-  color: string;
-  image_url: string;
-}
+const imageRecordSchema = z.object({
+  product_id: z.string(),
+  color: z.string(),
+  image_url: z.string(),
+});
 
-interface InfoRecord {
-  product_id: string;
-  title: string;
-  description: string[];
-}
+const infoRecordSchema = z.object({
+  product_id: z.string(),
+  title: z.string(),
+  description: z.array(z.string()),
+});
 
-interface ReviewRecord {
-  product_id: string;
-  user_id: string;
-  rating: number;
-  content: string | null; // some reviews are a rating with no written text
-  created_at: string;
-}
+const reviewRecordSchema = z.object({
+  product_id: z.string(),
+  user_id: z.string(),
+  rating: z.number(),
+  // Some reviews contain a rating without written text.
+  content: z.union([z.string(), z.null()]),
+  created_at: z.string(),
+});
 
 // Resolved relative to this script (repo-root/examples/...), so it's machine-independent.
 // Override with SEED_DATA_DIR=/path/to/data when the source lives elsewhere.
@@ -75,10 +76,10 @@ const sqlNullableNumber = (value: number | null): string =>
 
 // --- IO --------------------------------------------------------------------
 
-async function readJson<Row>(fileName: string): Promise<Row[]> {
+async function readJson<Row>(fileName: string, schema: z.ZodType<Row>): Promise<Row[]> {
   const filePath = join(DATA_DIR, fileName);
   try {
-    return JSON.parse(await readFile(filePath, 'utf8')) as Row[];
+    return z.array(schema).parse(JSON.parse(await readFile(filePath, 'utf8')));
   } catch (cause) {
     throw new Error(`Failed to read or parse ${filePath}`, { cause });
   }
@@ -109,11 +110,11 @@ function* insertStatement<Row>(
 /** The ETL transform: reads the source JSON, streams out the dbmate seed file. */
 async function* generateSeed(): AsyncGenerator<string> {
   const [products, inventory, images, info, reviews] = await Promise.all([
-    readJson<ProductRecord>('products.json'),
-    readJson<InventoryRecord>('inventory.json'),
-    readJson<ImageRecord>('product-images.json'),
-    readJson<InfoRecord>('product-info.json'),
-    readJson<ReviewRecord>('product-reviews.json'),
+    readJson('products.json', productRecordSchema),
+    readJson('inventory.json', inventoryRecordSchema),
+    readJson('product-images.json', imageRecordSchema),
+    readJson('product-info.json', infoRecordSchema),
+    readJson('product-reviews.json', reviewRecordSchema),
   ]);
 
   yield '-- migrate:up\n';

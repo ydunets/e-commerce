@@ -116,8 +116,9 @@ export class PostgresProductRepository implements ProductRepository {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
   async findMany(options: FindManyProductsOptions): Promise<ProductListItem[]> {
     const db = this.db;
-    const rows =
-      (await db`SELECT product_id, name, collection, created_at FROM products`) as unknown as ProductListRow[];
+    const rows = await db<
+      ProductListRow[]
+    >`SELECT product_id, name, collection, created_at FROM products`;
 
     const offset = options.offset ?? 0;
     const page = rows
@@ -131,10 +132,14 @@ export class PostgresProductRepository implements ProductRepository {
     if (page.length === 0) return [];
 
     const ids = page.map((row) => row.product_id);
-    const [inventory, images] = (await Promise.all([
-      db`SELECT product_id, color, list_price, sale_price, stock FROM product_inventory WHERE product_id = ANY(${ids}) ORDER BY id`,
-      db`SELECT product_id, color, image_url FROM product_images WHERE product_id = ANY(${ids}) ORDER BY id`,
-    ])) as unknown as [ListInventoryRow[], ListImageRow[]];
+    const [inventory, images] = await Promise.all([
+      db<
+        ListInventoryRow[]
+      >`SELECT product_id, color, list_price, sale_price, stock FROM product_inventory WHERE product_id = ANY(${ids}) ORDER BY id`,
+      db<
+        ListImageRow[]
+      >`SELECT product_id, color, image_url FROM product_images WHERE product_id = ANY(${ids}) ORDER BY id`,
+    ]);
 
     const firstImages = new Map<string, string>();
     for (const image of images) {
@@ -165,11 +170,15 @@ export class PostgresProductRepository implements ProductRepository {
       await db`SELECT product_id, name, description, collection FROM products WHERE product_id = ${id} LIMIT 1`;
     if (!product) return undefined;
 
-    const [inventory, images, info] = (await Promise.all([
-      db`SELECT * FROM product_inventory WHERE product_id = ${id}`,
-      db`SELECT color, image_url FROM product_images WHERE product_id = ${id} ORDER BY id`,
-      db`SELECT title, description FROM product_info WHERE product_id = ${id} ORDER BY id`,
-    ])) as unknown as [InventoryRow[], ImageRow[], InfoRow[]];
+    const [inventory, images, info] = await Promise.all([
+      db<InventoryRow[]>`SELECT * FROM product_inventory WHERE product_id = ${id}`,
+      db<
+        ImageRow[]
+      >`SELECT color, image_url FROM product_images WHERE product_id = ${id} ORDER BY id`,
+      db<
+        InfoRow[]
+      >`SELECT title, description FROM product_info WHERE product_id = ${id} ORDER BY id`,
+    ]);
 
     const colors = orderedColors(inventory, images);
     const variants = inventory.map(toVariant).sort(byColorThenSize(colors));

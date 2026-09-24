@@ -6,6 +6,11 @@ import { transitions } from '@/shared/ui/motion.stylex';
 import { colors } from '@/shared/ui/tokens.stylex';
 import { resolveSwatchColor } from './swatch-colors';
 
+type TSwatchStyle = CSSProperties & {
+  '--swatch-fill': string;
+  '--swatch-ring': string;
+};
+
 export type TColorOption = {
   value: string;
   label: string;
@@ -133,6 +138,10 @@ export const ColorSwatches = ({
       {options.map((option) => {
         const selected = option.value === value;
         const { fill, ring } = resolveSwatchColor(option.value);
+        const swatchStyle: TSwatchStyle = {
+          '--swatch-fill': fill,
+          '--swatch-ring': ring,
+        };
         return (
           <button
             key={option.value}
@@ -157,9 +166,7 @@ export const ColorSwatches = ({
               option.disabled && styles.disabled,
               (option.disabled || option.outOfStock) && styles.cross,
             )}
-            style={
-              { '--swatch-fill': fill, '--swatch-ring': ring } as CSSProperties
-            }
+            style={swatchStyle}
             onClick={() => select(option.value)}
           >
             {selected && !option.disabled && !option.outOfStock && (

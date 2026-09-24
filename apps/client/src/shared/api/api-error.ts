@@ -6,6 +6,7 @@ export type TApiErrorInit = {
   error: string;
   correlationId?: string;
   subErrors?: ApiErrorSubError[];
+  details?: unknown;
 };
 
 // A failed API response, carrying the server's error envelope. Anything without
@@ -16,6 +17,7 @@ export class ApiError extends Error {
   readonly error: string;
   readonly correlationId?: string;
   readonly subErrors?: ApiErrorSubError[];
+  readonly details?: unknown;
 
   constructor(init: TApiErrorInit) {
     super(init.message);
@@ -23,6 +25,7 @@ export class ApiError extends Error {
     this.error = init.error;
     this.correlationId = init.correlationId;
     this.subErrors = init.subErrors;
+    this.details = init.details;
   }
 }
 
@@ -49,6 +52,7 @@ export async function toApiError(response: Response): Promise<ApiError> {
       error: body.error ?? fallback.error,
       correlationId: body.correlationId,
       subErrors: body.subErrors,
+      details: body.details,
     });
   } catch {
     return new ApiError(fallback);

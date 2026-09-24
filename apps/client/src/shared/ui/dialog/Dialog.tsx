@@ -111,12 +111,16 @@ export const Dialog = ({
   }, [open]);
 
   return (
-    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events -- backdrop dismissal is mouse-only; Esc closes the dialog via the native close event.
+    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events -- backdrop dismissal is mouse-only; Esc requests controlled dismissal through the native cancel event.
     <dialog
       ref={ref}
       {...stylex.props(styles.dialog, size === 'sm' && styles.sm)}
       aria-label={label}
       onClose={handleNativeClose}
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
       onClick={handleClick}
     >
       <button

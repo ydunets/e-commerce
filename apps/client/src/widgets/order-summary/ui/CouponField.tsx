@@ -1,7 +1,7 @@
 import type { CartResponseDto } from '@e-commerce/contracts';
 import * as stylex from '@stylexjs/stylex';
 import { type FormEvent, useState } from 'react';
-import { useApplyCoupon, useRemoveCoupon } from '@/entities/cart';
+import { useApplyCoupon, useCartState, useRemoveCoupon } from '@/entities/cart';
 import { media } from '@/shared/lib/breakpoints.stylex';
 import { Button } from '@/shared/ui/button';
 import { focusRing } from '@/shared/ui/focus-ring';
@@ -99,6 +99,8 @@ export const CouponField = ({ cart }: TCouponFieldProps) => {
     NO_ERROR,
   );
   const applyCoupon = useApplyCoupon();
+  const state = useCartState();
+  const disabled = state.checking || state.stock !== null;
   const removeCoupon = useRemoveCoupon();
 
   // An applied coupon is only removable through its tag, so a cart that
@@ -111,6 +113,7 @@ export const CouponField = ({ cart }: TCouponFieldProps) => {
       <button
         type="button"
         {...stylex.props(styles.addCoupon, focusRing.ring)}
+        disabled={disabled}
         onClick={() => setOpened(true)}
       >
         <CouponIcon {...stylex.props(styles.addCouponIcon)} />
@@ -121,6 +124,7 @@ export const CouponField = ({ cart }: TCouponFieldProps) => {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    if (disabled) return;
 
     const invalid = validateCouponCode(code);
     if (invalid !== null) {
@@ -145,6 +149,7 @@ export const CouponField = ({ cart }: TCouponFieldProps) => {
       <div {...stylex.props(styles.field)}>
         <TextInput
           style={styles.input}
+          disabled={disabled}
           autoFocus={opened}
           label={LABEL}
           name="coupon"
@@ -160,7 +165,7 @@ export const CouponField = ({ cart }: TCouponFieldProps) => {
           type="submit"
           variant="secondary"
           style={styles.apply}
-          disabled={applyCoupon.isPending}
+          disabled={disabled || applyCoupon.isPending}
         >
           Apply
         </Button>
@@ -176,7 +181,7 @@ export const CouponField = ({ cart }: TCouponFieldProps) => {
                   type="button"
                   {...stylex.props(styles.tagRemove, focusRing.ring)}
                   aria-label={`Remove coupon ${coupon.code}`}
-                  disabled={removeCoupon.isPending}
+                  disabled={disabled || removeCoupon.isPending}
                   onClick={() => {
                     setOpened(true);
                     removeCoupon.mutate({ cartId: cart.id, code: coupon.code });

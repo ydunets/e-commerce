@@ -7,6 +7,7 @@ import {
   percentageCouponFixture,
 } from '@/entities/cart/model/cart.fixture';
 import { jsonResponse, stubFetch } from '@/shared/lib/storybookFetch';
+import { withRouter } from '@/shared/lib/storybookRouter';
 import { EMPTY_CODE_MESSAGE, UNKNOWN_CODE_MESSAGE } from '../lib/coupon-errors';
 import { OrderSummary } from './OrderSummary';
 
@@ -27,6 +28,7 @@ const meta = {
   title: 'Widgets/OrderSummary',
   component: OrderSummary,
   decorators: [
+    withRouter,
     (Story) => (
       <QueryClientProvider
         client={

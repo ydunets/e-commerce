@@ -13,8 +13,10 @@ import { colors } from '@/shared/ui/tokens.stylex';
 
 export type TCartLineRowProps = {
   line: CartLineDto;
-  onQuantityChange: (quantity: number) => void;
-  onRemoveRequest: () => void;
+  readOnly?: boolean;
+  disabled?: boolean;
+  onQuantityChange?: (quantity: number) => void;
+  onRemoveRequest?: () => void;
 };
 
 const LINE_IMAGE_WIDTH = 560;
@@ -102,6 +104,8 @@ const styles = stylex.create({
 
 export const CartLineRow = ({
   line,
+  readOnly = false,
+  disabled = false,
   onQuantityChange,
   onRemoveRequest,
 }: TCartLineRowProps) => {
@@ -150,18 +154,26 @@ export const CartLineRow = ({
         <p {...stylex.props(styles.description)}>{line.description}</p>
 
         <div {...stylex.props(styles.controls)}>
-          <QuantityStepper
-            value={line.quantity}
-            max={line.stock}
-            onChange={onQuantityChange}
-          />
-          <button
-            type="button"
-            {...stylex.props(styles.remove, focusRing.ring)}
-            onClick={onRemoveRequest}
-          >
-            Remove
-          </button>
+          {readOnly ? (
+            <p {...stylex.props(styles.specs)}>Quantity: {line.quantity}</p>
+          ) : (
+            <>
+              <QuantityStepper
+                disabled={disabled}
+                value={line.quantity}
+                max={line.stock}
+                onChange={(quantity) => onQuantityChange?.(quantity)}
+              />
+              <button
+                type="button"
+                {...stylex.props(styles.remove, focusRing.ring)}
+                disabled={disabled}
+                onClick={onRemoveRequest}
+              >
+                Remove
+              </button>
+            </>
+          )}
           <div {...stylex.props(styles.price)}>
             <PriceTag price={price} size="sm" showBadge={false} emphasized />
           </div>

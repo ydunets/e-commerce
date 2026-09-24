@@ -111,6 +111,10 @@ This is a complex challenge with many sections and components, please read the r
 - Write-path 409 responses gain a structured payload carrying the available
   stock per SKU instead of a prose-only message; the client mutation handlers
   render the "Insufficient stock" modal directly from it.
+- Under [ADR-0003](../adr/0003-mutating-stock-validation.md), a rejected
+  write is not saved. Acknowledgement reconciles the persisted cart through
+  server-side clamping or removal; it never increases a line to match the rejected
+  intent. A persisted quantity that still fits remains unchanged.
 - `POST /api/v1/carts/:cartId/validate` reconciles the whole cart
   transactionally server-side (clamping quantities, removing sold-out lines)
   and returns the corrected cart plus a delta report. Checkout calls it;

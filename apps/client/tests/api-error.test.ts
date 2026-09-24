@@ -61,3 +61,25 @@ test('the serialization adapter round-trips an ApiError', () => {
   expect(revived.message).toBe('Product voyager-hoodie not found');
   expect(revived.correlationId).toBe('YevPQs');
 });
+
+test('stock conflict details survive HTTP parsing and the SSR serialization adapter', async () => {
+  const CONFLICT = 409;
+  const details = { sku: 'voyager-hoodie-brown-s', requested: 4, available: 1 };
+  const parsed = await toApiError(
+    new Response(
+      JSON.stringify({
+        statusCode: CONFLICT,
+        message: 'Insufficient stock',
+        error: 'Conflict',
+        details,
+      }),
+      { status: CONFLICT },
+    ),
+  );
+  expect(parsed.details).toEqual(details);
+  const serialized = apiErrorSerializationAdapter.toSerializable(parsed);
+  const revived = apiErrorSerializationAdapter.fromSerializable(
+    JSON.parse(JSON.stringify(serialized)),
+  );
+  expect(revived.details).toEqual(details);
+});

@@ -1,18 +1,28 @@
 import type { CartResponseDto } from '@e-commerce/contracts';
 import * as stylex from '@stylexjs/stylex';
+import { useNavigate } from '@tanstack/react-router';
 import { useId } from 'react';
-import { cartTotals, formatUsd } from '@/entities/cart';
+import {
+  cartTotals,
+  formatUsd,
+  useCartState,
+  useCheckoutCart,
+} from '@/entities/cart';
 import { Badge } from '@/shared/ui/badge';
+import { Button } from '@/shared/ui/button';
 import { colors } from '@/shared/ui/tokens.stylex';
+import { StockDialog } from '@/widgets/stock-dialog';
 import { CouponField } from './CouponField';
 
 export type TOrderSummaryProps = {
   cart: CartResponseDto;
+  readOnly?: boolean;
 };
 
 const FREE_SHIPPING = 'FREE';
 
 const styles = stylex.create({
+  error: { fontSize: '0.875rem', lineHeight: '1.25rem', color: colors.danger },
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -79,7 +89,10 @@ const styles = stylex.create({
   },
 });
 
-export const OrderSummary = ({ cart }: TOrderSummaryProps) => {
+export const OrderSummary = ({
+  cart,
+  readOnly = false,
+}: TOrderSummaryProps) => {
   const headingId = useId();
   const totals = cartTotals(cart.lines, cart.coupons);
 
@@ -115,7 +128,7 @@ export const OrderSummary = ({ cart }: TOrderSummaryProps) => {
           ))}
         </dl>
 
-        <CouponField cart={cart} />
+        {!readOnly && <CouponField cart={cart} />}
       </div>
 
       <hr {...stylex.props(styles.separator)} />
@@ -126,6 +139,40 @@ export const OrderSummary = ({ cart }: TOrderSummaryProps) => {
           {formatUsd(totals.total)}
         </span>
       </p>
+      {!readOnly && (
+        <CheckoutAction cartId={cart.id} empty={cart.lines.length === 0} />
+      )}
     </section>
   );
 };
+
+function CheckoutAction({ cartId, empty }: { cartId: string; empty: boolean }) {
+  const navigate = useNavigate();
+  const { checkout } = useCheckoutCart();
+  const state = useCartState();
+  const handleCheckout = async () => {
+    try {
+      if (await checkout(cartId)) await navigate({ to: '/checkout' });
+    } catch {
+      /* The shared cart state renders the recoverable error. */
+    }
+  };
+
+  return (
+    <>
+      <Button
+        size="xl"
+        disabled={empty || state.checking || state.stock !== null}
+        onClick={handleCheckout}
+      >
+        {state.checking ? 'Checking stock…' : 'Checkout'}
+      </Button>
+      {state.error && !state.stock && (
+        <p role="alert" {...stylex.props(styles.error)}>
+          {state.error}
+        </p>
+      )}
+      <StockDialog />
+    </>
+  );
+}

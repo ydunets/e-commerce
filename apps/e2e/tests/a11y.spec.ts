@@ -1,6 +1,12 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from './fixtures';
-import { PRODUCT, ROUTES } from './helpers';
+import {
+  PRODUCT,
+  ROUTES,
+  SEEDED_CART_STATE,
+  SEEDED_CART,
+  cartLink,
+} from './helpers';
 
 /**
  * The standard the shop is held to. Best-practice rules are left out: they
@@ -16,15 +22,31 @@ const ROUTE_BUDGETS = [
   { name: 'home', path: ROUTES.home, budget: 0 },
   { name: 'catalogue', path: ROUTES.products, budget: 0 },
   { name: 'product', path: PRODUCT.path, budget: 0 },
+  { name: 'cart', path: ROUTES.cart, budget: 0 },
+  { name: 'checkout', path: ROUTES.checkout, budget: 0 },
 ] as const;
 
 test.describe('Accessibility Budgets', () => {
+  test.use({ storageState: SEEDED_CART_STATE });
+
   for (const route of ROUTE_BUDGETS) {
     test(`should stay within the accessibility budget on the ${route.name} route`, async ({
       gotoHydrated,
       page,
     }, testInfo) => {
-      await gotoHydrated(route.path);
+      await gotoHydrated(
+        route.path === ROUTES.checkout ? ROUTES.cart : route.path,
+      );
+      await expect(cartLink(page)).toHaveCartCount(SEEDED_CART.quantity);
+      if (route.path === ROUTES.checkout) {
+        await page
+          .getByRole('button', { name: 'Checkout', exact: true })
+          .click();
+        await expect(page).toHaveURL(/\/checkout$/);
+        await expect(
+          page.getByRole('heading', { name: 'Checkout', exact: true }),
+        ).toBeVisible();
+      }
 
       const { violations } = await new AxeBuilder({ page })
         .withTags(STANDARD_TAGS)

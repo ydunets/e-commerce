@@ -1,0 +1,18 @@
+- main:
+  - heading "Checkout" [level=1]
+  - list:
+    - listitem:
+      - link "Voyager Hoodie":
+        - /url: /products/voyager-hoodie
+      - paragraph: Green • M
+      - paragraph: The Voyager Hoodie is for the explorer at heart. Its durable fabric and roomy pockets are perfect for those who are always searching for the next adventure.
+      - paragraph: "Quantity: 2"
+      - text: /\$\d+ Original price \$\d+/
+  - region "Order Summary":
+    - heading "Order Summary" [level=2]
+    - term: Subtotal
+    - definition: /\$\d+\.\d+/
+    - term: Shipping
+    - definition: FREE
+    - separator
+    - paragraph: /Total \$\d+\.\d+/

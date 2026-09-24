@@ -84,9 +84,18 @@ Controllers belong to the API layer, and handlers cannot import persistence
 implementations or shared database helpers. Repository port imports remain allowed.
 A fixture-based dependency cruise verifies both rejected and permitted imports.
 
-
 ## Delivery boundary
 
-Issues #96 and #97 complete application migration and documentation only. The parent
-specification remains open. Digest-based deployment, readiness verification and the
-two recovery branches remain the separate acceptance work in #98.
+Issues #96 and #97 completed application migration and documentation. Issue #98
+implemented digest-based deployment, intended-revision readiness checks and both
+recovery branches. Run `pnpm check:deployment` from the workspace root for their
+deterministic tests. For rollout or recovery work, read the
+[deployment and recovery guide](../../../docs/deployment-recovery.md).
+
+The [successful release run 36001503507](https://github.com/ydunets/e-commerce/actions/runs/36001503507)
+deployed commit `3e1644eda61a804eaee816a208a676e079b5593b`. Its retained
+`deployment-36001503507-1` artifact records predecessor digests, migration execution,
+Single revision mode, startup/readiness probes and verified server/client outcomes.
+This is evidence for that release, not proof of the current live configuration or
+a verified live rollback drill. Both recovery branches have deterministic test
+coverage; a live rollback exercise remains unverified. Parent issue #90 remains open.

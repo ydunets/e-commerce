@@ -8,6 +8,7 @@ export type {
   ApplyCouponBodyDto,
   CartLineDto,
   CartResponseDto,
+  StockChangeDto,
   UpdateCartItemBodyDto,
   ValidateCartResponseDto,
 } from './cart.js';

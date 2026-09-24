@@ -1,0 +1,10 @@
+- region "Order Summary":
+  - heading "Order Summary" [level=2]
+  - term: Subtotal
+  - definition: /\$\d+\.\d+/
+  - term: Shipping
+  - definition: FREE
+  - button "Add coupon code"
+  - separator
+  - paragraph: /Total \$\d+\.\d+/
+  - button "Checkout"

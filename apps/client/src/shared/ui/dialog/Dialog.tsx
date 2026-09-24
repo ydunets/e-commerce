@@ -26,7 +26,7 @@ const styles = stylex.create({
     margin: 'auto',
     width: 'min(92vw, 63rem)',
     maxHeight: 'min(88vh, 800px)',
-    display: 'flex',
+    display: 'none',
     flexDirection: 'column',
     overflow: 'hidden',
     padding: 0,
@@ -37,6 +37,7 @@ const styles = stylex.create({
     boxShadow: shadows.cardLg,
     '::backdrop': { backgroundColor: 'rgba(10, 10, 10, 0.7)' },
   },
+  open: { display: 'flex' },
   sm: { width: 'min(92vw, 22rem)' },
   close: {
     position: 'absolute',
@@ -111,12 +112,20 @@ export const Dialog = ({
   }, [open]);
 
   return (
-    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events -- backdrop dismissal is mouse-only; Esc closes the dialog via the native close event.
+    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events -- backdrop dismissal is mouse-only; Esc requests controlled dismissal through the native cancel event.
     <dialog
       ref={ref}
-      {...stylex.props(styles.dialog, size === 'sm' && styles.sm)}
+      {...stylex.props(
+        styles.dialog,
+        open && styles.open,
+        size === 'sm' && styles.sm,
+      )}
       aria-label={label}
       onClose={handleNativeClose}
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
       onClick={handleClick}
     >
       <button

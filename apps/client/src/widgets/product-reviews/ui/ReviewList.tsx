@@ -36,10 +36,10 @@ const styles = stylex.create({
     flexShrink: 1,
     flexBasis: '0%',
     overflowY: 'auto',
-    paddingTop: { default: '1.5rem', [media.md]: 0 },
+    paddingTop: { default: '1.5rem', [media.lg]: 0 },
     paddingRight: { default: '1.5rem', [media.md]: '2rem' },
     paddingBottom: { default: '1.5rem', [media.md]: '2rem' },
-    paddingLeft: { default: '1.5rem', [media.md]: 0 },
+    paddingLeft: { default: '1.5rem', [media.md]: '2rem', [media.lg]: 0 },
   },
   emptyState: {
     display: 'flex',

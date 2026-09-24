@@ -6,7 +6,6 @@ import { focusRing } from '@/shared/ui/focus-ring';
 import { Tabs, tabButtonId, tabPanelId } from '@/shared/ui/tabs';
 import { colors, shadows } from '@/shared/ui/tokens.stylex';
 import { getSpecificationIcon } from '../lib/icon-map';
-import { SpecificationSheet } from './SpecificationSheet';
 
 const TABS_ID_PREFIX = 'product-specifications';
 
@@ -192,8 +191,6 @@ export const ProductSpecificationsSection = ({
           </div>
         ))}
       </div>
-
-      <SpecificationSheet />
     </section>
   );
 };

@@ -19,8 +19,7 @@
     "typescript/no-floating-promises": ["error", { "ignoreVoid": false }],
     "typescript/no-explicit-any": "error",
     "typescript/no-non-null-assertion": "error",
-    // Warn until the existing assertions are removed; then promote to error.
-    "typescript/no-unsafe-type-assertion": "warn",
+    "typescript/no-unsafe-type-assertion": "error",
     // Helpers inside hooks and fakes read better next to their only caller.
     "unicorn/consistent-function-scoping": "off",
     // Array#toSorted and Array#toReversed need the ES2023 lib, which the client does not target.

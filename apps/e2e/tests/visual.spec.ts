@@ -2,6 +2,9 @@ import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import {
   COOKIE_CHOICE_KEY,
+  FIXED_CLOCK,
+  SEEDED_CART,
+  cartLink,
   PRODUCT,
   ROUTES,
   SEEDED_CART_STATE,
@@ -38,6 +41,7 @@ async function settle(page: Page) {
 test.describe('Rendering Baselines', () => {
   test.beforeEach(async ({ page }) => {
     await acceptCookiesUpFront(page);
+    await page.clock.setFixedTime(FIXED_CLOCK);
   });
 
   test('should render the catalogue grid as recorded', async ({
@@ -94,9 +98,44 @@ test.describe('Rendering Baselines', () => {
       page,
     }) => {
       await gotoHydrated(ROUTES.cart);
+      await expect(cartLink(page)).toHaveCartCount(SEEDED_CART.quantity);
       await settle(page);
+      await expect(page.getByRole('main')).toMatchAriaSnapshot({
+        name: 'cart.aria.yml',
+      });
+      const summary = page.getByRole('region', { name: 'Order Summary' });
+      await expect(summary).toMatchAriaSnapshot({
+        name: 'order-summary.aria.yml',
+      });
+      await expect(summary).toHaveScreenshot('order-summary.png', {
+        mask: maskedImages(page),
+        stylePath: SCREENSHOT_STYLESHEET,
+        ...DIFF_TOLERANCE,
+      });
 
       await expect(page).toHaveScreenshot('cart.png', {
+        fullPage: true,
+        mask: maskedImages(page),
+        stylePath: SCREENSHOT_STYLESHEET,
+        ...DIFF_TOLERANCE,
+      });
+    });
+    test('should render the checkout page as recorded', async ({
+      gotoHydrated,
+      page,
+    }) => {
+      await gotoHydrated(ROUTES.cart);
+      await expect(cartLink(page)).toHaveCartCount(SEEDED_CART.quantity);
+      await page.getByRole('button', { name: 'Checkout', exact: true }).click();
+      await expect(page).toHaveURL(/\/checkout$/);
+      await expect(
+        page.getByRole('heading', { name: 'Checkout', exact: true }),
+      ).toBeVisible();
+      await settle(page);
+      await expect(page.getByRole('main')).toMatchAriaSnapshot({
+        name: 'checkout.aria.yml',
+      });
+      await expect(page).toHaveScreenshot('checkout.png', {
         fullPage: true,
         mask: maskedImages(page),
         stylePath: SCREENSHOT_STYLESHEET,

@@ -10,7 +10,6 @@ import { animations } from '@/shared/ui/motion.stylex';
 import { colors } from '@/shared/ui/tokens.stylex';
 import { useReviews } from '../lib/useReviews';
 import { ReviewList } from './ReviewList';
-import { ReviewPhotoPicker } from './ReviewPhotoPicker';
 import { ReviewSummary } from './ReviewSummary';
 
 export type TProductReviewsDialogProps = {
@@ -40,13 +39,13 @@ const styles = stylex.create({
     flexGrow: 1,
     flexShrink: 1,
     flexBasis: '0%',
-    flexDirection: { default: 'column', [media.md]: 'row' },
-    gap: { default: null, [media.md]: '2rem' },
+    flexDirection: { default: 'column', [media.lg]: 'row' },
+    gap: { default: null, [media.lg]: '2rem' },
     paddingTop: { default: '3.5rem', [media.md]: '72px' },
   },
   summary: {
     flexShrink: 0,
-    width: { default: null, [media.md]: '384px' },
+    width: { default: null, [media.lg]: '384px' },
     paddingInline: { default: '1.5rem', [media.md]: '2rem' },
     paddingBottom: { default: '1.5rem', [media.md]: '2rem' },
   },
@@ -116,7 +115,6 @@ const ReviewsContent = ({ productId }: { productId: string }) => {
           </p>
         )}
         {summaryQuery.status === 'pending' && <SummarySkeleton />}
-        <ReviewPhotoPicker />
       </div>
 
       <ReviewList

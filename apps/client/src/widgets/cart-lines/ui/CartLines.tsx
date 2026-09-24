@@ -1,21 +1,27 @@
 import type { CartLineDto, CartResponseDto } from '@e-commerce/contracts';
 import * as stylex from '@stylexjs/stylex';
 import { useState } from 'react';
-import { useRemoveCartLine, useUpdateCartLine } from '@/entities/cart';
+import {
+  useCartState,
+  useRemoveCartLine,
+  useUpdateCartLine,
+} from '@/entities/cart';
 import { CartLineRow } from './CartLineRow';
 import { RemoveLineDialog } from './RemoveLineDialog';
 
 export type TCartLinesProps = {
   cart: CartResponseDto;
+  readOnly?: boolean;
 };
 
 const styles = stylex.create({
   list: { margin: 0, listStyle: 'none', padding: 0 },
 });
 
-export const CartLines = ({ cart }: TCartLinesProps) => {
+export const CartLines = ({ cart, readOnly = false }: TCartLinesProps) => {
   const { updateQuantity, cancelPending } = useUpdateCartLine();
   const removeLine = useRemoveCartLine();
+  const state = useCartState();
   const [removalCandidate, setRemovalCandidate] = useState<CartLineDto | null>(
     null,
   );
@@ -43,6 +49,10 @@ export const CartLines = ({ cart }: TCartLinesProps) => {
           <CartLineRow
             key={line.sku}
             line={line}
+            readOnly={readOnly}
+            disabled={
+              state.checking || state.stock !== null || removeLine.isPending
+            }
             onQuantityChange={(quantity) =>
               updateQuantity({ cartId: cart.id, sku: line.sku, quantity })
             }

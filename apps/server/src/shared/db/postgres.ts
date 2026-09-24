@@ -38,7 +38,9 @@ export const joinConditions = (
 ) => {
   const db = getDb();
   const join = joiner ?? db`AND`;
-  const filtered = xs.filter(Boolean) as postgres.PendingQuery<postgres.Row[]>[];
+  const filtered = xs.filter(
+    (fragment) => fragment !== false && fragment != null && fragment !== '',
+  );
 
   if (filtered.length === 0) {
     return db``;

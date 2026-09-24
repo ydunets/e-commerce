@@ -64,6 +64,7 @@ export const ROUTES = {
   about: '/about',
   products: '/products',
   cart: '/cart',
+  checkout: '/checkout',
 } as const;
 
 /** Versioned API routes; `/health` and `/api-docs/json` sit outside this prefix. */

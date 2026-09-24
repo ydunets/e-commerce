@@ -1,6 +1,12 @@
 import * as stylex from '@stylexjs/stylex';
 import { useState } from 'react';
-import { useAddToCart } from '@/entities/cart';
+import {
+  isStockConflict,
+  stockConflictDetails,
+  useAddToCart,
+  useCart,
+  useCartState,
+} from '@/entities/cart';
 import type { Product } from '@/entities/product';
 import { media } from '@/shared/lib/breakpoints.stylex';
 import { Accordion } from '@/shared/ui/accordion';
@@ -17,6 +23,7 @@ import { SizeSelector } from '@/shared/ui/size-selector';
 import { StarRating } from '@/shared/ui/star-rating';
 import { colors } from '@/shared/ui/tokens.stylex';
 import { ProductReviewsDialog } from '@/widgets/product-reviews';
+import { StockDialog } from '@/widgets/stock-dialog';
 import { colorPreviewImages } from '../lib/product-display';
 import { useProductSelection } from '../lib/useProductSelection';
 
@@ -91,9 +98,8 @@ export const ProductDetails = ({ product }: TProductDetailsProps) => {
     colorOptions,
     sizeOptions,
     galleryImages,
-    isOutOfStock,
-    maxStock,
-    displayedQuantity,
+    maxStock: selectedStock,
+    displayedQuantity: selectedQuantity,
     selectColor,
     selectSize,
     setQuantity,
@@ -102,6 +108,19 @@ export const ProductDetails = ({ product }: TProductDetailsProps) => {
   const [reviewsOpen, setReviewsOpen] = useState(false);
 
   const addToCart = useAddToCart();
+  const cartState = useCartState();
+  const { data: cart } = useCart();
+  const conflict = stockConflictDetails(addToCart.error);
+  const availableStock =
+    conflict?.sku === currentVariant?.sku ? conflict?.available : undefined;
+  const cartLine = cart?.lines.find((line) => line.sku === currentVariant?.sku);
+  const inCart = cartLine?.quantity ?? 0;
+  const maxStock = Math.max(
+    0,
+    (availableStock ?? cartLine?.stock ?? selectedStock) - inCart,
+  );
+  const isOutOfStock = maxStock === 0;
+  const displayedQuantity = Math.min(selectedQuantity, maxStock);
   const handleAddToCart = () => {
     if (!currentVariant) return;
     addToCart.mutate({ sku: currentVariant.sku, quantity: displayedQuantity });
@@ -182,13 +201,18 @@ export const ProductDetails = ({ product }: TProductDetailsProps) => {
             <Button
               size="xl"
               style={styles.addToCart}
-              disabled={isOutOfStock || addToCart.isPending}
+              disabled={
+                isOutOfStock ||
+                addToCart.isPending ||
+                cartState.checking ||
+                cartState.stock !== null
+              }
               onClick={handleAddToCart}
             >
               Add to Cart
             </Button>
 
-            {addToCart.isError && (
+            {addToCart.isError && !isStockConflict(addToCart.error) && (
               <p {...stylex.props(styles.cartError)} role="alert">
                 Couldn't add to cart. Please try again.
               </p>
@@ -207,6 +231,7 @@ export const ProductDetails = ({ product }: TProductDetailsProps) => {
         </div>
       </div>
 
+      <StockDialog product={product} />
       <ProductReviewsDialog
         open={reviewsOpen}
         onClose={() => setReviewsOpen(false)}

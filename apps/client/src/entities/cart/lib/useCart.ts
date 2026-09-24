@@ -9,10 +9,22 @@ import { getCart } from '../api/getCart';
 import { removeCartItem } from '../api/removeCartItem';
 import { removeCoupon } from '../api/removeCoupon';
 import { updateCartItem } from '../api/updateCartItem';
+import { validateCart } from '../api/validateCart';
 import { withLineQuantity } from './cartCache';
+import {
+  CART_QUERY_KEY,
+  CART_MUTATION_SCOPE,
+  cartState,
+  cartWrites,
+  flushCartWrites,
+  publishCart,
+  recordStockConflict,
+  setCartState,
+  useCartState,
+} from './cartState';
 import { clearCartId, readCartId, storeCartId } from './cartStorage';
 
-export const CART_QUERY_KEY = ['cart'] as const;
+export { CART_QUERY_KEY } from './cartState';
 
 const UPDATE_DEBOUNCE_MS = 300;
 
@@ -31,7 +43,7 @@ async function fetchStoredCart(): Promise<CartResponseDto | null> {
     return await getCart(cartId);
   } catch (error) {
     if (isApiError(error) && error.statusCode === NOT_FOUND) {
-      clearCartId();
+      if (readCartId() === cartId) clearCartId();
       return null;
     }
     throw error;
@@ -39,7 +51,13 @@ async function fetchStoredCart(): Promise<CartResponseDto | null> {
 }
 
 export function useCart() {
-  return useQuery({ queryKey: CART_QUERY_KEY, queryFn: fetchStoredCart });
+  const state = useCartState();
+  return useQuery({
+    queryKey: CART_QUERY_KEY,
+    queryFn: fetchStoredCart,
+    enabled: !state.stock && !state.checking,
+    staleTime: Infinity,
+  });
 }
 
 export type AddToCartInput = {
@@ -71,10 +89,22 @@ export function useAddToCart() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    scope: CART_MUTATION_SCOPE,
     mutationFn: addWithSelfHeal,
+    onMutate: async () => {
+      setCartState(queryClient, { checkoutCartId: null });
+      await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+    },
     onSuccess: (cart) => {
       storeCartId(cart.id);
-      queryClient.setQueryData(CART_QUERY_KEY, cart);
+      publishCart(queryClient, cart);
+    },
+    onError: (error) => {
+      if (!recordStockConflict(queryClient, error)) {
+        setCartState(queryClient, {
+          error: "Couldn't add to cart. Please try again.",
+        });
+      }
     },
   });
 }
@@ -88,7 +118,6 @@ type UpdateCartLineInput = {
 // One scope for every cart mutation: TanStack Query queues mutations sharing
 // a scope id, so a settled response is always the newest server state and a
 // remove can never race the line's own in-flight quantity patch.
-const CART_MUTATION_SCOPE = { id: 'cart' } as const;
 
 /**
  * Debounced, optimistic quantity mutation: each call patches the cached cart
@@ -100,14 +129,33 @@ const CART_MUTATION_SCOPE = { id: 'cart' } as const;
 export function useUpdateCartLine() {
   const queryClient = useQueryClient();
 
+  const finishQuantity = (input: UpdateCartLineInput) => {
+    const quantities = cartWrites(queryClient).quantities;
+    if (quantities.get(input.sku) === input) quantities.delete(input.sku);
+  };
+
   const mutation = useMutation({
     scope: CART_MUTATION_SCOPE,
     mutationFn: ({ cartId, sku, quantity }: UpdateCartLineInput) =>
       updateCartItem(cartId, sku, { quantity }),
-    onSuccess: (cart) => {
-      queryClient.setQueryData(CART_QUERY_KEY, cart);
+    onSuccess: (cart, input) => {
+      finishQuantity(input);
+      publishCart(queryClient, cart);
     },
-    onError: () => queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY }),
+    onError: async (error, input) => {
+      finishQuantity(input);
+      if (!recordStockConflict(queryClient, error)) {
+        setCartState(queryClient, {
+          error: "Couldn't update your cart. Please try again.",
+        });
+        // A failed optimistic write must not survive into checkout.
+        try {
+          publishCart(queryClient, await getCart(input.cartId));
+        } catch {
+          /* Keep the visible failure until retry. */
+        }
+      }
+    },
   });
 
   const patchersRef = useRef(
@@ -117,12 +165,15 @@ export function useUpdateCartLine() {
 
   useEffect(() => {
     const patchers = patchersRef.current;
-    return () => {
-      for (const patcher of patchers.values()) {
-        patcher.flush();
-      }
+    const flush = () => {
+      for (const patcher of patchers.values()) patcher.flush();
     };
-  }, []);
+    cartWrites(queryClient).flushers.add(flush);
+    return () => {
+      flush();
+      cartWrites(queryClient).flushers.delete(flush);
+    };
+  }, [queryClient]);
 
   const linePatcher = (sku: string): Debounced<[UpdateCartLineInput]> => {
     const existing = patchersRef.current.get(sku);
@@ -137,8 +188,13 @@ export function useUpdateCartLine() {
     return patcher;
   };
 
-  const updateQuantity = async (input: UpdateCartLineInput) => {
-    await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+  const updateQuantity = (input: UpdateCartLineInput) => {
+    const state = cartState(queryClient);
+    if (state.checking || state.stock) return;
+    setCartState(queryClient, { checkoutCartId: null, error: null });
+    // Schedule synchronously: checkout in the same event turn must see this write.
+    queryClient.cancelQueries({ queryKey: CART_QUERY_KEY }).catch(() => {});
+    cartWrites(queryClient).quantities.set(input.sku, input);
     queryClient.setQueryData<CartResponseDto | null>(CART_QUERY_KEY, (cart) =>
       cart ? withLineQuantity(cart, input.sku, input.quantity) : cart,
     );
@@ -147,6 +203,7 @@ export function useUpdateCartLine() {
 
   const cancelPending = (sku: string) => {
     patchersRef.current.get(sku)?.cancel();
+    cartWrites(queryClient).quantities.delete(sku);
   };
 
   return { updateQuantity, cancelPending };
@@ -162,10 +219,18 @@ export function useRemoveCartLine() {
 
   return useMutation({
     scope: CART_MUTATION_SCOPE,
+    onMutate: async () => {
+      setCartState(queryClient, { checkoutCartId: null });
+      await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+    },
+    onError: () =>
+      setCartState(queryClient, {
+        error: "Couldn't remove the item. Please try again.",
+      }),
     mutationFn: ({ cartId, sku }: RemoveCartLineInput) =>
       removeCartItem(cartId, sku),
     onSuccess: (cart) => {
-      queryClient.setQueryData(CART_QUERY_KEY, cart);
+      publishCart(queryClient, cart);
     },
   });
 }
@@ -182,10 +247,18 @@ export function useApplyCoupon() {
 
   return useMutation({
     scope: CART_MUTATION_SCOPE,
+    onMutate: async () => {
+      setCartState(queryClient, { checkoutCartId: null });
+      await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+    },
+    onError: () =>
+      setCartState(queryClient, {
+        error: "Couldn't update your coupons. Please try again.",
+      }),
     mutationFn: ({ cartId, code }: CouponInput) =>
       applyCoupon(cartId, { code }),
     onSuccess: (cart) => {
-      queryClient.setQueryData(CART_QUERY_KEY, cart);
+      publishCart(queryClient, cart);
     },
   });
 }
@@ -195,9 +268,97 @@ export function useRemoveCoupon() {
 
   return useMutation({
     scope: CART_MUTATION_SCOPE,
+    onMutate: async () => {
+      setCartState(queryClient, { checkoutCartId: null });
+      await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+    },
+    onError: () =>
+      setCartState(queryClient, {
+        error: "Couldn't update your coupons. Please try again.",
+      }),
     mutationFn: ({ cartId, code }: CouponInput) => removeCoupon(cartId, code),
     onSuccess: (cart) => {
-      queryClient.setQueryData(CART_QUERY_KEY, cart);
+      publishCart(queryClient, cart);
     },
   });
+}
+
+export function useCheckoutCart() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    scope: CART_MUTATION_SCOPE,
+    mutationFn: async (cartId: string) => {
+      // Earlier scoped writes may have failed while this validation was queued.
+      const state = cartState(queryClient);
+      if (state.stock || state.error) return false;
+      const result = await validateCart(cartId);
+      if (result.changes.length > 0) {
+        setCartState(queryClient, {
+          stock: { changes: result.changes, correctedCart: result.cart },
+        });
+        return false;
+      }
+      queryClient.setQueryData(CART_QUERY_KEY, result.cart);
+      const canCheckout = result.cart.lines.length > 0;
+      setCartState(queryClient, {
+        checkoutCartId: canCheckout ? result.cart.id : null,
+      });
+      return canCheckout;
+    },
+    onError: () =>
+      setCartState(queryClient, {
+        error: "Couldn't validate your cart. Please try again.",
+      }),
+    onSettled: () => setCartState(queryClient, { checking: false }),
+  });
+
+  const checkout = async (cartId: string) => {
+    const state = cartState(queryClient);
+    if (state.checking || state.stock) return false;
+    setCartState(queryClient, {
+      checking: true,
+      error: null,
+      checkoutCartId: null,
+    });
+    await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+    flushCartWrites(queryClient);
+    return mutation.mutateAsync(cartId);
+  };
+
+  return { checkout };
+}
+
+export function useAcknowledgeStock() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    scope: CART_MUTATION_SCOPE,
+    mutationFn: async () => {
+      const notice = cartState(queryClient).stock;
+      if (!notice) return;
+      await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
+      const cartId = readCartId();
+      // Write conflicts reject the write. Reconcile the persisted cart instead
+      // of resubmitting a guessed quantity, which can race another stock change.
+      const corrected =
+        notice.correctedCart ??
+        (cartId ? (await validateCart(cartId)).cart : null);
+      queryClient.setQueryData(CART_QUERY_KEY, corrected);
+      setCartState(queryClient, {
+        stock: null,
+        error: null,
+        checkoutCartId: null,
+      });
+    },
+    onError: () =>
+      setCartState(queryClient, {
+        error: "Couldn't refresh stock. Please try again.",
+      }),
+  });
+
+  const acknowledge = () => {
+    if (mutation.isPending) return;
+    flushCartWrites(queryClient);
+    mutation.mutate();
+  };
+  return { acknowledge, isPending: mutation.isPending };
 }

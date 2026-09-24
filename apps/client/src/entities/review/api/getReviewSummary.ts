@@ -20,9 +20,10 @@ export async function getReviewSummary(
     baseUrl,
   );
 
-  const distribution = Object.fromEntries(
-    RATING_VALUES.map((rating) => [rating, data.distribution[rating] ?? 0]),
-  ) as RatingDistribution;
+  const distribution: RatingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  for (const rating of RATING_VALUES) {
+    distribution[rating] = data.distribution[rating] ?? 0;
+  }
 
   return { total: data.total, average: data.average, distribution };
 }

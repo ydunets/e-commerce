@@ -9,7 +9,7 @@ import {
 
 const HEALTH_ROUTE = '/health';
 const OPENAPI_ROUTE = '/api-docs/json';
-const OPENAPI_VERSION = '3.1.0';
+const OPENAPI_VERSION = '3.0.0';
 
 // A cold container provisions its schema while starting, so readiness needs
 // room without letting a genuinely dead API stall the whole run.

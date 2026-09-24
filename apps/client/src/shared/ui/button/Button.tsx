@@ -1,6 +1,11 @@
+import * as stylex from '@stylexjs/stylex';
+import type { StyleXStyles } from '@stylexjs/stylex';
 import { Link, type LinkProps } from '@tanstack/react-router';
 import type { PropsWithChildren } from 'react';
-import { cx } from '@/shared/lib/cx';
+import { media } from '@/shared/lib/breakpoints.stylex';
+import { focusRing } from '@/shared/ui/focus-ring';
+import { transitions } from '@/shared/ui/motion.stylex';
+import { colors, shadows } from '@/shared/ui/tokens.stylex';
 
 export type TButtonVariant = 'primary' | 'secondary' | 'tertiary';
 export type TButtonSize = 'md' | 'lg' | 'xl';
@@ -11,82 +16,104 @@ export type TButtonProps = PropsWithChildren<{
   size?: TButtonSize;
   type?: TButtonType;
   disabled?: boolean;
-  className?: string;
+  style?: StyleXStyles;
   onClick?: () => void;
   /** When set, renders a router Link styled as a button. */
   href?: LinkProps['to'];
   params?: LinkProps['params'];
 }>;
 
-const commonClasses = cx(
-  'inline-flex cursor-pointer items-center justify-center gap-2',
-  // Figma button radius is 4px (rounded-sm in Tailwind v4).
-  'rounded-sm font-medium transition-colors',
-  'focus-visible:focus-ring',
-);
-
-// Figma `shadow` token: a subtle two-layer drop shadow on filled/bordered buttons.
-const shadow = 'shadow-card';
-
-const variantClasses: Record<TButtonVariant, string> = {
-  primary: cx(
-    'bg-brand text-white',
-    shadow,
-    'hover:bg-brand-dark',
-    'disabled:cursor-not-allowed disabled:bg-surface disabled:text-disabled disabled:shadow-none',
-  ),
-  secondary: cx(
-    'border border-line bg-white text-ink',
-    shadow,
-    'hover:bg-surface',
-    'disabled:cursor-not-allowed disabled:border-line disabled:text-disabled disabled:shadow-none',
-  ),
-  tertiary: cx(
-    'text-brand',
-    'hover:bg-surface',
-    'disabled:cursor-not-allowed disabled:text-disabled',
-  ),
-};
-
-const sizeClasses: Record<TButtonSize, string> = {
-  md: 'px-4 py-2.5 text-sm',
-  lg: 'px-6 py-3 text-base',
-  xl: 'px-6 py-4 text-lg',
-};
+// Figma button radius is 4px; filled and bordered buttons carry the Figma
+// `shadow` token, dropped again while disabled.
+const styles = stylex.create({
+  root: {
+    display: 'inline-flex',
+    cursor: { default: 'pointer', ':disabled': 'not-allowed' },
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.5rem',
+    borderRadius: '0.25rem',
+    fontWeight: 500,
+    transitionProperty: transitions.colors,
+    transitionDuration: transitions.duration,
+    transitionTimingFunction: transitions.easing,
+  },
+  primary: {
+    backgroundColor: {
+      default: colors.brand,
+      ':hover': { default: null, [media.hover]: colors.brandDark },
+      ':disabled': colors.surface,
+    },
+    color: { default: '#fff', ':disabled': colors.disabled },
+    boxShadow: { default: shadows.card, ':disabled': 'none' },
+  },
+  secondary: {
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: colors.line,
+    backgroundColor: {
+      default: '#fff',
+      ':hover': { default: null, [media.hover]: colors.surface },
+    },
+    color: { default: colors.ink, ':disabled': colors.disabled },
+    boxShadow: { default: shadows.card, ':disabled': 'none' },
+  },
+  tertiary: {
+    backgroundColor: {
+      default: 'transparent',
+      ':hover': { default: null, [media.hover]: colors.surface },
+    },
+    color: { default: colors.brand, ':disabled': colors.disabled },
+  },
+  md: {
+    paddingInline: '1rem',
+    paddingBlock: '0.625rem',
+    fontSize: '0.875rem',
+    lineHeight: '1.25rem',
+  },
+  lg: {
+    paddingInline: '1.5rem',
+    paddingBlock: '0.75rem',
+    fontSize: '1rem',
+    lineHeight: '1.5rem',
+  },
+  xl: {
+    paddingInline: '1.5rem',
+    paddingBlock: '1rem',
+    fontSize: '1.125rem',
+    lineHeight: '1.75rem',
+  },
+});
 
 export const Button = ({
   variant = 'primary',
   size = 'md',
   type = 'button',
   disabled = false,
-  className,
+  style,
   onClick,
   href,
   params,
   children,
 }: TButtonProps) => {
-  const classes = cx(
-    commonClasses,
-    variantClasses[variant],
-    sizeClasses[size],
-    className,
+  const props = stylex.props(
+    styles.root,
+    focusRing.ring,
+    styles[variant],
+    styles[size],
+    style,
   );
 
   if (href) {
     return (
-      <Link to={href} params={params} className={classes} onClick={onClick}>
+      <Link to={href} params={params} {...props} onClick={onClick}>
         {children}
       </Link>
     );
   }
 
   return (
-    <button
-      type={type}
-      className={classes}
-      disabled={disabled}
-      onClick={onClick}
-    >
+    <button type={type} {...props} disabled={disabled} onClick={onClick}>
       {children}
     </button>
   );

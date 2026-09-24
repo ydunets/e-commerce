@@ -1,3 +1,4 @@
+import * as stylex from '@stylexjs/stylex';
 import { Await, createFileRoute, notFound } from '@tanstack/react-router';
 import { Suspense } from 'react';
 import { findProduct, getProducts } from '@/entities/product';
@@ -19,7 +20,13 @@ const COLLECTION_PRODUCT_COUNT = 4;
  * sections flush inside it, so the vertical rhythm comes from each section's
  * own padding rather than from gaps at page level.
  */
-const CONTENT_COLUMN = 'mx-auto max-w-[1440px] px-4';
+const styles = stylex.create({
+  contentColumn: {
+    marginInline: 'auto',
+    maxWidth: '1440px',
+    paddingInline: '1rem',
+  },
+});
 
 export const Route = createFileRoute('/products/$productId')({
   loader: async ({ params }) => {
@@ -55,7 +62,7 @@ function ProductPage() {
   const { product, specifications, collectionProducts } = Route.useLoaderData();
 
   return (
-    <main className={CONTENT_COLUMN}>
+    <main {...stylex.props(styles.contentColumn)}>
       <ProductDetailsSection product={product} />
       <Suspense fallback={null}>
         <Await promise={specifications}>

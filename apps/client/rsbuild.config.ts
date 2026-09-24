@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { defineConfig } from '@rsbuild/core';
 import { pluginReact } from '@rsbuild/plugin-react';
-import { pluginTailwindcss } from '@rsbuild/plugin-tailwindcss';
+import { webpack as stylexPlugin } from '@stylexjs/unplugin';
 import { tanstackRouter } from '@tanstack/router-plugin/rspack';
 
 // Docs: https://rsbuild.rs/config/
@@ -10,7 +10,6 @@ export default defineConfig({
     pluginReact({
       reactCompiler: true,
     }),
-    pluginTailwindcss(),
   ],
   resolve: {
     alias: {
@@ -24,6 +23,15 @@ export default defineConfig({
   tools: {
     rspack: {
       plugins: [
+        // The unplugin's Rspack adapter never appends the generated CSS (its
+        // injection hook only registers on the webpack path), so the webpack
+        // adapter is used; Rspack implements that plugin API. Without
+        // treeshakeCompensation the inlined tokens import is elided and the
+        // :root variables are never emitted.
+        stylexPlugin({
+          treeshakeCompensation: true,
+          aliases: { '@/*': [path.join(import.meta.dirname, 'src/*')] },
+        }),
         tanstackRouter({
           target: 'react',
           autoCodeSplitting: true,

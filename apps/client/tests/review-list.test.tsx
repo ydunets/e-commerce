@@ -57,9 +57,7 @@ test('loading renders the skeleton and no list', () => {
   );
 
   expect(screen.queryByRole('list')).not.toBeInTheDocument();
-  expect(container.querySelectorAll('.animate-pulse').length).toBeGreaterThan(
-    0,
-  );
+  expect(container.querySelector('[aria-busy="true"]')).toBeInTheDocument();
 });
 
 test('error renders the failure message', () => {

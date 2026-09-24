@@ -1,20 +1,33 @@
 import { isType } from '@e-commerce/contracts';
+import * as stylex from '@stylexjs/stylex';
 import { useActionState, useState } from 'react';
 import { subscribeToNewsletter } from '@/shared/api';
+import { media } from '@/shared/lib/breakpoints.stylex';
 import { TextInput } from '@/shared/ui/text-input';
 import { ToastProvider, useToast } from '../lib/toast-context';
 import { validateEmail } from '../lib/validate-email';
 import { SubscribeButton } from './SubscribeButton';
 import { ToastViewport } from './ToastViewport';
-import styles from './NewsletterForm.module.css';
 
 const FAILURE_MESSAGE =
   'Failed to subscribe. Please ensure your email is correct or try again later.';
 const EMPTY = '';
 const NO_ERROR: string | undefined = undefined;
 
+const styles = stylex.create({
+  root: { width: '100%' },
+  form: {
+    display: 'flex',
+    width: '100%',
+    flexDirection: { default: 'column', [media.md]: 'row' },
+    gap: '1rem',
+    alignItems: { default: null, [media.md]: 'flex-start' },
+  },
+  field: { flexGrow: 1, flexShrink: 1, flexBasis: '0%' },
+});
+
 export const NewsletterForm = () => (
-  <div className={styles.root}>
+  <div {...stylex.props(styles.root)}>
     <ToastProvider>
       <NewsletterFormFields />
       <ToastViewport />
@@ -53,9 +66,9 @@ const NewsletterFormFields = () => {
   );
 
   return (
-    <form className={styles.form} action={formAction} noValidate>
+    <form {...stylex.props(styles.form)} action={formAction} noValidate>
       <TextInput
-        className={styles.field}
+        style={styles.field}
         label="Email address"
         labelHidden
         type="email"

@@ -1,3 +1,4 @@
+import * as stylex from '@stylexjs/stylex';
 import { createFileRoute } from '@tanstack/react-router';
 import { getProducts } from '@/entities/product';
 import { API_BASE } from '@/shared/api';
@@ -13,11 +14,15 @@ export const Route = createFileRoute('/products/')({
   component: ProductsPage,
 });
 
+const styles = stylex.create({
+  main: { marginInline: 'auto', maxWidth: '1280px' },
+});
+
 function ProductsPage() {
   const { products } = Route.useLoaderData();
 
   return (
-    <main className="mx-auto max-w-[1280px]">
+    <main {...stylex.props(styles.main)}>
       <ProductGridSection title="Products" products={products} />
     </main>
   );

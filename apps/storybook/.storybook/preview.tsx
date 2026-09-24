@@ -2,7 +2,7 @@ import type { Preview } from 'storybook-react-rsbuild'
 
 import '../../client/src/app.css'
 
-// Named after this app's Tailwind breakpoints (base/md-768/lg-1024), not raw
+// Named after this app's breakpoints (base/md-768/lg-1024), not raw
 // device presets, so a story can genuinely land in a specific CSS tier.
 const preview: Preview = {
   parameters: {

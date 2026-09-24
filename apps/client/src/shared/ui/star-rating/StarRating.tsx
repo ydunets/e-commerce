@@ -1,5 +1,8 @@
+import * as stylex from '@stylexjs/stylex';
+import { media } from '@/shared/lib/breakpoints.stylex';
+import { focusRing } from '@/shared/ui/focus-ring';
 import { Stars } from '@/shared/ui/stars';
-import styles from './StarRating.module.css';
+import { colors } from '@/shared/ui/tokens.stylex';
 
 export type TStarRatingProps = {
   rating: number;
@@ -10,6 +13,40 @@ export type TStarRatingProps = {
   /** When set, "See all reviews" becomes a button firing this instead of a link. */
   onReviewsClick?: () => void;
 };
+
+const styles = stylex.create({
+  root: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    fontSize: '1rem',
+    lineHeight: 1,
+  },
+  value: {
+    fontSize: '1.25rem',
+    lineHeight: '1.75rem',
+    fontWeight: 400,
+    color: colors.ink,
+  },
+  link: {
+    fontSize: '0.875rem',
+    lineHeight: '1.25rem',
+    fontWeight: 500,
+    color: colors.brand,
+    textDecorationLine: {
+      default: 'none',
+      ':hover': { default: null, [media.hover]: 'underline' },
+    },
+    borderRadius: { default: null, ':focus-visible': '0.25rem' },
+  },
+  linkButton: {
+    cursor: 'pointer',
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+    padding: 0,
+  },
+  empty: { fontSize: '0.875rem', lineHeight: '1.25rem', color: colors.muted },
+});
 
 export const StarRating = ({
   rating,
@@ -25,19 +62,19 @@ export const StarRating = ({
     <button
       type="button"
       onClick={onReviewsClick}
-      className={styles.linkButton}
+      {...stylex.props(styles.link, styles.linkButton, focusRing.ring)}
     >
       See all {reviewCount} reviews
     </button>
   ) : (
-    <a href={reviewsHref} className={styles.link}>
+    <a href={reviewsHref} {...stylex.props(styles.link, focusRing.ring)}>
       See all {reviewCount} reviews
     </a>
   );
 
   return (
-    <div className={styles.root}>
-      <span className={styles.value}>
+    <div {...stylex.props(styles.root)}>
+      <span {...stylex.props(styles.value)}>
         {hasReviews ? rating.toFixed(1) : '0'}
       </span>
 
@@ -50,9 +87,12 @@ export const StarRating = ({
       {hasReviews ? (
         seeAllReviews
       ) : (
-        <span className={styles.empty}>
+        <span {...stylex.props(styles.empty)}>
           No reviews yet.{' '}
-          <a href={writeReviewHref} className={styles.link}>
+          <a
+            href={writeReviewHref}
+            {...stylex.props(styles.link, focusRing.ring)}
+          >
             Be the first.
           </a>
         </span>

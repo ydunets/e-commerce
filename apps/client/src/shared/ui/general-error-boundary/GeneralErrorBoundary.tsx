@@ -1,3 +1,5 @@
+import * as stylex from '@stylexjs/stylex';
+import type { StyleXStyles } from '@stylexjs/stylex';
 import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import {
   type ErrorComponentProps,
@@ -13,6 +15,7 @@ import {
 } from '@/shared/lib/useServerHealth';
 import { Button } from '@/shared/ui/button';
 import { ERROR_SCREEN_LAYOUT, ErrorScreen } from '@/shared/ui/error-screen';
+import { colors } from '@/shared/ui/tokens.stylex';
 
 export type TStatusHandlerContext = {
   error: ApiError;
@@ -31,11 +34,24 @@ export type TUnexpectedErrorHandler = (
 ) => ReactNode;
 
 export type TGeneralErrorBoundaryProps = ErrorComponentProps & {
-  className?: string;
+  style?: StyleXStyles;
   statusHandlers?: Record<number, TStatusHandler>;
   defaultStatusHandler?: TStatusHandler;
   unexpectedErrorHandler?: TUnexpectedErrorHandler;
 };
+
+const styles = stylex.create({
+  subErrorList: {
+    marginTop: '0.5rem',
+    listStylePosition: 'inside',
+    listStyleType: 'disc',
+    textAlign: 'left',
+    fontSize: '0.875rem',
+    lineHeight: '1.25rem',
+    color: colors.danger,
+  },
+  subErrorPath: { fontWeight: 500 },
+});
 
 const reloadPage = () => {
   if (typeof window !== 'undefined') {
@@ -45,10 +61,12 @@ const reloadPage = () => {
 
 const SubErrorList = ({ error }: { error: ApiError }) =>
   error.subErrors?.length ? (
-    <ul className="mt-2 list-inside list-disc text-left text-sm text-danger">
+    <ul {...stylex.props(styles.subErrorList)}>
       {error.subErrors.map((subError) => (
         <li key={`${subError.path}-${subError.message}`}>
-          <span className="font-medium">{subError.path || 'request'}</span>{' '}
+          <span {...stylex.props(styles.subErrorPath)}>
+            {subError.path || 'request'}
+          </span>{' '}
           {subError.message}
         </li>
       ))}
@@ -164,7 +182,7 @@ const unexpectedErrorScreen: TUnexpectedErrorHandler = ({ error, retry }) => (
 export function GeneralErrorBoundary({
   error,
   reset,
-  className = ERROR_SCREEN_LAYOUT,
+  style = ERROR_SCREEN_LAYOUT,
   statusHandlers: givenStatusHandlers,
   defaultStatusHandler = fallbackStatusScreen,
   unexpectedErrorHandler = unexpectedErrorScreen,
@@ -202,5 +220,5 @@ export function GeneralErrorBoundary({
     return handler({ error, params, retry });
   };
 
-  return <div className={className}>{renderError()}</div>;
+  return <div {...stylex.props(style)}>{renderError()}</div>;
 }

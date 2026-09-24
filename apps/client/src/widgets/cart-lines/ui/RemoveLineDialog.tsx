@@ -1,7 +1,8 @@
 import type { CartLineDto } from '@e-commerce/contracts';
+import * as stylex from '@stylexjs/stylex';
 import { Button } from '@/shared/ui/button';
 import { Dialog } from '@/shared/ui/dialog';
-import styles from './RemoveLineDialog.module.css';
+import { colors } from '@/shared/ui/tokens.stylex';
 
 export type TRemoveLineDialogProps = {
   line: CartLineDto | null;
@@ -10,6 +11,31 @@ export type TRemoveLineDialogProps = {
   onCancel: () => void;
   onConfirm: () => void;
 };
+
+const styles = stylex.create({
+  root: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+    padding: '1.5rem',
+  },
+  title: {
+    paddingRight: '2rem',
+    fontSize: '1.125rem',
+    lineHeight: '1.75rem',
+    fontWeight: 600,
+    color: colors.ink,
+  },
+  body: { fontSize: '0.875rem', lineHeight: '1.25rem', color: colors.muted },
+  actions: { marginTop: '1rem', display: 'flex', gap: '0.75rem' },
+  action: { flexGrow: 1, flexShrink: 1, flexBasis: '0%' },
+  error: {
+    marginTop: '0.5rem',
+    fontSize: '0.875rem',
+    lineHeight: '1.25rem',
+    color: colors.danger,
+  },
+});
 
 export const RemoveLineDialog = ({
   line,
@@ -24,29 +50,21 @@ export const RemoveLineDialog = ({
     label="Confirm item removal"
     size="sm"
   >
-    <div className={styles.root}>
-      <h2 className={styles.title}>Confirm Item Removal</h2>
-      <p className={styles.body}>
+    <div {...stylex.props(styles.root)}>
+      <h2 {...stylex.props(styles.title)}>Confirm Item Removal</h2>
+      <p {...stylex.props(styles.body)}>
         Are you sure you want to remove "{line?.name}" from your shopping cart?
       </p>
-      <div className={styles.actions}>
-        <Button
-          variant="secondary"
-          className={styles.action}
-          onClick={onCancel}
-        >
+      <div {...stylex.props(styles.actions)}>
+        <Button variant="secondary" style={styles.action} onClick={onCancel}>
           Cancel
         </Button>
-        <Button
-          className={styles.action}
-          disabled={removing}
-          onClick={onConfirm}
-        >
+        <Button style={styles.action} disabled={removing} onClick={onConfirm}>
           Yes
         </Button>
       </div>
       {removeFailed && (
-        <p role="alert" className={styles.error}>
+        <p role="alert" {...stylex.props(styles.error)}>
           Couldn't remove the item. Please try again.
         </p>
       )}

@@ -61,7 +61,7 @@ records how they map to Figma and what changed.
 
 ## Follow-ups (not yet done)
 
-1. **Neutral scale migration.** The raw `--color-gray-*` scale is still Tailwind's cool gray;
+1. **Neutral scale migration.** The raw gray scale in `tokens.stylex.ts` is still Tailwind's cool gray;
    Figma uses a true-gray `neutral-*` scale. Migrating shifts several components (line-through
    price, some disabled/border usages) subtly cool→neutral. Deferred as a separate, reviewable
    change.

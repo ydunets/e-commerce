@@ -1,6 +1,9 @@
+import * as stylex from '@stylexjs/stylex';
 import type { ReviewSummary as ReviewSummaryData } from '@/entities/review';
+import { media } from '@/shared/lib/breakpoints.stylex';
 import { Button } from '@/shared/ui/button';
 import { Stars } from '@/shared/ui/stars';
+import { colors } from '@/shared/ui/tokens.stylex';
 import { ClearFilterButton } from './ClearFilterButton';
 import { RatingBands } from './RatingBands';
 
@@ -11,6 +14,50 @@ export type TReviewSummaryProps = {
   onClearFilter: () => void;
 };
 
+const styles = stylex.create({
+  root: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '1.5rem',
+  },
+  header: {
+    display: 'flex',
+    width: '100%',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+  title: {
+    fontSize: { default: '1.125rem', [media.lg]: '1.25rem' },
+    lineHeight: '1.75rem',
+    fontWeight: 600,
+    color: colors.ink,
+  },
+  rating: { display: 'flex', alignItems: 'center', gap: '0.5rem' },
+  average: {
+    fontSize: { default: '1rem', [media.lg]: '1.125rem' },
+    lineHeight: { default: '1.5rem', [media.lg]: '1.75rem' },
+    fontWeight: 600,
+    color: colors.ink,
+  },
+  count: { fontSize: '0.875rem', lineHeight: '1.25rem', color: colors.muted },
+  bands: { width: '100%' },
+  actions: {
+    display: 'flex',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '1.5rem',
+  },
+  action: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '0%',
+    whiteSpace: 'nowrap',
+  },
+  clearFilter: { paddingInline: '1.25rem', paddingBlock: '0.75rem' },
+});
+
 export const ReviewSummary = ({
   summary,
   activeRating,
@@ -20,17 +67,15 @@ export const ReviewSummary = ({
   const hasReviews = summary.total > 0;
 
   return (
-    <div className="flex flex-col items-center gap-6">
-      <div className="flex w-full flex-col gap-2">
-        <h2 className="text-lg font-semibold text-ink lg:text-xl">
-          Overall Rating
-        </h2>
-        <div className="flex items-center gap-2">
-          <span className="text-base font-semibold text-ink lg:text-lg">
+    <div {...stylex.props(styles.root)}>
+      <div {...stylex.props(styles.header)}>
+        <h2 {...stylex.props(styles.title)}>Overall Rating</h2>
+        <div {...stylex.props(styles.rating)}>
+          <span {...stylex.props(styles.average)}>
             {hasReviews ? summary.average.toFixed(1) : '0'}
           </span>
           <Stars rating={hasReviews ? summary.average : 0} />
-          <span className="text-sm text-muted">
+          <span {...stylex.props(styles.count)}>
             {hasReviews
               ? `Based on ${summary.total} reviews`
               : 'No reviews yet'}
@@ -38,7 +83,7 @@ export const ReviewSummary = ({
         </div>
       </div>
 
-      <div className="w-full">
+      <div {...stylex.props(styles.bands)}>
         <RatingBands
           distribution={summary.distribution}
           total={summary.total}
@@ -47,20 +92,18 @@ export const ReviewSummary = ({
         />
       </div>
 
-      <div className="flex w-full items-center justify-center gap-6">
+      <div {...stylex.props(styles.actions)}>
         {activeRating !== null && (
           <ClearFilterButton
             onClick={onClearFilter}
-            className="flex-1 whitespace-nowrap px-5 py-3"
+            style={[styles.action, styles.clearFilter]}
           />
         )}
         <Button
           variant="secondary"
           size="lg"
           disabled
-          className={
-            activeRating !== null ? 'flex-1 whitespace-nowrap' : undefined
-          }
+          style={activeRating !== null && styles.action}
         >
           Write a review
         </Button>

@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import * as stylex from '@stylexjs/stylex';
 import { useState } from 'react';
 import { fn } from 'storybook/test';
+import { colors } from '@/shared/ui/tokens.stylex';
 import { Tabs, type TTabsProps, tabButtonId, tabPanelId } from './Tabs';
 
 const meta = {
@@ -11,6 +13,10 @@ const meta = {
 
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+const styles = stylex.create({
+  panel: { padding: '1rem', color: colors.muted },
+});
 
 const tabs = [
   { id: 'sustainability', label: 'Sustainability' },
@@ -38,7 +44,7 @@ const ControlledTabs = (args: TTabsProps) => {
           role="tabpanel"
           aria-labelledby={tabButtonId(args.idPrefix, tab.id)}
           hidden={tab.id !== activeId}
-          className="p-4 text-muted"
+          {...stylex.props(styles.panel)}
         >
           {tab.label} content
         </div>

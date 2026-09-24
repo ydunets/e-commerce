@@ -7,6 +7,7 @@ test.describe('Storefront Surfaces', () => {
     page,
   }) => {
     await gotoHydrated(PRODUCT.path);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(
       page.getByRole('heading', { name: 'Care and materials' }),
     ).toHaveCount(0);
@@ -14,7 +15,9 @@ test.describe('Storefront Surfaces', () => {
       page.getByRole('link', { name: 'Download specification sheet' }),
     ).toHaveCount(0);
     await page.getByRole('button', { name: /reviews/ }).click();
-    const dialog = page.getByRole('dialog');
+    const dialog = page.getByRole('dialog', {
+      name: `Reviews for ${PRODUCT.name}`,
+    });
     await expect(
       dialog.getByRole('heading', { name: 'Overall Rating' }),
     ).toBeVisible();
@@ -30,8 +33,11 @@ test.describe('Storefront Surfaces', () => {
   }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await gotoHydrated(PRODUCT.path);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
     await page.getByRole('button', { name: /reviews/ }).click();
-    const dialog = page.getByRole('dialog');
+    const dialog = page.getByRole('dialog', {
+      name: `Reviews for ${PRODUCT.name}`,
+    });
     const writeReview = dialog.getByRole('button', { name: 'Write a review' });
     const firstReview = dialog.getByRole('article').first();
     await expect(writeReview).toBeVisible();
@@ -45,6 +51,7 @@ test.describe('Storefront Surfaces', () => {
     );
     await page.keyboard.press('Escape');
     await expect(dialog).not.toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
   });
 
   test.describe('the cookie banner', () => {
